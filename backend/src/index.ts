@@ -2,7 +2,12 @@ import express from "express";
 const app = express();
 import { Server } from "socket.io";
 import { createServer } from "http";
+
+import { ExpressPeerServer } from "peer";
 const server = createServer(app);
+//const server = app.listen(3001);
+const peerServer = ExpressPeerServer(server);
+//const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
@@ -11,7 +16,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hej!");
 });
 
 io.on("connection", (socket: any) => {
@@ -24,6 +29,8 @@ io.on("connection", (socket: any) => {
     io.emit("chat message", msg);
   });
 });
+
+app.use("/peersjs", peerServer);
 
 const port = process.env.PORT || 3001;
 
