@@ -1,9 +1,8 @@
 import express from "express";
 const app = express();
-import { Server } from "socket.io";
-import {createServer} from "http";
+import { Server } from "socket.io";
+import { createServer } from "http";
 const server = createServer(app);
-
 
 const io = new Server(server);
 
@@ -18,6 +17,8 @@ io.on("connection", (socket: any) => {
   });
 });
 
-server.listen(3001, () => {
-  console.log("listening on *:3000");
+const port = process.env.PORT || 3001;
+
+server.listen(port, () => {
+  console.log(`Server running on  https://localhost:${port}`);
 });
