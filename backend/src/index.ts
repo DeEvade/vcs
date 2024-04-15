@@ -4,7 +4,15 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 const server = createServer(app);
 
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 io.on("connection", (socket: any) => {
   console.log("a user connected");
