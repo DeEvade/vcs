@@ -8,7 +8,7 @@ export class RoleFrequency extends BaseEntity {
     Order: number;
 
 
-    @ManyToOne(type => Role, roles => roles.rolefrequency) roles: Role;
-    @ManyToOne(type => Frequency, frequencies => frequencies.rolefrequency) frequencies: Frequency
+    @ManyToOne(type => Role, role => role.roleFrequency) role: Role;
+    @ManyToOne(type => Frequency, frequency => frequency.roleFrequency) frequency: Frequency
 
 }

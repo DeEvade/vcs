@@ -5,7 +5,7 @@ const app = express();
 
 import { Server } from "socket.io";
 import { createServer } from "http";
-
+import createDefaultConfig from "./database/createDefaultConfig";
 
 import { DataSource } from "typeorm"
 import { Configuration } from "./database/entities/Configuration";
@@ -15,8 +15,21 @@ import { AppDataSource } from "./database/data-source";
 
 
 AppDataSource.initialize()
-  .then(() => {
+  .then(async () => {
     console.log("Data Source has been initialized!")
+    //Check if default config exists
+    try {
+      const configs = await AppDataSource.getRepository(Configuration).find();
+      if (configs.length == 0) {
+        await createDefaultConfig(AppDataSource);
+
+      }
+    } catch (error) {
+      console.log("Error during default configuration creation", error);
+
+    }
+
+
   })
   .catch((err: any) => {
     console.error("Error during Data Source initialization", err)
