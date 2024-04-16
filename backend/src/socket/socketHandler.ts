@@ -3,6 +3,7 @@ import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
 import { Frequency } from "../database/entities/Frequency";
+import { RoleFrequency } from "../database/entities/RoleFrequency";
 
 const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
   socket.on("getConfig", async () => {
@@ -14,7 +15,7 @@ const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
       
      // const roles = await roleRepository.find({relations: ["Frequency"]});
 
-      const configs = await configRepository.find({relations: ["Role", "Frequency"]});
+      const configs = await configRepository.find({relations: {frequencies: {roleFrequency: true }}});
       socket.emit("configdata", configs);
     } catch (error) {
       console.log("Error during default configuration creation", error);
