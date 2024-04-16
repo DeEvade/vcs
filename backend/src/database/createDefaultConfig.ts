@@ -38,6 +38,12 @@ export default async function createDefaultConfig(dataSource: DataSource) {
     configuration: config,
   });
 
+  const pilot = await roleRepo.save({
+    name: "Pilot",
+    type: "pilot",
+    configuration: config,
+  });
+
   const F1 = await frequencyRepo.save({
     frequency: "118.505",
     configuration: config,
@@ -55,36 +61,31 @@ export default async function createDefaultConfig(dataSource: DataSource) {
     configuration: config,
   });
 
-  await roleFrequencyRepo.save({ role: ATC1, frequency: F4, order: 1 });
-  await roleFrequencyRepo.save({ role: ATC1, frequency: F2, order: 2 });
-  await roleFrequencyRepo.save({ role: ATC1, frequency: F3, order: 3 });
-  await roleFrequencyRepo.save({ role: ATC1, frequency: F1, order: 4 });
+  await roleFrequencyRepo.save({ role: pilot, frequency: F4, order: 1 });
+  await roleFrequencyRepo.save({ role: pilot, frequency: F2, order: 2 });
+  await roleFrequencyRepo.save({ role: pilot, frequency: F3, order: 3 });
+  await roleFrequencyRepo.save({ role: pilot, frequency: F1, order: 4 });
+
 
   await roleFrequencyRepo.save({ role: ATC1, frequency: F4, order: 1 });
   await roleFrequencyRepo.save({ role: ATC1, frequency: F2, order: 2 });
   await roleFrequencyRepo.save({ role: ATC1, frequency: F3, order: 3 });
   await roleFrequencyRepo.save({ role: ATC1, frequency: F1, order: 4 });
+
+  await roleFrequencyRepo.save({ role: ATC2, frequency: F2, order: 1 });
+  await roleFrequencyRepo.save({ role: ATC2, frequency: F4, order: 2 });
+  await roleFrequencyRepo.save({ role: ATC2, frequency: F3, order: 3 });
+  await roleFrequencyRepo.save({ role: ATC2, frequency: F1, order: 4 });
+
+  await roleFrequencyRepo.save({ role: ATC3, frequency: F3, order: 2 });
+  await roleFrequencyRepo.save({ role: ATC3, frequency: F1, order: 3 });
+  await roleFrequencyRepo.save({ role: ATC3, frequency: F4, order: 4 });
+
+  await roleFrequencyRepo.save({ role: ATC4, frequency: F3, order: 1 });
+  await roleFrequencyRepo.save({ role: ATC4, frequency: F1, order: 3 });
+  await roleFrequencyRepo.save({ role: ATC4, frequency: F4, order: 4 });
+
+  await roleFrequencyRepo.save({ role: ATC5, frequency: F1, order: 1 });
+  await roleFrequencyRepo.save({ role: ATC5, frequency: F3, order: 2 });
 }
 
-/*
-const initialRoles: Role[] = [
-    { name: 'OS DIR-E', primaryFrequency: '120.505' },
-    { name: 'OS ARR-E', primaryFrequency: '126.655' },
-    { name: 'OS APP-C', primaryFrequency: '' },
-    { name: 'OS P3', primaryFrequency: '131.130' },
-    { name: 'SA TWR W', primaryFrequency: '118.505' },
-    // Add more as needed
-]
-
-
-// Some hardcoded frequencies
-const initialFrequencies: Frequency[] = [
-    { id: 1, frequency: '118.505', label: 'SA TWR W' },
-    { id: 2, frequency: '126.655', label: 'OS ARR-E' },
-    { id: 3, frequency: '131.130', label: 'OS P3' },
-    { id: 4, frequency: '120.505', label: 'OS DIR-E' },
-    // Add more as needed
-]
-
-
-*/

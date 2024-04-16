@@ -11,6 +11,7 @@ interface AppConfigContextType {
     // Add other settings as needed
 }
 
+
 // Create the context with an initial empty state
 const AppConfigContext = createContext<AppConfigContextType | undefined>(undefined)
 

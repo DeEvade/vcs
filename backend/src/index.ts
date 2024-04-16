@@ -12,6 +12,7 @@ import { Configuration } from "./database/entities/Configuration";
 import { Frequency } from "./database/entities/Frequency";
 import { Role } from "./database/entities/Role";
 import { AppDataSource } from "./database/data-source";
+import socketHandler from "./socket/socketHandler";
 
 
 AppDataSource.initialize()
@@ -51,11 +52,15 @@ app.get("/", (req: any, res: any) => {
 
 const server = createServer(app);
 
+
 const io = new Server(server, {
   cors: {
     origin: "*",
   },
 });
+
+socketHandler(io, AppDataSource);
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
