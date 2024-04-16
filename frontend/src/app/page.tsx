@@ -10,12 +10,15 @@ import { useAppConfig } from "@/contexts/AppConfigContext";
 import "./globals.css";
 import io from "socket.io-client";
 
+import { observable, configure } from "mobx";
+import { model as baseModel } from "../models/Model";
+import App from "./app";
 const Page: React.FC = () => {
-  const { selectedRole, setSelectedRole } = useAppConfig();
+  //Bootstrap application-level state
+  configure({ enforceActions: "never" });
+  const model = observable(baseModel);
 
-  const onSelectRole = () => {
-    // implement logic to make a coordination call
-  };
+  return <App model={model} />;
 
   //Connnect to socket server
   useEffect(() => {
@@ -28,23 +31,6 @@ const Page: React.FC = () => {
       console.log("disconnected from socket server");
     });
   }, []);
-
-  return (
-    <Flex direction="column" minH="100vh">
-      <Header />
-      <Flex flex="1" direction={{ base: "column", md: "row" }}>
-        <Box w={{ base: "100%", lg: "66%" }} p={2}>
-          <FrequenciesGrid />
-        </Box>
-        <Box w={{ base: "100%", lg: "33%" }} p={2}>
-          <RolesGrid onSelectRole={onSelectRole} />
-        </Box>
-      </Flex>
-      <Footer />
-      {/* Conditionally render RoleSelectionModal */}
-      {!selectedRole && <RoleSelectionModal isOpen={true} onClose={() => {}} />}
-    </Flex>
-  );
 };
 
 export default Page;
