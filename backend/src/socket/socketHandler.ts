@@ -11,12 +11,16 @@ const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
 
     try {
       const configRepository = AppDataSource.getRepository(Configuration);
-      //const freqRepository = AppDataSource.getRepository(Frequency);
-      
-     // const roles = await roleRepository.find({relations: ["Frequency"]});
+      const freqRepository = AppDataSource.getRepository(Frequency);
+      const roleRepository = AppDataSource.getRepository(Role);
+      const roleFreqRepository = AppDataSource.getRepository(RoleFrequency);
 
-      const configs = await configRepository.find({relations: {frequencies: {roleFrequency: true }}});
-      socket.emit("configdata", configs);
+      const roleFreq = await roleRepository.createQueryBuilder("role")
+      .innerJoin(RoleFrequency, "roleFrequency", "role.id = roleFrequency.roles")
+      .innerJoin(Frequency, "frequencies", "roleFrequency.frequencies = frequencies.id")
+      .getRawMany();
+
+      socket.emit("configdata", roleFreq);
     } catch (error) {
       console.log("Error during default configuration creation", error);
       socket.emit("error", "Failed to fetch configuration data");
