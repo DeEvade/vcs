@@ -14,16 +14,16 @@ export default async function createDefaultConfig(dataSource: DataSource) {
     const config = await configRepo.save({ name: 'Default config' });
 
 
-    const ATC1 = await roleRepo.save({ name: 'OS DIR-E', type: 'ATC', config: config })
-    const ATC2 = await roleRepo.save({ name: 'OS ARR-E', type: 'ATC', config: config })
-    const ATC3 = await roleRepo.save({ name: 'OS APP-C', type: 'ATC', config: config })
-    const ATC4 = await roleRepo.save({ name: 'OS P3', type: 'ATC', config: config })
-    const ATC5 = await roleRepo.save({ name: 'SA TWR W', type: 'ATC', config: config })
+    const ATC1 = await roleRepo.save({ name: 'OS DIR-E', type: 'ATC', config: config.id })
+    const ATC2 = await roleRepo.save({ name: 'OS ARR-E', type: 'ATC', config: config.id })
+    const ATC3 = await roleRepo.save({ name: 'OS APP-C', type: 'ATC', config: config.id })
+    const ATC4 = await roleRepo.save({ name: 'OS P3', type: 'ATC', config: config.id })
+    const ATC5 = await roleRepo.save({ name: 'SA TWR W', type: 'ATC', config: config.id })
 
-    const F1 = await frequencyRepo.save({ frequency: '118.505', config: config })
-    const F2 = await frequencyRepo.save({ frequency: '126.655', config: config })
-    const F3 = await frequencyRepo.save({ frequency: '131.130', config: config })
-    const F4 = await frequencyRepo.save({ frequency: '120.505', config: config })
+    const F1 = await frequencyRepo.save({ frequency: '118.505', config: config.id })
+    const F2 = await frequencyRepo.save({ frequency: '126.655', config: config.id })
+    const F3 = await frequencyRepo.save({ frequency: '131.130', config: config.id })
+    const F4 = await frequencyRepo.save({ frequency: '120.505', config: config.id })
 
     const RFFR1 = await roleFrequencyRepo.save({ role: ATC1, frequency: F4, order: 1 })
     const RFFR2 = await roleFrequencyRepo.save({ role: ATC2, frequency: F2, order: 2 })
