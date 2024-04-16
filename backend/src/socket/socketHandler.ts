@@ -17,15 +17,15 @@ const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
 
       const roleFreq = await roleRepository
         .createQueryBuilder("role")
-        .innerJoin(
+        .innerJoinAndSelect(
           RoleFrequency,
           "roleFrequency",
-          "role.id = roleFrequency.roles"
+          "role.roleFrequency = roleFrequency.roles"
         )
-        .innerJoin(
+        .innerJoinAndSelect(
           Frequency,
           "frequencies",
-          "roleFrequency.frequencies = frequencies.id"
+          "roleFrequency.frequencies = frequencies.roleFrequency"
         )
         .getRawMany();
 
