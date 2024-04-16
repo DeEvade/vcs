@@ -1,11 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, PrimaryColumn } from "typeorm";
 import { Frequency } from "./Frequency";
 import { Role } from "./Role";
 
 @Entity()
 export class RoleFrequency extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
     @Column()
-    Order: number;
+    order: number;
+
+    
 
 
     @ManyToOne(type => Role, role => role.roleFrequency) role: Role;

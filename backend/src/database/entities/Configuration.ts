@@ -10,7 +10,7 @@ export class Configuration extends BaseEntity {
     @Column()
     name: string;
 
-    @OneToMany(type => Frequency, frequency => frequency.configuration) frequency: Frequency[];
+    @OneToMany(type => Frequency, frequency => frequency.configuration) frequencies: Frequency[];
 
     @OneToMany(type => Role, role => role.configuration) roles: Configuration[];
 }

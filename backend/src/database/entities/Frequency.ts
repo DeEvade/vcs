@@ -10,6 +10,6 @@ export class Frequency extends BaseEntity {
     @Column()
     frequency: String;
 
-    @ManyToOne(type => Configuration, configuration => configuration.frequency) configuration: Configuration;
+    @ManyToOne(type => Configuration, configuration => configuration.frequencies) configuration: Configuration;
     @OneToMany(type => RoleFrequency, roleFrequency => roleFrequency.frequency) roleFrequency: RoleFrequency
 }
