@@ -15,10 +15,19 @@ const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
       const roleRepository = AppDataSource.getRepository(Role);
       const roleFreqRepository = AppDataSource.getRepository(RoleFrequency);
 
-      const roleFreq = await roleRepository.createQueryBuilder("role")
-      .innerJoin(RoleFrequency, "roleFrequency", "role.id = roleFrequency.roles")
-      .innerJoin(Frequency, "frequencies", "roleFrequency.frequencies = frequencies.id")
-      .getRawMany();
+      const roleFreq = await roleRepository
+        .createQueryBuilder("role")
+        .innerJoin(
+          RoleFrequency,
+          "roleFrequency",
+          "role.id = roleFrequency.roles"
+        )
+        .innerJoin(
+          Frequency,
+          "frequencies",
+          "roleFrequency.frequencies = frequencies.id"
+        )
+        .getRawMany();
 
       socket.emit("configdata", roleFreq);
     } catch (error) {
