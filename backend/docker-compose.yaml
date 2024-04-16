@@ -15,7 +15,7 @@ services:
       DB_HOST: vcs-db
       DB_NAME: vcs
       DB_USERNAME: postgres
-      DB_PORT: 5431
+      DB_PORT: 5432
       DB_PASSWORD: password
       SERVER_PORT: 8080
     ports:
@@ -29,7 +29,7 @@ services:
     image: postgres
     container_name: vcs-db
     environment:
-      PGPORT: 5431
+      PGPORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_DB: vcs
       POSTGRES_PASSWORD: password
@@ -39,5 +39,4 @@ services:
       timeout: 10s
       retries: 5
     ports:
-      - "5431:5431"
-
+      - "5432:5432"
