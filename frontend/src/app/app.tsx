@@ -22,20 +22,17 @@ const App = observer(function (props: Props) {
 
   return (
     <Flex direction="column" minH="100vh">
-      <Header />
+      <Header model={model} />
       <Flex flex="1" direction={{ base: "column", md: "row" }}>
         <Box w={{ base: "100%", lg: "66%" }} p={2}>
-          <FrequenciesGrid />
+          <FrequenciesGrid model={model} />
         </Box>
         <Box w={{ base: "100%", lg: "33%" }} p={2}>
           <RolesGrid onSelectRole={onSelectRole} />
         </Box>
       </Flex>
       <Footer />
-      {/* Conditionally render RoleSelectionModal */}
-      {!model.selectedRole && (
-        <RoleSelectionModal isOpen={true} onClose={() => {}} />
-      )}
+      <RoleSelectionModal model={model} isOpen={model.openRoleModal} />
     </Flex>
   );
 });
