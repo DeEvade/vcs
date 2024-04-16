@@ -6,7 +6,6 @@ import Footer from "../components/Footer";
 import FrequenciesGrid from "@/components/FrequenciesGrid";
 import RolesGrid from "../components/RolesGrid";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import "./globals.css";
 import io from "socket.io-client";
 

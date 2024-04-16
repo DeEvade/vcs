@@ -10,7 +10,6 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { usePTT } from "../contexts/PTTContext";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 

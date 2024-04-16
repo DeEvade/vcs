@@ -11,7 +11,6 @@ import {
   VStack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import RolesGrid from "./RolesGrid";
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
@@ -54,7 +53,7 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
     return (
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => {}}
         isCentered
         motionPreset="slideInBottom"
       >

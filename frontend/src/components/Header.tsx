@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Text, Box, useColorMode, Button } from "@chakra-ui/react";
 import ConfigMenu from "./ConfigMenu"; // Ensure the path is correct
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
 

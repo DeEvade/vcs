@@ -20,7 +20,6 @@ import {
 import { SettingsIcon } from "@chakra-ui/icons";
 import { MdGraphicEq } from "react-icons/md";
 import { usePTT } from "../contexts/PTTContext";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
 

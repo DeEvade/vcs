@@ -16,8 +16,8 @@ interface Props {
 }
 const App = observer(function (props: Props) {
   const { model } = props;
-  const onSelectRole = (role: string) => {
-    model.setSelectedRole(role);
+  const onMakeCall = (role: string) => {
+    //Make call to selected role
   };
 
   return (
@@ -28,7 +28,7 @@ const App = observer(function (props: Props) {
           <FrequenciesGrid model={model} />
         </Box>
         <Box w={{ base: "100%", lg: "33%" }} p={2}>
-          <RolesGrid onSelectRole={onSelectRole} />
+          <RolesGrid onSelectRole={onMakeCall} />
         </Box>
       </Flex>
       <Footer />
