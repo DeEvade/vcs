@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne, OneToMany } from "typeorm";
 import { Frequency } from "./Frequency";
 import { Configuration } from "./Configuration"
+import { RoleFrequency } from "./RoleFrequency";
 
 @Entity()
 export class Role extends BaseEntity {
@@ -17,5 +18,7 @@ export class Role extends BaseEntity {
 
     @ManyToMany(type => Frequency) @JoinTable()
     frequencies: Frequency[];
+
+    @OneToMany(type => RoleFrequency, rolefrequency => rolefrequency.roles) rolefrequency: RoleFrequency;
 
 }
