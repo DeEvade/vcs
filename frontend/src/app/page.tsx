@@ -26,23 +26,6 @@ const Page: React.FC = () => {
       <App model={model} />
     </div>
   );
-  const { selectedRole, setSelectedRole } = useAppConfig();
-
-  const onSelectRole = () => {
-    // implement logic to make a coordination call
-  };
-
-  //Connnect to socket server
-  useEffect(() => {
-    const socket = io.connect("localhost:3001");
-    socket.on("connect", () => {
-      console.log("connected to socket server");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("disconnected from socket server");
-    });
-  }, []);
 };
 
 export default Page;
