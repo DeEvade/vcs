@@ -2,12 +2,15 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
+    "strict": false,
     "target": "es6",
     "noImplicitAny": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]

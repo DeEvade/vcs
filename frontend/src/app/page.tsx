@@ -6,14 +6,29 @@ import Footer from "../components/Footer";
 import FrequenciesGrid from "@/components/FrequenciesGrid";
 import RolesGrid from "../components/RolesGrid";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import "./globals.css";
+import io from "socket.io-client";
+import toast, { Toaster } from "react-hot-toast";
 import { Socket } from "socket.io-client"; // Import Socket type from socket.io-client 
 import * as io from "socket.io-client";
 import { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
 import { Peer } from "peerjs";
 
+import { observable, configure } from "mobx";
+import { model as baseModel } from "../models/Model";
+import App from "./app";
 const Page: React.FC = () => {
+  //Bootstrap application-level state
+  configure({ enforceActions: "never" });
+  const model = observable(baseModel);
+
+  return (
+    <div>
+      <Toaster />
+
+      <App model={model} />
+    </div>
+  );
   const { selectedRole, setSelectedRole } = useAppConfig();
 
   const onSelectRole = () => {
@@ -35,24 +50,6 @@ const Page: React.FC = () => {
 
 
   }, []);
-
-
-  return (
-    <Flex direction="column" minH="100vh">
-      <Header />
-      <Flex flex="1" direction={{ base: "column", md: "row" }}>
-        <Box w={{ base: "100%", lg: "66%" }} p={2}>
-          <FrequenciesGrid />
-        </Box>
-        <Box w={{ base: "100%", lg: "33%" }} p={2}>
-          <RolesGrid onSelectRole={onSelectRole} />
-        </Box>
-      </Flex>
-      <Footer />
-      {/* Conditionally render RoleSelectionModal */}
-      {!selectedRole && <RoleSelectionModal isOpen={true} onClose={() => {}} />}
-    </Flex>
-  );
 };
 
 export default Page;

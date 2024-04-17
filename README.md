@@ -6,12 +6,16 @@ The app is split into different components under the src/components directory. T
 
 ## Prerequisites
 
--   **Git**: [https://git-scm.com/downloads](https://git-scm.com/downloads)
--   **Node Version Manager (nvm)**: Helps to manage and switch between multiple Node.js versions easily. Install nvm by following the instructions on [nvm GitHub repository](https://github.com/nvm-sh/nvm).
+- **Git**: [https://git-scm.com/downloads](https://git-scm.com/downloads)
+- **Node Version Manager (nvm)**: Helps to manage and switch between multiple Node.js versions easily. Install nvm by following the instructions on [nvm GitHub repository](https://github.com/nvm-sh/nvm).
 
--   **Node.js**: Version 18.x is required for this project.
+- **Node.js**: Version 18.x is required for this project.
 
 ## Getting started
+
+### compose:
+
+docker compose up --build --force-recreate --no-deps --remove-orphans --renew-anon-volumes
 
 1.  **Clone the repository and move into the folder:**
 
@@ -53,20 +57,20 @@ To ensure code consistency, a .prettierrc file is included. To set up VS Code to
 
 ```json
 {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "[javascript]": {
-        "editor.formatOnSave": true
-    },
-    "[typescript]": {
-        "editor.formatOnSave": true
-    },
-    "[javascriptreact]": {
-        "editor.formatOnSave": true
-    },
-    "[typescriptreact]": {
-        "editor.formatOnSave": true
-    }
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  }
 }
 ```
 
@@ -74,6 +78,6 @@ To ensure code consistency, a .prettierrc file is included. To set up VS Code to
 
 ## Learn More about Next and React
 
--   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
--   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
--   [About React contexts for component information sharing](https://react.dev/learn/passing-data-deeply-with-context) - Information about React context used e.g. for the "push to talk" state.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [About React contexts for component information sharing](https://react.dev/learn/passing-data-deeply-with-context) - Information about React context used e.g. for the "push to talk" state.
