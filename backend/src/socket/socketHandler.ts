@@ -20,12 +20,12 @@ const socketHandler = (socket: Socket, AppDataSource: DataSource) => {
         .innerJoinAndSelect(
           RoleFrequency,
           "roleFrequency",
-          "role.roleFrequency = roleFrequency.roles"
+          "role.id = roleFrequency.roles"
         )
         .innerJoinAndSelect(
           Frequency,
           "frequencies",
-          "roleFrequency.frequencies = frequencies.roleFrequency"
+          "roleFrequency.frequencies = frequencies.id"
         )
         .getRawMany();
 
