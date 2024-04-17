@@ -66,6 +66,7 @@ const Header = observer(function (props: Props) {
         <Flex>
           <UtcClock /> {/* UtcClock with separator */}
           <Text
+            marginLeft={4}
             fontSize="lg"
             fontWeight="bold"
             maxWidth={100}

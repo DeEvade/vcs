@@ -10,10 +10,12 @@ import {
   HStack,
   VStack,
   useColorModeValue,
+  Spinner,
 } from "@chakra-ui/react";
 import RolesGrid from "./RolesGrid";
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
+import { Role } from "@/types";
 
 interface RoleSelectionModalProps {
   isOpen: boolean;
@@ -36,8 +38,8 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
       setAtcoSelected(true);
     };
 
-    const handlePilotSelection = () => {
-      setSelectedRole("PILOT");
+    const handlePilotSelection = (role: Role) => {
+      setSelectedRole(role.name);
       onClose();
     };
 
@@ -71,18 +73,36 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
           <ModalBody>
             <VStack spacing={4}>
               <HStack spacing={4} marginBottom="2rem">
-                <Button
-                  colorScheme={atcoSelected ? atcoButtonColor : undefined}
-                  onClick={handleATCOSelection}
-                  w="6rem"
-                  h="4rem"
-                  p={2}
-                >
-                  ATCO
-                </Button>
-                <Button w="6rem" h="4rem" p={2} onClick={handlePilotSelection}>
-                  PILOT
-                </Button>
+                {model.configuration == null ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Button
+                      colorScheme={atcoSelected ? atcoButtonColor : undefined}
+                      onClick={handleATCOSelection}
+                      w="6rem"
+                      h="4rem"
+                      p={2}
+                    >
+                      ATCO
+                    </Button>
+                    {model.configuration.roles
+                      .filter((role) => role.type === "pilot")
+                      .map((role) => (
+                        <Button
+                          key={role.id}
+                          w="6rem"
+                          h="4rem"
+                          p={2}
+                          onClick={() => {
+                            handlePilotSelection(role);
+                          }}
+                        >
+                          {role.name}
+                        </Button>
+                      ))}
+                  </>
+                )}
               </HStack>
             </VStack>
             {atcoSelected && (

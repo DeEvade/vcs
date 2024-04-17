@@ -12,6 +12,7 @@ import RolesGrid from "../components/RolesGrid";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
 import "./globals.css";
 import SocketHandler from "@/components/SocketHandler";
+import CommunicationsHandler from "@/components/CommuncationsHandler";
 interface Props {
   model: typeof model;
 }
@@ -31,6 +32,7 @@ const App = observer(function (props: Props) {
   return (
     <Flex direction="column" minH="100vh">
       <SocketHandler model={model} />
+      <CommunicationsHandler model={model} />
       <Header model={model} />
       <Flex flex="1" direction={{ base: "column", md: "row" }}>
         <Box w={{ base: "100%", lg: "66%" }} p={2}>

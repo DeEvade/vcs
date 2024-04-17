@@ -52,19 +52,7 @@ const io = new Server(server, {
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
-
-io.on("connection", (socket: Socket) => {
-  console.log("a user connected");
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-  socketHandler(socket, AppDataSource);
-
-  socket.on("chat message", (msg: string) => {
-    console.log("message: " + msg);
-    io.emit("chat message", msg);
-  });
-});
+socketHandler(io, AppDataSource);
 
 const port = process.env.SERVER_PORT || 3001;
 
