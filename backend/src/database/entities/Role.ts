@@ -26,10 +26,6 @@ export class Role extends BaseEntity {
   @ManyToOne((type) => Configuration, (configuration) => configuration.roles)
   configuration: Configuration;
 
-  @ManyToMany((type) => Frequency)
-  @JoinTable()
-  frequencies: Frequency[];
-
   @OneToMany((type) => RoleFrequency, (roleFrequency) => roleFrequency.roles)
   roleFrequency: RoleFrequency;
 }
