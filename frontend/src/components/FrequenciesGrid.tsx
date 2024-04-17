@@ -1,20 +1,20 @@
 // src/components/FrequenciesGrid.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SimpleGrid } from "@chakra-ui/react";
 import FrequencyCard from "./FrequencyCard";
-import { Frequency, FrequencyState } from "../types";
+import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 
 // Some hardcoded frequencies
-const initialFrequencies: Frequency[] = [
+/*const initialFrequencies: Frequency[] = [
   { id: 1, frequency: "118.505", label: "SA TWR W" },
   { id: 2, frequency: "126.655", label: "OS ARR-E" },
   { id: 3, frequency: "131.130", label: "OS P3" },
   { id: 4, frequency: "120.505", label: "OS DIR-E" },
   // Add more as needed
-];
+];*/
 
 interface Props {
   model: typeof baseModel;
@@ -22,24 +22,69 @@ interface Props {
 
 const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const { model } = props;
-  const initialState: FrequencyState = initialFrequencies.reduce(
-    (acc, { id }) => ({
-      ...acc,
-      [id]: { RX: false, TX: false, XC: false },
-    }),
-    {}
+
+  const [selectedRoleObject, setSelectedRoleObject] = useState<Role | null>(
+    null
   );
 
-  const [frequencyStates, setFrequencyStates] =
-    useState<FrequencyState>(initialState);
+  useEffect(() => {
+    console.log("selected role object: ");
+    const selectedRoleObject = model.getSelectedRoleObject();
+    console.log("selected role object: ", selectedRoleObject);
+
+    setSelectedRoleObject(selectedRoleObject);
+  }, [model.selectedRole]);
+
+  if (selectedRoleObject === null) {
+    //TODO fix this
+    return <>Awaiting role select</>;
+  }
+
+  const unorderedFrequencies: Frequency[] = selectedRoleObject.frequencies;
+  const frequencies: Frequency[] = unorderedFrequencies
+    .slice()
+    .sort((a, b) => a.order - b.order);
 
   const handleToggle = (id: number, type: "RX" | "TX" | "XC") => {
-    // Directly toggle the specified type without assuming RX/TX dependencies here
-    // Let FrequencyCard handle the specifics of those dependencies
-    setFrequencyStates((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], [type]: !prev[id][type] },
-    }));
+    switch (type) {
+      case "RX":
+        if (model.RXFrequencies.includes(id)) {
+          //Remove from RX array
+          model.RXFrequencies = model.RXFrequencies.filter(
+            (value) => value !== id
+          );
+        } else {
+          //Add to RX array
+          model.RXFrequencies.push(id);
+        }
+        break;
+      case "TX":
+        if (model.TXFrequencies.includes(id)) {
+          //Remove from TX array
+          model.TXFrequencies = model.TXFrequencies.filter(
+            (value) => value !== id
+          );
+        } else {
+          //Add to TX array
+          model.TXFrequencies.push(id);
+        }
+        break;
+
+      case "XC":
+        if (model.XCFrequencies.includes(id)) {
+          //Remove from XC array
+          model.XCFrequencies = model.XCFrequencies.filter(
+            (value) => value !== id
+          );
+        } else {
+          //Add to XC array
+          model.XCFrequencies.push(id);
+        }
+        break;
+
+      default:
+        break;
+    }
   };
 
   return (
@@ -49,11 +94,10 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
       minChildWidth="16rem"
       margin="1rem"
     >
-      {initialFrequencies.map((frequency) => (
+      {frequencies.map((frequency) => (
         <FrequencyCard
           key={frequency.id}
           frequency={frequency}
-          frequencyState={frequencyStates[frequency.id]}
           onToggle={handleToggle}
           model={model}
         />

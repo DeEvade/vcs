@@ -12,29 +12,16 @@ import {
 import { usePTT } from "../contexts/PTTContext";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
-
-interface Frequency {
-  id: number;
-  frequency: string;
-  label: string;
-}
-
-interface FrequencyState {
-  RX: boolean;
-  TX: boolean;
-  XC: boolean;
-}
+import { Frequency } from "@/types";
 
 interface Props {
   frequency: Frequency;
-  frequencyState: FrequencyState;
   onToggle: (id: number, type: "RX" | "TX" | "XC") => void;
   model: typeof baseModel;
 }
 
 const FrequencyCard: React.FC<Props> = observer(function ({
   frequency,
-  frequencyState,
   onToggle,
   model,
 }) {
@@ -42,6 +29,26 @@ const FrequencyCard: React.FC<Props> = observer(function ({
   const bgColor = colorMode === "light" ? "gray.200" : "gray.800";
   const { pttActive } = usePTT();
   const easyMode = model.easyMode;
+
+  const frequencyState = model.getFrequencyState(frequency.id);
+
+  //kolla varje rolls första order och visa den
+
+  const getFrequencyLabel = (id: number): string => {
+    let name = "empty";
+    model.configuration?.roles.forEach((role) => {
+      role.frequencies.forEach((frequency) => {
+        if (frequency.id === id && frequency.order === 1) {
+          console.log("role name: ", role.name);
+          return (name = role.name);
+        }
+      });
+    });
+    return name;
+  };
+
+  const frequencyLabel = getFrequencyLabel(frequency.id);
+
   const handleToggle = (type: "RX" | "TX" | "XC") => {
     if (type === "RX") {
       // If RX is active and TX is also active, deactivate both.
@@ -96,13 +103,16 @@ const FrequencyCard: React.FC<Props> = observer(function ({
         gap={1}
       >
         <GridItem colSpan={1}>
-          <Text fontSize="xl">{frequency.frequency}</Text>
+          <Text fontSize="xl">
+            {frequency.frequency +
+              (easyMode && frequency.order === 1 ? "(u)" : "")}
+          </Text>
           <Text
             fontSize="sm"
             minHeight="20px"
             style={{ visibility: easyMode ? "visible" : "hidden" }}
           >
-            {frequency.label}
+            {frequencyLabel ? frequencyLabel : ""}
           </Text>
         </GridItem>
 

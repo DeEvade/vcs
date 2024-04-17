@@ -1,10 +1,52 @@
+import { Configuration, Role } from "@/types";
+import { Socket } from "socket.io-client";
+
 export const model = {
+  configuration: null as Configuration | null,
   selectedRole: null as string | null,
   openRoleModal: true as boolean,
 
   easyMode: false as boolean,
   radioGain: 100 as number,
   PTTKey: "Space" as string,
+
+  socket: {
+    connected: false,
+    io: null as Socket | null,
+  },
+
+  RXFrequencies: [] as number[],
+  TXFrequencies: [] as number[],
+  XCFrequencies: [] as number[],
+
+  getFrequencyState: function (frequency: number) {
+    return {
+      RX: this.RXFrequencies.includes(frequency),
+      TX: this.TXFrequencies.includes(frequency),
+      XC: this.XCFrequencies.includes(frequency),
+    };
+  },
+
+  getSelectedRoleObject: function (): Role | null {
+    if (!this.configuration || !this.selectedRole) {
+      return null;
+    }
+
+    console.log(this.configuration.roles);
+
+    return (
+      this.configuration.roles.find(
+        (role) => role.name === this.selectedRole
+      ) ?? null
+    );
+  },
+
+  fetchConfiguration: function () {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("getCurrentConfig");
+  },
 
   setPTTKey: function (key: string) {
     this.PTTKey = key;

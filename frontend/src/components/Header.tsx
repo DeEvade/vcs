@@ -59,11 +59,23 @@ const Header = observer(function (props: Props) {
     model.setSelectedRole("");
     model.setOpenRoleModal(true);
   };
-
+  const connected = model.socket.connected;
   return (
     <Box bg={bgColor} px={4}>
       <Flex h={16} alignItems="center" justifyContent="space-between">
-        <UtcClock /> {/* UtcClock with separator */}
+        <Flex>
+          <UtcClock /> {/* UtcClock with separator */}
+          <Text
+            fontSize="lg"
+            fontWeight="bold"
+            maxWidth={100}
+            flex={0}
+            color={connected ? "green.500" : "red.500"}
+          >
+            {connected ? "Online" : "Offline"}
+          </Text>
+        </Flex>
+
         <Button onClick={resetSelectedRole}>{selectedRole}</Button>
         <ConfigMenu model={model} />
       </Flex>

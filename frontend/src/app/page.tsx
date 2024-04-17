@@ -8,6 +8,7 @@ import RolesGrid from "../components/RolesGrid";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
 import "./globals.css";
 import io from "socket.io-client";
+import toast, { Toaster } from "react-hot-toast";
 
 import { observable, configure } from "mobx";
 import { model as baseModel } from "../models/Model";
@@ -17,7 +18,13 @@ const Page: React.FC = () => {
   configure({ enforceActions: "never" });
   const model = observable(baseModel);
 
-  return <App model={model} />;
+  return (
+    <div>
+      <Toaster />
+
+      <App model={model} />
+    </div>
+  );
 
   //Connnect to socket server
   useEffect(() => {

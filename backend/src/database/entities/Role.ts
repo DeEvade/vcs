@@ -26,6 +26,6 @@ export class Role extends BaseEntity {
   @ManyToOne((type) => Configuration, (configuration) => configuration.roles)
   configuration: Configuration;
 
-  @OneToMany((type) => RoleFrequency, (roleFrequency) => roleFrequency.roles)
+  @OneToMany((type) => RoleFrequency, (roleFrequency) => roleFrequency.role)
   roleFrequency: RoleFrequency;
 }
