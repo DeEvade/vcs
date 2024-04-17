@@ -9,10 +9,7 @@ import RoleSelectionModal from "@/components/RoleSelectionModal";
 import "./globals.css";
 import io from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
-import { Socket } from "socket.io-client"; // Import Socket type from socket.io-client 
-import * as io from "socket.io-client";
-import { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
-import { Peer } from "peerjs";
+import { Socket } from "socket.io-client"; // Import Socket type from socket.io-client
 
 import { observable, configure } from "mobx";
 import { model as baseModel } from "../models/Model";
@@ -34,8 +31,6 @@ const Page: React.FC = () => {
   const onSelectRole = () => {
     // implement logic to make a coordination call
   };
-  
-  
 
   //Connnect to socket server
   useEffect(() => {
@@ -47,8 +42,6 @@ const Page: React.FC = () => {
     socket.on("disconnect", () => {
       console.log("disconnected from socket server");
     });
-
-
   }, []);
 };
 
