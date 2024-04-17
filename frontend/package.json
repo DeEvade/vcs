@@ -22,9 +22,12 @@
         "framer-motion": "^11.0.8",
         "next": "14.1.0",
         "path": "^0.12.7",
+        "peerjs": "^1.5.2",
         "react": "^18",
         "react-dom": "^18",
         "react-icons": "^5.0.1",
+        "react-native-navigation": "^7.39.1",
+        "react-native-webrtc": "^118.0.6",
         "socket.io": "^4.7.5",
         "socket.io-client": "^4.7.5"
     },

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Flex, Box } from "@chakra-ui/react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,7 +8,10 @@ import RolesGrid from "../components/RolesGrid";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
 import { useAppConfig } from "@/contexts/AppConfigContext";
 import "./globals.css";
-import io from "socket.io-client";
+import { Socket } from "socket.io-client"; // Import Socket type from socket.io-client 
+import * as io from "socket.io-client";
+import { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
+import { Peer } from "peerjs";
 
 const Page: React.FC = () => {
   const { selectedRole, setSelectedRole } = useAppConfig();
@@ -16,10 +19,12 @@ const Page: React.FC = () => {
   const onSelectRole = () => {
     // implement logic to make a coordination call
   };
+  
+  
 
   //Connnect to socket server
   useEffect(() => {
-    const socket = io("localhost:3001");
+    const socket = io.connect("localhost:3001");
     socket.on("connect", () => {
       console.log("connected to socket server");
     });
@@ -27,7 +32,10 @@ const Page: React.FC = () => {
     socket.on("disconnect", () => {
       console.log("disconnected from socket server");
     });
+
+
   }, []);
+
 
   return (
     <Flex direction="column" minH="100vh">
