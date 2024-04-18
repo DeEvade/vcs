@@ -26,7 +26,7 @@ const SocketHandler = observer((props: Props) => {
 
         setStream(stream);
       });
-  }, [navigator.mediaDevices]);
+  }, []);
 
   useEffect(() => {
     const io = socket(window.location.hostname + ":8080");
@@ -37,42 +37,50 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
-    io.on("allUsers", (users: string[]) => {
-      const others = users.filter((user) => user !== io.id);
+    io.on("newUser", (user: string) => {
+      const peerExists = model.peers.get(user);
+      if (peerExists) {
+        return;
+      }
 
-      others.forEach((user) => {
-        const peerExists = model.peers.get(user);
-        if (peerExists) {
-          return;
-        }
-
-        const peer = new Peer({
-          initiator: true,
-          trickle: false,
-          stream: stream ?? undefined,
-        });
-
-        peer.on("signal", (data) => {
-          io.emit("callUser", {
-            userToCall: user,
-            signalData: data,
-            from: io.id,
-          });
-        });
-        model.peers.set(user, peer);
-      });
-      // remove peers that are not in the list
-      model.peers.forEach((peer, id) => {
-        if (!others.includes(id)) {
-          peer.destroy();
-          model.peers.delete(id);
-        }
+      const peer = new Peer({
+        initiator: true,
+        trickle: false,
+        stream: stream ?? undefined,
+        config: {
+          iceServers: [
+            {
+              urls: [
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+              ],
+            },
+          ],
+          iceCandidatePoolSize: 10,
+        },
       });
 
-      console.log("all users: ", others, io.id);
+      peer.on("signal", (data) => {
+        io.emit("callUser", {
+          userToCall: user,
+          signalData: data,
+          from: io.id,
+        });
+      });
+      model.peers.set(user, peer);
+    });
+
+    io.on("userLeft", (user: string) => {
+      const peer = model.peers.get(user);
+      if (!peer) {
+        return;
+      }
+      model.peers.delete(user);
     });
 
     io.on("callAccepted", (signal: any) => {
+      console.log("call accepted", signal);
+
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;
@@ -87,6 +95,18 @@ const SocketHandler = observer((props: Props) => {
         initiator: false,
         trickle: false,
         stream: stream ?? undefined,
+        //ice servers
+        config: {
+          iceServers: [
+            {
+              urls: [
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+              ],
+            },
+          ],
+          iceCandidatePoolSize: 10,
+        },
       });
 
       console.log("hey", data.from, data.signal);

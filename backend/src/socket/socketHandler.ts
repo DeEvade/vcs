@@ -17,7 +17,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     //Send all users to all users except the one that just connected
     Object.keys(users).forEach((key) => {
       if (key !== socket.id) {
-        users[key].emit("allUsers", usersToUserIds(users));
+        users[key].emit("newUser", socket.id);
       }
     });
 
@@ -30,6 +30,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
     socket.on("disconnect", () => {
       delete users[socket.id];
+      io.emit("userLeft", socket.id);
     });
 
     socket.on("acceptCall", (data) => {

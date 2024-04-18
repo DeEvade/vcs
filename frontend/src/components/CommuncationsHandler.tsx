@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import Peer from "simple-peer";
 import { model as baseModel } from "@/models/Model";
+import { Flex } from "@chakra-ui/react";
 
 interface Props {
   model: typeof baseModel;
@@ -15,9 +16,11 @@ const CommunicationsHandler = observer(({ model }: Props) => {
   return (
     <>
       <div>asd</div>
-      {Array.from(model.peers.entries()).map(([id, peer]) => (
-        <PeerChannel key={id} peer={peer} peerId={id} />
-      ))}
+      <Flex maxWidth="1000px" wrap="wrap" justifyContent="center">
+        {Array.from(model.peers.entries()).map(([id, peer]) => (
+          <PeerChannel key={id} peer={peer} peerId={id} />
+        ))}
+      </Flex>
     </>
   );
 });
@@ -37,10 +40,11 @@ const PeerChannel = observer(
         // Clean up
       };
     }, [peer]);
+
     return (
       <>
         <video
-          style={{ width: "300px", height: "300px" }}
+          style={{ width: "250px", height: "250px" }}
           autoPlay
           playsInline
           ref={(video) => {
@@ -49,8 +53,6 @@ const PeerChannel = observer(
             }
           }}
         />
-        <div>Peer here: {peerId}</div>
-        <div>Peer connected: {peer.connected}</div>
       </>
     ); // Show something meaningful
   }
