@@ -5,6 +5,7 @@ import { Flex, Text, Box, useColorMode, Button } from "@chakra-ui/react";
 import ConfigMenu from "./ConfigMenu"; // Ensure the path is correct
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
+import Peer from "simple-peer";
 
 const UtcClock = () => {
   const [currentTime, setCurrentTime] = useState(() => new Date());

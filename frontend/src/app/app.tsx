@@ -2,7 +2,6 @@
 
 import { model } from "@/models/Model";
 import { observer } from "mobx-react-lite";
-
 import React, { useEffect } from "react";
 import { Flex, Box } from "@chakra-ui/react";
 import Header from "../components/Header";

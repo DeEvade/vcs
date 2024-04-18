@@ -1,4 +1,5 @@
 import { Configuration, Role } from "@/types";
+import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
@@ -14,6 +15,8 @@ export const model = {
     connected: false,
     io: null as Socket | null,
   },
+
+  peers: new Map() as Map<string, Peer.Instance>,
 
   RXFrequencies: [] as number[],
   TXFrequencies: [] as number[],

@@ -7,11 +7,19 @@ import { RoleFrequency } from "../database/entities/RoleFrequency";
 
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
+
   io.on("connection", (socket: Socket) => {
     console.log("a user connected");
     if (!users[socket.id]) {
       users[socket.id] = socket;
     }
+
+    //Send all users to all users except the one that just connected
+    Object.keys(users).forEach((key) => {
+      if (key !== socket.id) {
+        users[key].emit("allUsers", usersToUserIds(users));
+      }
+    });
 
     socket.on("callUser", (data) => {
       io.to(data.userToCall).emit("hey", {
@@ -20,14 +28,15 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       });
     });
 
-    socket.emit("yourID", socket.id);
-    io.sockets.emit("allUsers", users);
     socket.on("disconnect", () => {
       delete users[socket.id];
     });
 
     socket.on("acceptCall", (data) => {
-      io.to(data.to).emit("callAccepted", data.signal);
+      io.to(data.to).emit("callAccepted", {
+        signal: data.signal,
+        from: data.from,
+      });
     });
 
     socket.on("getCurrentConfig", async () => {
@@ -63,4 +72,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
   });
 };
 
+const usersToUserIds = (users: { [key: string]: Socket }) => {
+  return Object.keys(users).map((key) => users[key].id);
+};
 export default socketHandler;
