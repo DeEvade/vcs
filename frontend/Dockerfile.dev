@@ -1,0 +1,9 @@
+# Dockerfile for vcs-frontend
+FROM node:18.17.1-alpine
+WORKDIR /var/task
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+RUN npm run build
+CMD ["npm", "run", "start"]

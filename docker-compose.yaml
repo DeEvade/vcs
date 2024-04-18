@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  vcs-backend:
+    tty: true
+    container_name: vcs-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      vcs-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: dev
+      DB_HOST: vcs-db
+      DB_NAME: vcs
+      DB_USERNAME: postgres
+      DB_PORT: 5432
+      DB_PASSWORD: password
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    command: sh -c "npm run start"
+
+  vcs-db:
+    image: postgres
+    container_name: vcs-db
+    environment:
+      PGPORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_DB: vcs
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: pg_isready -U postgres -d vcs
+      interval: 1s
+      timeout: 10s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  vcs-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev # Your frontend Dockerfile
+    container_name: vcs-frontend
+    ports:
+      - "3000:3000" # Adjust the port to suit your frontend app's port
+    depends_on:
+      - vcs-backend

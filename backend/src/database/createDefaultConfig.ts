@@ -39,7 +39,7 @@ export default async function createDefaultConfig(dataSource: DataSource) {
   });
 
   const pilot = await roleRepo.save({
-    name: "Pilot",
+    name: "PILOT",
     type: "pilot",
     configuration: config,
   });
@@ -66,7 +66,6 @@ export default async function createDefaultConfig(dataSource: DataSource) {
   await roleFrequencyRepo.save({ role: pilot, frequency: F3, order: 3 });
   await roleFrequencyRepo.save({ role: pilot, frequency: F1, order: 4 });
 
-
   await roleFrequencyRepo.save({ role: ATC1, frequency: F4, order: 1 });
   await roleFrequencyRepo.save({ role: ATC1, frequency: F2, order: 2 });
   await roleFrequencyRepo.save({ role: ATC1, frequency: F3, order: 3 });
@@ -88,4 +87,3 @@ export default async function createDefaultConfig(dataSource: DataSource) {
   await roleFrequencyRepo.save({ role: ATC5, frequency: F1, order: 1 });
   await roleFrequencyRepo.save({ role: ATC5, frequency: F3, order: 2 });
 }
-
