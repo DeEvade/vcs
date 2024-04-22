@@ -15,7 +15,6 @@ const CommunicationsHandler = observer(({ model }: Props) => {
 
   return (
     <>
-      <div>asd</div>
       <Flex maxWidth="1000px" wrap="wrap" justifyContent="center">
         {Array.from(model.peers.entries()).map(([id, peer]) => (
           <PeerChannel key={id} peer={peer} peerId={id} />

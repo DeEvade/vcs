@@ -44,10 +44,9 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       console.log("asking for config");
       try {
         const configRepository = AppDataSource.getRepository(Configuration);
-        const freqRepository = AppDataSource.getRepository(Frequency);
         const roleRepository = AppDataSource.getRepository(Role);
-        const roleFreqRepository = AppDataSource.getRepository(RoleFrequency);
 
+        //Hard coded for now
         const configId = 1;
 
         const config = await configRepository.findOneBy({ id: configId });

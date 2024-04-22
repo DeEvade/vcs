@@ -29,6 +29,10 @@ const SocketHandler = observer((props: Props) => {
   }, []);
 
   useEffect(() => {
+    if (!stream || model.socket.io) {
+      return;
+    }
+
     const io = socket(window.location.hostname + ":8080");
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
