@@ -18,28 +18,31 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     }
   }
 
-  // Update the map with new user id (add user in its frequency entries)
-  io.on("connectFreq", (freq: string[], socket: Socket) => {
-    freq.forEach((freqKey: string) => {
-      if(!hashTable.has(freqKey)){
-        hashTable.set(freqKey, [socket.id]);
-      } else {
-        if(!hashTable.get(freqKey).includes(socket.id)){
-          hashTable.get(freqKey).push(socket.id);
-        }
-      }
-    })
-  })
 
   io.on("connection", (socket: Socket) => {
     console.log("a user connected");
     // save all user ids with same frequencies as socket.id in retMap
-    const retMap = new Map<string, string[]>();
 
     if (!users[socket.id]) {
       users[socket.id] = socket;
     }
-    hashTable.forEach((freqValues, freqKey) => {
+
+    socket.on("connectFreq", (freq: string[], socket: Socket) => {
+      console.log("connecting to frequency")
+  
+      freq.forEach((freqKey: string) => {
+        if(!hashTable.has(freqKey)){
+          hashTable.set(freqKey, [socket.id]);
+        } else {
+          if(!hashTable.get(freqKey).includes(socket.id)){
+            hashTable.get(freqKey).push(socket.id);
+          }
+        }
+      })
+  
+      const retMap = new Map<string, string[]>();
+  
+      hashTable.forEach((freqValues, freqKey) => {
         if(freqValues.includes(socket.id)){
           retMap.set(freqKey, freqValues);
         }
@@ -55,20 +58,20 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       }
     }
     */
-
+  
     //Send all users to all users except the one that just connected
     Object.keys(users).forEach((key) => {
-      if (key !== socket.id /*&& retMap.has(key)*/) {
+      if (key !== socket?.id && retMap.has(key)) {
         users[key].emit("newUser", socket.id);
       }
     });
-
+  
     socket.on("callUser", (data) => {
       const{ userToCall, signalData } = data;
-
+  
       const callerFreq = getFrequencyOfUser(socket.id);
       const calleeFreq = getFrequencyOfUser(userToCall);
-
+  
       if(callerFreq != calleeFreq || callerFreq == null){
         console.log("Callee and caller are not on the same freq")
         return;
@@ -81,24 +84,19 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       })
       console.log("Data has been sent");
     });
-
-    socket.on("selectRole&Frequency", (role, freq) => {
-      socket.broadcast.emit("selectRole", role);
-      socket.broadcast.emit("Frequency", freq);
-    })
-
-
+  
     socket.on("disconnect", () => {
       delete users[socket.id];
       io.emit("userLeft", socket.id);
     });
-
+  
     socket.on("acceptCall", (data) => {
       io.to(data.to).emit("callAccepted", {
         signal: data.signal,
         from: data.from,
       });
     });
+    })
 
     socket.on("getCurrentConfig", async () => {
       console.log("asking for config");

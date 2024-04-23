@@ -81,6 +81,8 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     console.log("frequence" + JSON.stringify(frequencyState));
     model.handleFrequencyJoined();
     toast.success(JSON.stringify(frequencyState));
+    toast.success(JSON.stringify(model.RXFrequencies));
+
   }, [model.RXFrequencies])
 
   // Determine button color based on PTTActive state and button state

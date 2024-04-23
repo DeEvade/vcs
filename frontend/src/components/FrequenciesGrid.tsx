@@ -55,7 +55,9 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to RX array
-          model.RXFrequencies.push(id);
+          model.RXFrequencies = model.RXFrequencies.concat([id])
+
+
         }
         break;
       case "TX":
@@ -66,7 +68,8 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to TX array
-          model.TXFrequencies.push(id);
+          model.TXFrequencies = model.TXFrequencies.concat([id])
+
         }
         break;
 
@@ -78,8 +81,9 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to XC array
-          model.XCFrequencies.push(id);
-        }
+          model.XCFrequencies = model.XCFrequencies.concat([id])
+
+         }
         break;
 
       default:

@@ -87,6 +87,7 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("callAccepted", (signal: any) => {
+      
       console.log("call accepted", signal);
       
       const peer = model.peers.get(signal.from);

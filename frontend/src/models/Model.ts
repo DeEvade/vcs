@@ -51,8 +51,7 @@ export const model = {
       return;
     }
     this.socket.io.emit("connectFreq", this.RXFrequencies);
-    this.socket.io.emit("connection");
-    console.log("it has emited changes to socket");
+    console.log("it has emited changes to socket"); //printar det här
   },
 
   fetchConfiguration: function () {
