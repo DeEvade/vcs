@@ -52,7 +52,9 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         const configs = await configRepo.find();
         const roles = await roleRepo.find();
         const frequencies = await frequencyRepo.find();
-        const roleFrequencies = await roleFrequencyRepo.find();
+        const roleFrequencies = await roleFrequencyRepo.find({
+          relations: { role: true, frequency: true },
+        });
 
         socket.emit("getAllData", {
           configs: configs,

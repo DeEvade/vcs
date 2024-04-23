@@ -18,7 +18,7 @@ import {
   FormLabel,
   NumberInput,
   NumberInputField,
-  InputRightAddon,
+  InputRightElement,
   InputGroup,
   Text,
 } from "@chakra-ui/react";
@@ -35,24 +35,22 @@ const DashboardAddFrequency = observer(
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Add frequency</ModalHeader>
+            <ModalHeader>Add New Frequency</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <FormControl>
                 <FormLabel>Frequency</FormLabel>
-                <InputGroup>
-                  <NumberInput>
+                <NumberInput>
+                  <InputGroup>
                     <NumberInputField />
-                    <InputRightAddon>
-                      <Text>MHz</Text>
-                    </InputRightAddon>
-                  </NumberInput>
-                </InputGroup>
+                    <InputRightElement width="4.5rem">MHz</InputRightElement>
+                  </InputGroup>
+                </NumberInput>
               </FormControl>
             </ModalBody>
 
             <ModalFooter>
-              <Button colorScheme="red" onClick={onClose} mr={3}>
+              <Button onClick={onClose} mr={3}>
                 Cancel
               </Button>
               <Button colorScheme="green" onClick={onClose}>

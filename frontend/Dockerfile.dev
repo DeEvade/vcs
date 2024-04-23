@@ -1,9 +1,14 @@
 # Dockerfile for vcs-frontend
 FROM node:18.17.1-alpine
 WORKDIR /var/task
-COPY package*.json ./
+COPY package*.json /var/task/
 RUN npm install
-COPY . .
+COPY src /var/task/src
+COPY public /var/task/public
+COPY tsconfig.json /var/task
+COPY next.config.mjs /var/task
+COPY next-env.d.ts /var/task
+COPY tsconfig.json /var/task
 EXPOSE 3000
 RUN npm run build
 CMD ["npm", "run", "start"]

@@ -38,7 +38,7 @@ const DashboardAddConfig = observer(
         <Modal isOpen={isOpen} onClose={handleClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Add Config</ModalHeader>
+            <ModalHeader>Add New Config</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <FormControl>
@@ -46,6 +46,7 @@ const DashboardAddConfig = observer(
                 <Input
                   type="name"
                   value={name}
+                  placeholder="Enter config name"
                   onChange={(e) => {
                     setName(e.target.value);
                   }}
@@ -54,7 +55,7 @@ const DashboardAddConfig = observer(
             </ModalBody>
 
             <ModalFooter>
-              <Button colorScheme="red" onClick={handleClose} mr={3}>
+              <Button onClick={handleClose} mr={3}>
                 Cancel
               </Button>
               <Button

@@ -22,7 +22,7 @@ import { AddIcon } from "@chakra-ui/icons";
 
 const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [value, setValue] = useState("1");
+  const [value, setValue] = useState("ATC");
 
   return (
     <>
@@ -32,13 +32,13 @@ const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Add role</ModalHeader>
+          <ModalHeader>Add New Role</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <RadioGroup onChange={setValue} value={value}>
+            <RadioGroup onChange={setValue} value={value} paddingBottom="5px">
               <Stack direction="row">
-                <Radio value="1">ATC</Radio>
-                <Radio value="2">PILOT</Radio>
+                <Radio value="ATC">ATC</Radio>
+                <Radio value="pilot">PILOT</Radio>
               </Stack>
             </RadioGroup>
             <FormControl>
@@ -48,7 +48,7 @@ const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="red" onClick={onClose} mr={3}>
+            <Button onClick={onClose} mr={3}>
               Cancel
             </Button>
             <Button colorScheme="green" onClick={onClose}>

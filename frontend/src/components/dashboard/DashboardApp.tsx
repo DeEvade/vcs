@@ -1,14 +1,23 @@
 import { AddIcon, EditIcon } from "@chakra-ui/icons";
 import DashboardModel from "@/models/DashboardModel";
-import { Flex, Select, Box, Center, Accordion } from "@chakra-ui/react";
+import {
+  Flex,
+  Select,
+  Box,
+  Center,
+  Accordion,
+  Button,
+  ButtonGroup,
+} from "@chakra-ui/react";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
-import DashboardFrequenceCard from "./frequency/DashboardFrequenceCard";
+import DashboardFrequencyCard from "./frequency/DashboardFrequencyCard";
 import DashboardRoleCard from "./role/DashboardRoleCard";
 import DashboardAddRole from "./role/DashboardAddRole";
 import DashboardAddConfig from "./config/DashboardAddConfig";
 import DashboardAddFrequency from "./frequency/DashboardAddFrequency";
+import DashboardSetActive from "./DashboardSetActive";
 
 const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
   const { model } = props;
@@ -27,7 +36,9 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
       <Flex direction="row" gap="10px" alignItems="center">
         <Select defaultChecked={true} defaultValue="option1">
           {model.configs.map((config) => (
-            <option value={config.id}>{config.name}</option>
+            <option key={config.id} value={config.id}>
+              {config.name}
+            </option>
           ))}
         </Select>
         <DashboardAddConfig model={model} />
@@ -81,7 +92,7 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
             </Flex>
             <Flex direction={"column"} gap={"20px"}>
               {model.frequencies.map((frequency) => (
-                <DashboardFrequenceCard
+                <DashboardFrequencyCard
                   key={frequency.id}
                   model={model}
                   frequency={frequency}

@@ -24,9 +24,13 @@ export interface DashboardFrequency {
   id: number;
   frequency: string;
   label: string;
+  order?: number;
 }
 export interface DashboardRoleFrequency {
   id: number;
+  role: DashboardRole;
+  frequency: DashboardFrequency;
+  order: number;
 }
 
 export interface DashboardRole {

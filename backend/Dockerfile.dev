@@ -1,7 +1,9 @@
 FROM node:18.17.0-alpine
 RUN mkdir -p /var/task
 WORKDIR /var/task
-COPY ./ /var/task
+COPY package*.json /var/task/
+COPY src /var/task/src
+COPY tsconfig.json /var/task/
 RUN npm install
 EXPOSE 8080
 
