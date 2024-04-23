@@ -22,7 +22,7 @@ const SocketHandler = observer((props: Props) => {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        console.log("Got stream", stream);
+        console.log("Got stream", stream); //kommer hit
 
         setStream(stream);
       });
@@ -42,6 +42,7 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("newUser", (user: string) => {
+      console.log("new user has connected");
       const peerExists = model.peers.get(user);
       if (peerExists) {
         return;
@@ -96,8 +97,13 @@ const SocketHandler = observer((props: Props) => {
       io.emit("selectRole&Frequency", role);
     });
 
-    io.on("hey", (data: any) => {
-      console.log("Stream in hey", stream);
+    io.on("hashmap", () => {
+      console.log("a hashmap has been made");
+    })
+
+
+    io.on("hey", (data: any) => { //printar den här
+      console.log("Stream in hey", stream); //och den här
 
       const peer = new Peer({
         initiator: false,
