@@ -20,6 +20,9 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
 
   io.on("connection", (socket: Socket) => {
+    if(!socket){
+      return "there is no socket";
+    }
     console.log("a user connected");
     // save all user ids with same frequencies as socket.id in retMap
 
@@ -27,15 +30,22 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       users[socket.id] = socket;
     }
 
+    //Send all users to all users except the one that just connected
+    Object.keys(users).forEach((key) => {
+      if (key !== socket.id) {
+        users[key].emit("newUser", socket.id);
+      }
+    });
+
     socket.on("connectFreq", (freq: string[], socket: Socket) => {
       console.log("connecting to frequency")
   
       freq.forEach((freqKey: string) => {
         if(!hashTable.has(freqKey)){
-          hashTable.set(freqKey, [socket.id]);
+          hashTable.set(freqKey, [socket?.id]);
         } else {
-          if(!hashTable.get(freqKey).includes(socket.id)){
-            hashTable.get(freqKey).push(socket.id);
+          if(!hashTable.get(freqKey).includes(socket?.id)){
+            hashTable.get(freqKey).push(socket?.id);
           }
         }
       })
@@ -59,17 +69,10 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     }
     */
   
-    //Send all users to all users except the one that just connected
-    Object.keys(users).forEach((key) => {
-      if (key !== socket?.id && retMap.has(key)) {
-        users[key].emit("newUser", socket.id);
-      }
-    });
-  
-    socket.on("callUser", (data) => {
+    socket?.on("callUser", (data) => {
       const{ userToCall, signalData } = data;
   
-      const callerFreq = getFrequencyOfUser(socket.id);
+      const callerFreq = getFrequencyOfUser(socket?.id);
       const calleeFreq = getFrequencyOfUser(userToCall);
   
       if(callerFreq != calleeFreq || callerFreq == null){
@@ -79,7 +82,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       
       console.log("user has called in ");
       io.to(data.userToCall).emit("hey", {
-        signal: data.signalData,
+        signal: signalData,
         from: data.from, //socket.id
       })
       console.log("Data has been sent");
