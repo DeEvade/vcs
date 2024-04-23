@@ -10,8 +10,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
   // a hash table where keys are freqs and values are array of user IDs
   const hashTable = new Map<string, string[]>();
 
-  io.emit("hashmap");
-
   function getFrequencyOfUser(userId: string){
     for(const [freq, userIds] of hashTable){
       if(userIds.includes(userId)){
@@ -22,7 +20,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
   // Update the map with new user id (add user in its frequency entries)
   io.on("connectFreq", (freq: string[], socket: Socket) => {
-    console.log("user connected to " + freq);
     freq.forEach((freqKey: string) => {
       if(!hashTable.has(freqKey)){
         hashTable.set(freqKey, [socket.id]);
@@ -34,7 +31,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     })
   })
 
-  io.on("connection", (socket: Socket) => { 
+  io.on("connection", (socket: Socket) => {
     console.log("a user connected");
     // save all user ids with same frequencies as socket.id in retMap
     const retMap = new Map<string, string[]>();
@@ -67,21 +64,22 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     });
 
     socket.on("callUser", (data) => {
-      //const{ userToCall, signalData } = data;
+      const{ userToCall, signalData } = data;
 
-      // const callerFreq = getFrequencyOfUser(socket.id);
-      // const calleeFreq = getFrequencyOfUser(userToCall);
+      const callerFreq = getFrequencyOfUser(socket.id);
+      const calleeFreq = getFrequencyOfUser(userToCall);
 
-      // if(callerFreq != calleeFreq){
-      //   console.log("Callee and caller are not on the same freq")
-      //   return;
-      // }
+      if(callerFreq != calleeFreq || callerFreq == null){
+        console.log("Callee and caller are not on the same freq")
+        return;
+      }
       
       console.log("user has called in ");
       io.to(data.userToCall).emit("hey", {
         signal: data.signalData,
         from: data.from, //socket.id
       })
+      console.log("Data has been sent");
     });
 
     socket.on("selectRole&Frequency", (role, freq) => {

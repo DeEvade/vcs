@@ -64,15 +64,18 @@ const SocketHandler = observer((props: Props) => {
           iceCandidatePoolSize: 10,
         },
       });
+      console.log("Peer has connected");
 
       peer.on("signal", (data) => {
-        io.emit("callUser", {
-          userToCall: user,
-          signalData: data,
-          from: io.id,
+        io.on("connectFreq", () => {
+          io.emit("callUser", {
+            userToCall: user,
+            signalData: data,
+            from: io.id,
+          });
         });
-      });
-      model.peers.set(user, peer);
+        model.peers.set(user, peer);
+        })
     });
 
     io.on("userLeft", (user: string) => {
@@ -92,15 +95,6 @@ const SocketHandler = observer((props: Props) => {
       }
       peer.signal(signal.signal);
     });
-
-    io.on("selectRole&Frequency", (role: any) => {
-      io.emit("selectRole&Frequency", role);
-    });
-
-    io.on("hashmap", () => {
-      console.log("a hashmap has been made");
-    })
-
 
     io.on("hey", (data: any) => { //printar den här
       console.log("Stream in hey", stream); //och den här
@@ -126,6 +120,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("hey", data.from, data.signal);
 
       peer.on("signal", (signalData) => {
+        console.log("Acceptcall and will emit signal");
         io.emit("acceptCall", {
           signal: signalData,
           to: data.from,

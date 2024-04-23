@@ -13,6 +13,7 @@ import { usePTT } from "../contexts/PTTContext";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { Frequency } from "@/types";
+import toast from "react-hot-toast";
 
 interface Props {
   frequency: Frequency;
@@ -76,7 +77,10 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   // Handles all updated receiver lists
   useEffect(() => {
+    console.log("RX changed")
+    console.log("frequence" + JSON.stringify(frequencyState));
     model.handleFrequencyJoined();
+    toast.success(JSON.stringify(frequencyState));
   }, [model.RXFrequencies])
 
   // Determine button color based on PTTActive state and button state
