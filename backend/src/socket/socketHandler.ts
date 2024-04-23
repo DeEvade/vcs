@@ -31,21 +31,24 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     }
 
     //Send all users to all users except the one that just connected
-    Object.keys(users).forEach((key) => {
-      if (key !== socket.id) {
-        users[key].emit("newUser", socket.id);
-      }
-    });
+    // Object.keys(users).forEach((key) => {
+    //   if (key !== socket.id) {
+    //     users[key].emit("newUser", socket.id);
+    //   }
+    // });
 
-    socket.on("connectFreq", (freq: string[], socket: Socket) => {
+    socket.on("connectFreq", (freq: string[]) => {
       console.log("connecting to frequency")
   
       freq.forEach((freqKey: string) => {
         if(!hashTable.has(freqKey)){
-          hashTable.set(freqKey, [socket?.id]);
+          console.log("if table has not the freq")
+          hashTable.set(freqKey, [socket.id]);
         } else {
-          if(!hashTable.get(freqKey).includes(socket?.id)){
-            hashTable.get(freqKey).push(socket?.id);
+          console.log("table has the freq")
+          if(!hashTable.get(freqKey).includes(socket.id)){
+            console.log("table has not user id")
+            hashTable.get(freqKey).push(socket.id);
           }
         }
       })
@@ -53,7 +56,9 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       const retMap = new Map<string, string[]>();
   
       hashTable.forEach((freqValues, freqKey) => {
+        console.log("creating retMap and looping over table")
         if(freqValues.includes(socket.id)){
+          console.log("user id is in freqValues")
           retMap.set(freqKey, freqValues);
         }
       })
@@ -69,10 +74,10 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     }
     */
   
-    socket?.on("callUser", (data) => {
+    socket.on("callUser", (data) => {
       const{ userToCall, signalData } = data;
   
-      const callerFreq = getFrequencyOfUser(socket?.id);
+      const callerFreq = getFrequencyOfUser(socket.id);
       const calleeFreq = getFrequencyOfUser(userToCall);
   
       if(callerFreq != calleeFreq || callerFreq == null){
