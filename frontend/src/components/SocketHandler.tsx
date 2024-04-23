@@ -46,7 +46,7 @@ const SocketHandler = observer((props: Props) => {
       if (peerExists) {
         return;
       }
-
+    
       const peer = new Peer({
         initiator: true,
         trickle: false,
@@ -84,12 +84,16 @@ const SocketHandler = observer((props: Props) => {
 
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
-
+      
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;
       }
       peer.signal(signal.signal);
+    });
+
+    io.on("selectRole&Frequency", (role: any) => {
+      io.emit("selectRole&Frequency", role);
     });
 
     io.on("hey", (data: any) => {

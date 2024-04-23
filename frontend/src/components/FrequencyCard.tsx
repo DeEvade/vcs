@@ -1,6 +1,6 @@
 // src/compontens/FrequencyCard.tsx
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -71,7 +71,13 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     } else if (type === "XC") {
       onToggle(frequency.id, "XC");
     }
+
   };
+
+  // Handles all updated receiver lists
+  useEffect(() => {
+    model.handleFrequencyJoined();
+  }, [model.RXFrequencies])
 
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {
