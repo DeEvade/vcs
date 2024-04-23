@@ -18,7 +18,7 @@ import {
   FormLabel,
   NumberInput,
   NumberInputField,
-  InputRightElement,
+  InputRightAddon,
   InputGroup,
   Text,
 } from "@chakra-ui/react";
@@ -43,9 +43,9 @@ const DashboardAddFrequency = observer(
                 <InputGroup>
                   <NumberInput>
                     <NumberInputField />
-                    <InputRightElement width="4.5rem">
-                      <Text>Test</Text>
-                    </InputRightElement>
+                    <InputRightAddon>
+                      <Text>MHz</Text>
+                    </InputRightAddon>
                   </NumberInput>
                 </InputGroup>
               </FormControl>

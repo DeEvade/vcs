@@ -10,32 +10,32 @@ export default {
 
   selectedFrequency: undefined as any | undefined,
 
-  roles: [] as Role[],
-  frequencies: [] as Frequency[],
-  roleFrequencies: [] as RoleFrequency[],
-  configs: undefined as Configuration[] | undefined,
+  roles: [] as DashboardRole[],
+  frequencies: [] as DashboardFrequency[],
+  roleFrequencies: [] as DashboardRoleFrequency[],
+  configs: undefined as DashboardConfiguration[] | undefined,
 
   socket: {
     connected: false,
     io: null as Socket | null,
   },
 };
-interface Frequency {
+export interface DashboardFrequency {
   id: number;
   frequency: string;
   label: string;
 }
-interface RoleFrequency {
+export interface DashboardRoleFrequency {
   id: number;
 }
 
-interface Role {
+export interface DashboardRole {
   id: number;
   name: string;
   type: "ATC" | "pilot";
 }
 
-interface Configuration {
+export interface DashboardConfiguration {
   id: number;
   name: string;
 }

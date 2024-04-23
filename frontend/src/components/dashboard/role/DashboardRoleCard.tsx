@@ -10,8 +10,8 @@ const DashboardRoleCard = () => {
 export default DashboardRoleCard;
 */
 
-import DashboardModel from "@/models/DashboardModel";
-import { Role } from "@/types";
+import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
+
 import {
   Accordion,
   AccordionButton,
@@ -30,7 +30,7 @@ import {
 import { observer } from "mobx-react-lite";
 
 const DashboardFrequenceCard = observer(
-  (props: { model: typeof DashboardModel; role: Role }) => {
+  (props: { model: typeof DashboardModel; role: DashboardRole }) => {
     const { model, role } = props;
     return (
       <Accordion allowToggle>
