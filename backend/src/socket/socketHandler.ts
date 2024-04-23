@@ -18,7 +18,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     }
   }
 
-
   io.on("connection", (socket: Socket) => {
     if(!socket){
       return "there is no socket";

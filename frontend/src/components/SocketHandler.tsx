@@ -15,6 +15,7 @@ const SocketHandler = observer((props: Props) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
+    if(stream !== null) return;
     if (navigator.mediaDevices === undefined) {
       toast("Media devices not supported", { icon: "❌" });
       return;
@@ -25,11 +26,12 @@ const SocketHandler = observer((props: Props) => {
         console.log("Got stream", stream); //kommer hit
 
         setStream(stream);
+        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
       });
   }, []);
 
   useEffect(() => {
-    if (!stream || model.socket.io) {
+    if (!stream) {
       return;
     }
 
