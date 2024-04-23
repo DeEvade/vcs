@@ -40,6 +40,31 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       });
     });
 
+    socket.on("getAllData", async () => {
+      console.log("asking for all data");
+
+      try {
+        const configRepo = AppDataSource.getRepository(Configuration);
+        const roleRepo = AppDataSource.getRepository(Role);
+        const frequencyRepo = AppDataSource.getRepository(Frequency);
+        const roleFrequencyRepo = AppDataSource.getRepository(RoleFrequency);
+
+        const configs = await configRepo.find();
+        const roles = await roleRepo.find();
+        const frequencies = await frequencyRepo.find();
+        const roleFrequencies = await roleFrequencyRepo.find();
+
+        socket.emit("getAllData", {
+          configs: configs,
+          roles: roles,
+          frequencies: frequencies,
+          roleFrequencies: roleFrequencies,
+        });
+      } catch (error) {
+        socket.emit("getAllData", { error: error.message });
+      }
+    });
+
     socket.on("getCurrentConfig", async () => {
       console.log("asking for config");
       try {

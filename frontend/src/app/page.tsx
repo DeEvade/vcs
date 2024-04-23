@@ -22,7 +22,6 @@ const Page: React.FC = () => {
   return (
     <div>
       <Toaster />
-
       <App model={model} />
     </div>
   );
