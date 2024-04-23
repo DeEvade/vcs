@@ -61,33 +61,27 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
     //Send all users to all users except the one that just connected
     Object.keys(users).forEach((key) => {
-      if (key !== socket.id && retMap.has(key)) {
+      if (key !== socket.id /*&& retMap.has(key)*/) {
         users[key].emit("newUser", socket.id);
       }
     });
 
     socket.on("callUser", (data) => {
-      const{ userToCall, signalData } = data;
+      //const{ userToCall, signalData } = data;
 
-      const callerFreq = getFrequencyOfUser(socket.id);
-      const calleeFreq = getFrequencyOfUser(userToCall);
+      // const callerFreq = getFrequencyOfUser(socket.id);
+      // const calleeFreq = getFrequencyOfUser(userToCall);
 
-      if(callerFreq != calleeFreq){
-        console.log("Callee and caller are not on the same freq")
-        return;
-      }
-
-      console.log("user has called in ");
-      io.to(userToCall).emit("hey", {
-        signal: signalData,
-        from: socket.id,
-      })
+      // if(callerFreq != calleeFreq){
+      //   console.log("Callee and caller are not on the same freq")
+      //   return;
+      // }
       
-      /*
+      console.log("user has called in ");
       io.to(data.userToCall).emit("hey", {
         signal: data.signalData,
-        from: data.from,
-      }); */
+        from: data.from, //socket.id
+      })
     });
 
     socket.on("selectRole&Frequency", (role, freq) => {
