@@ -7,6 +7,42 @@ export default {
     }
     this.socket.io?.emit("getAllData");
   },
+  selectedConfigurationId: null as number | null,
+
+  addRole: function (role: {
+    name: string;
+    type: "ATC" | "pilot";
+    configurationId: number;
+  }) {
+    if (!this.socket.connected) {
+      return;
+    }
+    this.socket.io?.emit("addRole", {
+      type: role.type,
+      name: role.name,
+      configurationId: role.configurationId,
+    });
+  },
+  addFrequency: function (frequency: {
+    frequency: string;
+    label: "";
+    configurationId: number;
+  }) {
+    if (!this.socket.connected) {
+      return;
+    }
+    this.socket.io?.emit("addFrequency", {
+      frequency: frequency.frequency,
+      label: frequency.label,
+      configurationId: frequency.configurationId,
+    });
+  },
+  deleteRole: function (roleId: number) {
+    if (!this.socket.connected) {
+      return;
+    }
+    this.socket.io?.emit("deleteRole", { roleId: roleId });
+  },
 
   selectedFrequency: undefined as any | undefined,
 

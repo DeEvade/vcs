@@ -21,6 +21,24 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.socket.connected = true;
     });
 
+    io.on("addRole", (data: any) => {
+      if (data.error) {
+        return toast.error("error adding role: " + data.error);
+      }
+      toast.success("role added successfully");
+      console.log("role added", data);
+      model.roles = model.roles.concat(data);
+    });
+
+    io.on("deleteRole", (data: any) => {
+      if (data.error) {
+        return toast.error("error deleting role: " + data.error);
+      }
+      toast.success("role deleted sucessfully");
+      console.log("role deleted", data.roleId);
+      model.roles = model.roles.filter((role) => role.id !== data.roleId);
+    });
+
     io.on("getAllData", (data: any) => {
       if (data.error) {
         return toast.error("data fetch error: " + data.error);

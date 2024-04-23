@@ -42,16 +42,20 @@ const PeerChannel = observer(
 
     return (
       <>
-        <video
-          style={{ width: "250px", height: "250px" }}
-          autoPlay
-          playsInline
-          ref={(video) => {
-            if (video && stream) {
-              video.srcObject = stream;
-            }
-          }}
-        />
+        <Flex direction="column" alignItems="center">
+          <h1>{peerId}</h1>
+          <h2>Status: {peer.connected}</h2>
+          <video
+            style={{ width: "250px", height: "250px" }}
+            autoPlay
+            playsInline
+            ref={(video) => {
+              if (video && stream) {
+                video.srcObject = stream;
+              }
+            }}
+          />
+        </Flex>
       </>
     ); // Show something meaningful
   }

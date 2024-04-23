@@ -2,6 +2,8 @@ import DashboardModel from "@/models/DashboardModel";
 import { observer } from "mobx-react-lite";
 import { AddIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
+import { io } from "socket.io-client";
+
 import {
   Modal,
   ModalOverlay,
@@ -26,6 +28,18 @@ import {
 const DashboardAddFrequency = observer(
   (props: { model: typeof DashboardModel }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [value, setValue] = useState("");
+    const [frequency, setFrequency] = useState("");
+
+    const { model } = props;
+
+    const saveFrequency = () => {
+      model.addFrequency({
+        frequency: frequency,
+        configurationId: model.selectedConfigurationId!,
+      });
+      onClose();
+    };
 
     return (
       <>
@@ -42,7 +56,11 @@ const DashboardAddFrequency = observer(
                 <FormLabel>Frequency</FormLabel>
                 <NumberInput>
                   <InputGroup>
-                    <NumberInputField />
+                    <NumberInputField
+                      onChange={(e) => setFrequency(e.target.value)}
+                      placeholder="Enter Frequency"
+                      value={frequency}
+                    />
                     <InputRightElement width="4.5rem">MHz</InputRightElement>
                   </InputGroup>
                 </NumberInput>
@@ -53,7 +71,7 @@ const DashboardAddFrequency = observer(
               <Button onClick={onClose} mr={3}>
                 Cancel
               </Button>
-              <Button colorScheme="green" onClick={onClose}>
+              <Button colorScheme="green" onClick={saveFrequency}>
                 Save
               </Button>
             </ModalFooter>

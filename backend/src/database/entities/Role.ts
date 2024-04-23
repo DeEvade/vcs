@@ -7,6 +7,7 @@ import {
   JoinTable,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from "typeorm";
 import { Frequency } from "./Frequency";
 import { Configuration } from "./Configuration";
@@ -23,9 +24,13 @@ export class Role extends BaseEntity {
   @Column()
   type: String;
 
-  @ManyToOne((type) => Configuration, (configuration) => configuration.roles)
-  configuration: Configuration;
+  @Column()
+  configurationId: number;
+
+  @ManyToOne((type) => Configuration, (configuration) => configuration)
+  @JoinColumn({ name: "configurationId" })
+  public configuration: Configuration;
 
   @OneToMany((type) => RoleFrequency, (roleFrequency) => roleFrequency.role)
-  roleFrequency: RoleFrequency;
+  public roleFrequency: RoleFrequency;
 }

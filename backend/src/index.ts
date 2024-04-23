@@ -32,9 +32,6 @@ AppDataSource.initialize()
 
 app.get("/", (req: any, res: any) => {
   try {
-    const configuration = new Configuration();
-    configuration.name = "Test Configuration";
-    AppDataSource.getRepository(Configuration).save(configuration);
     res.send("Hello World!");
   } catch (error) {
     res.send("Error: " + error.message);
@@ -54,7 +51,7 @@ app.get("/", (req, res) => {
 });
 socketHandler(io, AppDataSource);
 
-const port = process.env.SERVER_PORT || 3001;
+const port = process.env.SERVER_PORT || 8080;
 
 server.listen(port, () => {
   console.log(`Server running on  http://localhost:${port}`);

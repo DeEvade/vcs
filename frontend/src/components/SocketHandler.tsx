@@ -15,6 +15,7 @@ const SocketHandler = observer((props: Props) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
+    if (stream !== null) return;
     if (navigator.mediaDevices === undefined) {
       toast("Media devices not supported", { icon: "❌" });
       return;
@@ -23,14 +24,19 @@ const SocketHandler = observer((props: Props) => {
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         console.log("Got stream", stream);
-
         setStream(stream);
+      })
+      .catch((error) => {
+        console.error("Error getting stream", error);
+        toast.error("Error getting stream");
       });
   }, []);
 
   useEffect(() => {
-    if (!stream || model.socket.io) {
+    if (stream === null) {
       return;
+    } else {
+      console.log("Stream in socket handler", stream);
     }
 
     const io = socket(window.location.hostname + ":8080");

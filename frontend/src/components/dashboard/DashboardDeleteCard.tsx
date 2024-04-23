@@ -12,13 +12,38 @@ import {
 import { useDisclosure, Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import DashboardModel from "@/models/DashboardModel";
+import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
 import { AddIcon } from "@chakra-ui/icons";
 
 const DashboardDeleteCard = observer(
-  (props: { model: typeof DashboardModel; name: string; cardType: string }) => {
+  (props: {
+    model: typeof DashboardModel;
+    id: number;
+    name: string;
+    type: string;
+    cardType: string;
+  }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [value, setValue] = useState("ATC");
+    const [value, setValue] = useState<"ATC" | "pilot">("ATC");
+    const { model } = props;
+
+    const handleDelete = () => {
+      switch (props.type) {
+        case "role":
+          model.deleteRole(props.id);
+          break;
+        case "config":
+          //model.deleteConfig(props.id);
+          break;
+        case "frequency":
+          //model.deleteFrequency(props.id);
+          break;
+        default:
+          break;
+      }
+
+      onClose();
+    };
 
     return (
       <>
@@ -41,7 +66,7 @@ const DashboardDeleteCard = observer(
               <Button onClick={onClose} mr={3}>
                 Cancel
               </Button>
-              <Button colorScheme="red" onClick={onClose}>
+              <Button colorScheme="red" onClick={handleDelete}>
                 Delete
               </Button>
             </ModalFooter>

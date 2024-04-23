@@ -51,8 +51,10 @@ const DashboardFrequenceCard = observer(
     };
 
     const initialState = {
-      type: role.type,
       name: role.name,
+      id: role.id,
+      type: role.type,
+
       frequencies: getFrequenciesForRole(role, model),
     };
     const [roleState, setRoleState] = useState(initialState);
@@ -105,7 +107,7 @@ const DashboardFrequenceCard = observer(
                 onSelect={(e) => {
                   e.preventDefault();
                 }}
-                value={primaryFrequency?.id}
+                defaultValue={primaryFrequency?.id}
               >
                 <option>None</option>
                 {roleState.frequencies.map((frequency) => (
@@ -133,7 +135,9 @@ const DashboardFrequenceCard = observer(
                 </Button>
                 <DashboardDeleteCard
                   model={model}
+                  type={"role"}
                   name={roleState.name}
+                  id={roleState.id}
                   cardType="Role"
                 />
               </Flex>

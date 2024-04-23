@@ -17,7 +17,7 @@ const Dashboard = () => {
   const model = observable(dashboardModel);
   return (
     <ChakraProvider theme={theme}>
-      <Toaster position={"top-right"} />
+      <Toaster position={"bottom-right"} />
       <DashboardSocketHandler model={model} />
       <DashboardApp model={model} />
     </ChakraProvider>

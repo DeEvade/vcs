@@ -1,4 +1,4 @@
-import { AddIcon, EditIcon } from "@chakra-ui/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import DashboardModel from "@/models/DashboardModel";
 import {
   Flex,
@@ -34,7 +34,20 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
   return (
     <Flex direction="column" align="center" padding="20px" gap="20px">
       <Flex direction="row" gap="10px" alignItems="center">
-        <Select defaultChecked={true} defaultValue="option1">
+        {/* <DashboardSetActive model={model} />  */}
+        <Select
+          placeholder="Select Configuration"
+          value={model.selectedConfigurationId ?? undefined}
+          onChange={(e) => {
+            e.preventDefault();
+            if (!e.target.value) {
+              model.selectedConfigurationId = null;
+
+              return;
+            }
+            model.selectedConfigurationId = Number.parseInt(e.target.value);
+          }}
+        >
           {model.configs.map((config) => (
             <option key={config.id} value={config.id}>
               {config.name}
@@ -43,66 +56,69 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
         </Select>
         <DashboardAddConfig model={model} />
         <EditIcon boxSize={5} cursor="pointer" />
+        <DeleteIcon boxSize={5} cursor="pointer" />
       </Flex>
 
-      <Flex width="100%" direction="row" gap="10px" textAlign={"center"}>
-        {/* Second Table */}
+      {model.selectedConfigurationId && (
+        <Flex width="100%" direction="row" gap="10px" textAlign={"center"}>
+          {/* Second Table */}
 
-        <Box
-          w={{ base: "100%", lg: "66%" }}
-          p={2}
-          borderRadius="lg"
-          border="1px"
-          borderColor="gray.500"
-          flex={1}
-        >
-          <Flex direction="row" paddingBottom="10px">
-            <Flex flex={1}></Flex>
-            <h2>Roles</h2>
-            <Flex flex={1}></Flex>
-            <Center marginRight={"5px"}>
-              <DashboardAddRole model={model} />
-            </Center>
-          </Flex>
-          <Flex direction={"column"} gap={"20px"}>
-            {model.roles.map((role) => (
-              <DashboardRoleCard key={role.id} model={model} role={role} />
-            ))}
-          </Flex>
-
-          {/* Add content for the second table */}
-        </Box>
-
-        <Box
-          w={{ base: "100%", lg: "66%" }}
-          p={2}
-          borderRadius="lg"
-          border="1px"
-          borderColor="gray.500"
-          flex={1}
-        >
-          <Flex direction={"column"}>
+          <Box
+            w={{ base: "100%", lg: "66%" }}
+            p={2}
+            borderRadius="lg"
+            border="1px"
+            borderColor="gray.500"
+            flex={1}
+          >
             <Flex direction="row" paddingBottom="10px">
               <Flex flex={1}></Flex>
-              <h2>Frequencies</h2>
+              <h2>Roles</h2>
               <Flex flex={1}></Flex>
               <Center marginRight={"5px"}>
-                <DashboardAddFrequency model={model} />
+                <DashboardAddRole model={model} />
               </Center>
             </Flex>
             <Flex direction={"column"} gap={"20px"}>
-              {model.frequencies.map((frequency) => (
-                <DashboardFrequencyCard
-                  key={frequency.id}
-                  model={model}
-                  frequency={frequency}
-                />
+              {model.roles.map((role) => (
+                <DashboardRoleCard key={role.id} model={model} role={role} />
               ))}
             </Flex>
-          </Flex>
-          {/* Add content for the second table */}
-        </Box>
-      </Flex>
+
+            {/* Add content for the second table */}
+          </Box>
+
+          <Box
+            w={{ base: "100%", lg: "66%" }}
+            p={2}
+            borderRadius="lg"
+            border="1px"
+            borderColor="gray.500"
+            flex={1}
+          >
+            <Flex direction={"column"}>
+              <Flex direction="row" paddingBottom="10px">
+                <Flex flex={1}></Flex>
+                <h2>Frequencies</h2>
+                <Flex flex={1}></Flex>
+                <Center marginRight={"5px"}>
+                  <DashboardAddFrequency model={model} />
+                </Center>
+              </Flex>
+              <Flex direction={"column"} gap={"20px"}>
+                {model.frequencies.map((frequency) => (
+                  <DashboardFrequencyCard
+                    key={frequency.id}
+                    model={model}
+                    frequency={frequency}
+                  />
+                ))}
+              </Flex>
+            </Flex>
+            {/* Add content for the second table */}
+          </Box>
+        </Flex>
+      )}
     </Flex>
   );
 });

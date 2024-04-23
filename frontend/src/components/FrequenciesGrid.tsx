@@ -6,6 +6,7 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
+import { rolesToFrequencies } from "@/utils/tools";
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -23,24 +24,27 @@ interface Props {
 const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const { model } = props;
 
-  const [selectedRoleObject, setSelectedRoleObject] = useState<Role | null>(
+  const [selectedRolesObject, setSelectedRolesObject] = useState<Role[] | null>(
     null
   );
 
   useEffect(() => {
     console.log("selected role object: ");
-    const selectedRoleObject = model.getSelectedRoleObject();
-    console.log("selected role object: ", selectedRoleObject);
+    const selectedRolesObject = model.getSelectedRolesObject();
+    console.log("selected role object: ", selectedRolesObject);
 
-    setSelectedRoleObject(selectedRoleObject);
-  }, [model.selectedRole]);
+    setSelectedRolesObject(selectedRolesObject);
+  }, [model.selectedRoles]);
 
-  if (selectedRoleObject === null) {
+  if (selectedRolesObject === null || selectedRolesObject.length === 0) {
     //TODO fix this
     return <>Awaiting role select</>;
   }
 
-  const unorderedFrequencies: Frequency[] = selectedRoleObject.frequencies;
+  const unorderedFrequencies: Frequency[] =
+    rolesToFrequencies(selectedRolesObject);
+  //remove duplicates
+
   const frequencies: Frequency[] = unorderedFrequencies
     .slice()
     .sort((a, b) => a.order - b.order);

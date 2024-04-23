@@ -50,10 +50,14 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         const roleFrequencyRepo = AppDataSource.getRepository(RoleFrequency);
 
         const configs = await configRepo.find();
-        const roles = await roleRepo.find();
-        const frequencies = await frequencyRepo.find();
+        const roles = await roleRepo.find({
+          relations: {
+            configuration: true,
+          },
+        });
+        const frequencies = await frequencyRepo.find({});
         const roleFrequencies = await roleFrequencyRepo.find({
-          relations: { role: true, frequency: true },
+          relations: ["role", "frequency"],
         });
 
         socket.emit("getAllData", {
@@ -64,6 +68,44 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         });
       } catch (error) {
         socket.emit("getAllData", { error: error.message });
+      }
+    });
+
+    socket.on("addRole", async (data) => {
+      try {
+        const roleRepo = AppDataSource.getRepository(Role);
+        const role = roleRepo.create(data);
+        const savedRole = await roleRepo.save(role);
+
+        socket.broadcast.emit("addRole", savedRole);
+        socket.emit("addRole", savedRole);
+      } catch (error) {
+        socket.emit("addRole", { error: error.message });
+      }
+    });
+
+    socket.on("addFrequency", async (data) => {
+      try {
+        const frequencyRepo = AppDataSource.getRepository(Frequency);
+        const frequency = frequencyRepo.create(data);
+        const savedFrequency = await frequencyRepo.save(frequency);
+
+        socket.broadcast.emit("addFrequency", savedFrequency);
+        socket.emit("addFrequency", savedFrequency);
+      } catch (error) {
+        socket.emit("addFrequency", { error: error.message });
+      }
+    });
+
+    socket.on("deleteRole", async (data) => {
+      try {
+        const roleRepo = AppDataSource.getRepository(Role);
+        const role = await roleRepo.findOneBy({ id: data.roleId });
+        await roleRepo.remove(role);
+        socket.emit("deleteRole", data);
+        socket.broadcast.emit("deleteRole", role);
+      } catch (error) {
+        socket.emit("deleteRole", { error: error.message });
       }
     });
 
@@ -102,4 +144,5 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };
+
 export default socketHandler;

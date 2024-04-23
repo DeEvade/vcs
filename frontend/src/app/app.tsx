@@ -26,7 +26,7 @@ const App = observer(function (props: Props) {
       return;
     }
     model.fetchConfiguration();
-  }, [model.socket.io, model.socket.connected]);
+  }, [model.socket.io]);
 
   return (
     <Flex direction="column" minH="100vh">
