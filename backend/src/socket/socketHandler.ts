@@ -57,9 +57,9 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
   
       hashTable.forEach((freqValues, freqKey) => {
         console.log("creating retMap and looping over table")
-        if(freqValues.includes(socket.id)){
+        if(freqValues.includes(socket.id) && freqValues.length > 1){
           console.log("user id is in freqValues")
-          retMap.set(freqKey, freqValues);
+          retMap.set(freqKey, freqValues.filter((userId) => userId !== socket.id));
         }
       })
     
@@ -73,24 +73,26 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       }
     }
     */
+
+    for (const [key, value] of retMap) {
+      console.log(`${key}:`, value);
+  }
+
+    // For each för att connecta till andra på samma freq
+    for(const [freq, userIds] of retMap) {
+      console.log("before loooppppp");
+      userIds.forEach((key: string) => {
+        console.log("keys: " + key)
+        console.log("what the fuck");
+        users[key].emit("newUser", socket.id);
+      })
+    }
   
     socket.on("callUser", (data) => {
-      const{ userToCall, signalData } = data;
-  
-      const callerFreq = getFrequencyOfUser(socket.id);
-      const calleeFreq = getFrequencyOfUser(userToCall);
-  
-      if(callerFreq != calleeFreq || callerFreq == null){
-        console.log("Callee and caller are not on the same freq")
-        return;
-      }
-      
-      console.log("user has called in ");
       io.to(data.userToCall).emit("hey", {
-        signal: signalData,
-        from: data.from, //socket.id
-      })
-      console.log("Data has been sent");
+        signal: data.signalData,
+        from: data.from,
+      });
     });
   
     socket.on("disconnect", () => {
