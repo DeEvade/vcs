@@ -13,6 +13,7 @@ interface Props {
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [usersToTalkTo, setUsersToTalkTo] = useState<string[]>([]);
 
   useEffect(() => {
     if(stream !== null) return;
@@ -46,6 +47,7 @@ const SocketHandler = observer((props: Props) => {
     io.on("newUser", (user: string) => {
       console.log("new user has connected");
       const peerExists = model.peers.get(user);
+
       if (peerExists) {
         return;
       }
@@ -62,27 +64,32 @@ const SocketHandler = observer((props: Props) => {
                 "stun:stun2.l.google.com:19302",
               ],
             },
-          ],
-          iceCandidatePoolSize: 10,
+          ], 
+          iceCandidatePoolSize: 10, 
         },
       });
       console.log("Peer has connected");
 
-      peer.on("signal", (data) => {
+      peer.on("signal", (offerSignal) => {
         // io.on("connectFreq", () => {
         console.log("we are hereee!!!")
           io.emit("callUser", {
             userToCall: user,
-            signalData: data,
+            signalData: offerSignal,
             from: io.id,
           });
         // });
         console.log("we are leavinggg")
-        model.peers.set(user, peer);
+        model.peers.set(user, peer); //
         })
     });
 
-    io.on("userLeft", (user: string) => {
+    io.on("usersToTalkTo", (usersToTalkTo: string[]) => {
+      console.log("Received users to talk to");
+      setUsersToTalkTo(usersToTalkTo);
+    })
+
+    io.on("userLeft", (user: string, freq: string) => {
       const peer = model.peers.get(user);
       if (!peer) {
         return;
@@ -98,10 +105,10 @@ const SocketHandler = observer((props: Props) => {
       if (!peer) {
         return;
       }
-      peer.signal(signal.signal);
+      peer.signal(signal.signal); //
     });
 
-    io.on("hey", (data: any) => { 
+    io.on("hey", (data: any) => {
       console.log("Stream in hey", stream); 
 
       const peer = new Peer({
@@ -124,10 +131,10 @@ const SocketHandler = observer((props: Props) => {
 
       console.log("hey", data.from, data.signal);
 
-      peer.on("signal", (signalData) => {
+      peer.on("signal", (answerSignal) => {
         console.log("Acceptcall and will emit signal");
         io.emit("acceptCall", {
-          signal: signalData,
+          signal: answerSignal,
           to: data.from,
           from: io.id,
         });
