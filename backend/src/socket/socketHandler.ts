@@ -3,6 +3,7 @@ import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
 
+
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
@@ -50,7 +51,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
           }
         }
       })
-      console.log("second frequency list " + freq);
 
       socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
         console.log("disconnecting from frequency")
@@ -66,8 +66,27 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
           }
           io.emit("usersToTalkTo", usersToTalkTo);
         })
+
+        function disconnectFromFreq (socketID: string, freq: string[], RX: number[], hashMap: Map<string, string[]>){
+          const frequenciesToDisconnect = freq.filter(freq => !RX.includes(Number(freq)));
+    
+          frequenciesToDisconnect.forEach((frequency: string) => {
+            if(hashMap.has(frequency)){
+              let usersInFreq = hashMap.get(frequency) || [];
+              if(usersInFreq.includes(socketID)){
+                usersInFreq.forEach((userID: string) => {
+                  if(userID != socketID){
+                  io.emit("peerDisconnect", userID);
+                  }
+                })
+              }
+            }
+          })
+        }
       })
-  
+
+      console.log("second frequency list " + freq);
+
       const retMap = new Map<string, string[]>();
       console.log("frequency list before retMap " + freq);
   

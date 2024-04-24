@@ -41,8 +41,8 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   useEffect(() => {
     console.log("RX changed")
     //console.log("frequence" + JSON.stringify(frequencyState));
-      model.handleFrequencyJoined();
-     // model.handleFrequencyDisconnect();
+    model.handleFrequencyJoined();
+    //model.handleFrequencyDisconnect();
     toast.success(JSON.stringify(model.RXFrequencies));
   }, [model.RXFrequencies])
 

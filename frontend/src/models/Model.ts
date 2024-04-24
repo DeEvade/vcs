@@ -18,6 +18,10 @@ export const model = {
 
   // Keeps track in which frequency a user has a peer.
   // <[id, frequency], peer>
+
+  // peers: new Map() as Map<[string, string], Peer.Instance>,
+
+  // Regular map
   peers: new Map() as Map<string, Peer.Instance>,
 
   RXFrequencies: [] as number[],

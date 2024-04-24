@@ -44,7 +44,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
-    io.on("newUser", (user: string) => {
+    io.on("newUser", (user: string, freq: string) => {
       console.log("new user has connected");
       const peerExists = model.peers.get(user);
 
@@ -80,7 +80,7 @@ const SocketHandler = observer((props: Props) => {
           });
         // });
         console.log("we are leavinggg")
-        model.peers.set(user, peer); //
+        model.peers.set(user, peer); 
         })
     });
 
@@ -89,7 +89,14 @@ const SocketHandler = observer((props: Props) => {
       setUsersToTalkTo(usersToTalkTo);
     })
 
-    io.on("userLeft", (user: string, freq: string) => {
+    io.on("peerDisconnect", (userID: string) => {
+      const peer = model.peers.get(userID);
+      if(peer){
+        peer.destroy();
+      }
+    })
+
+    io.on("userLeft", (user: string) => {
       const peer = model.peers.get(user);
       if (!peer) {
         return;
