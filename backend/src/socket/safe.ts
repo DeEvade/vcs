@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+/*import { Server, Socket } from "socket.io";
 import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
@@ -90,8 +90,8 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
             }  
           }    
         }); */
-      })
-    
+     //})
+    /*
       const retMap = new Map<string, string[]>();
       console.log("frequency list before retMap " + freq);
   
@@ -173,10 +173,10 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       }
     });
   })
-}
+} 
 
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };
 
-export default socketHandler;
+//export default socketHandler//;// */

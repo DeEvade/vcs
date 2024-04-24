@@ -55,8 +55,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
         console.log("disconnecting from frequency")
 
-        
-          
         usersToTalkTo.forEach((freqKey: string) => {
           if(hashMap.has(freqKey)){
             let usersInFreq = hashMap.get(freqKey) || [];
