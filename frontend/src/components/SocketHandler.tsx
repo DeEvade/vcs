@@ -69,13 +69,15 @@ const SocketHandler = observer((props: Props) => {
       console.log("Peer has connected");
 
       peer.on("signal", (data) => {
-        io.on("connectFreq", () => {
+        // io.on("connectFreq", () => {
+        console.log("we are hereee!!!")
           io.emit("callUser", {
             userToCall: user,
             signalData: data,
             from: io.id,
           });
-        });
+        // });
+        console.log("we are leavinggg")
         model.peers.set(user, peer);
         })
     });
@@ -99,8 +101,8 @@ const SocketHandler = observer((props: Props) => {
       peer.signal(signal.signal);
     });
 
-    io.on("hey", (data: any) => { //printar den här
-      console.log("Stream in hey", stream); //och den här
+    io.on("hey", (data: any) => { 
+      console.log("Stream in hey", stream); 
 
       const peer = new Peer({
         initiator: false,

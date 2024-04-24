@@ -47,7 +47,7 @@ export const model = {
   // Uses socket to emit all frequencies that the current user is recieving from.
   handleFrequencyJoined: function () {
     console.log("handles frequency" + this.RXFrequencies)
-    if (!this.socket.io || !this.socket.connected) {
+    if (!this.socket.io || !this.socket.connected || (this.RXFrequencies == null)) {
       return;
     }
     this.socket.io.emit("connectFreq", this.RXFrequencies);

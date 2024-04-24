@@ -41,6 +41,11 @@ const PeerChannel = observer(
 
       return () => {
         // Clean up
+        if(stream){
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          })
+        }
       };
     }, [peer]);
 

@@ -6,17 +6,22 @@ import { DataSource } from "typeorm";
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
-  let freq: string;
+  const freq: string[] = [];
   // a hash table where keys are freqs and values are array of user IDs
-  const hashTable = new Map<string, string[]>();
+  const hashMap = new Map<string, string[]>();
 
-  function getFrequencyOfUser(userId: string){
-    for(const [freq, userIds] of hashTable){
-      if(userIds.includes(userId)){
-        return freq;
-      }
-    }
-  }
+   function filterUsers(freq: string[], hashMap: Map<string, string[]>): string[]{
+     let usersToTalk: string[] = [];
+
+     freq.forEach((freqKey: string) => {
+       if(hashMap.hasOwnProperty(freqKey)){
+         usersToTalk = usersToTalk.concat(hashMap.get(freqKey));
+       }
+     })
+     return usersToTalk;
+   }
+
+  const usersToTalkTo = filterUsers(freq, hashMap);
 
   io.on("connection", (socket: Socket) => {
     if(!socket){
@@ -38,35 +43,54 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
     socket.on("connectFreq", (freq: string[]) => {
       console.log("connecting to frequency")
+      console.log("initial frequency list " + freq);
   
       freq.forEach((freqKey: string) => {
-        if(!hashTable.has(freqKey)){
+        if(!hashMap.has(freqKey)){
           console.log("if table has not the freq")
-          hashTable.set(freqKey, [socket.id]);
+          hashMap.set(freqKey, [socket.id]);
         } else {
           console.log("table has the freq")
-          if(!hashTable.get(freqKey).includes(socket.id)){
+          if(!hashMap.get(freqKey).includes(socket.id)){
             console.log("table has not user id")
-            hashTable.get(freqKey).push(socket.id);
+            hashMap.get(freqKey).push(socket.id);
           }
         }
       })
+      console.log("second frequency list " + freq);
+
+      socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
+        console.log("disconnecting from frequency")
+          
+        usersToTalkTo.forEach((freqKey: string) => {
+          if(hashMap.has(freqKey)){
+            let usersInFreq = hashMap.get(freqKey) || [];
+            const index = usersInFreq.indexOf(socket.id);
+            if(index !== -1){
+              usersInFreq.splice(index, 1);
+            }
+            hashMap.set(freqKey, usersInFreq);
+          }
+        })
+      })
   
       const retMap = new Map<string, string[]>();
+      console.log("frequency list before retMap " + freq);
   
-      hashTable.forEach((freqValues, freqKey) => {
+      hashMap.forEach((freqValues, freqKey) => {
         console.log("creating retMap and looping over table")
         if(freqValues.includes(socket.id) && freqValues.length > 1){
           console.log("user id is in freqValues")
           retMap.set(freqKey, freqValues.filter((userId) => userId !== socket.id));
         }
       })
+      console.log("frequency list after retMap " + freq);
     
     /*
     // Array to hold all connected users
     let connectedUsers: string[] = [];
     // Check each entry of map for current user, if exists concatenate
-    for(const [freq, userIds] of hashTable) {
+    for(const [freq, userIds] of hashMap) {
       if(userIds.includes(socket.id)) {
         connectedUsers.concat(userIds);
       }
@@ -75,16 +99,18 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
     for (const [key, value] of retMap) {
       console.log(`${key}:`, value);
-  }
+    }
 
     // For each för att connecta till andra på samma freq
     for(const [freq, userIds] of retMap) {
-      console.log("before loooppppp");
-      userIds.forEach((key: string) => {
-        console.log("keys: " + key)
-        console.log("what the fuck");
-        users[key].emit("newUser", socket.id);
-      })
+      if(userIds !== undefined) {
+        console.log("before loooppppp");
+        userIds.forEach((key: string) => {
+          console.log("keys: " + key)
+          console.log("what the fuck");
+          users[key].emit("newUser", socket.id);
+        })
+      }
     }
   
     socket.on("callUser", (data) => {
@@ -95,7 +121,16 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     });
   
     socket.on("disconnect", () => {
+      console.log("user disconnected");
       delete users[socket.id];
+
+      // Remove user from all mentions in map
+      for (const [key, value] of hashMap.entries()) {
+        if(value.includes(socket.id)){
+          console.log("removes user");
+          value.splice(value.indexOf(socket.id));
+        }
+      }
       io.emit("userLeft", socket.id);
     });
   
@@ -132,9 +167,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         console.log("Error during default configuration creation", error);
         socket.emit("getConfig", { error: error.message });
       }
-    });
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
     });
   });
 };

@@ -15,6 +15,7 @@ import { model as baseModel } from "@/models/Model";
 import { Frequency } from "@/types";
 import toast from "react-hot-toast";
 
+
 interface Props {
   frequency: Frequency;
   onToggle: (id: number, type: "RX" | "TX" | "XC") => void;
@@ -75,15 +76,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   };
 
-  // Handles all updated receiver lists
-  useEffect(() => {
-    console.log("RX changed")
-    console.log("frequence" + JSON.stringify(frequencyState));
-    model.handleFrequencyJoined();
-    toast.success(JSON.stringify(frequencyState));
-    toast.success(JSON.stringify(model.RXFrequencies));
 
-  }, [model.RXFrequencies])
 
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {

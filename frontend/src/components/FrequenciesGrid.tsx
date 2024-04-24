@@ -6,6 +6,7 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
+import toast from "react-hot-toast";
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -35,6 +36,16 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     setSelectedRoleObject(selectedRoleObject);
   }, [model.selectedRole]);
 
+
+  // Handles all updated receiver lists
+  useEffect(() => {
+    console.log("RX changed")
+    //console.log("frequence" + JSON.stringify(frequencyState));
+      model.handleFrequencyJoined();
+    toast.success(JSON.stringify(model.RXFrequencies));
+  }, [model.RXFrequencies])
+
+  
   if (selectedRoleObject === null) {
     //TODO fix this
     return <>Awaiting role select</>;
@@ -56,8 +67,6 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
         } else {
           //Add to RX array
           model.RXFrequencies = model.RXFrequencies.concat([id])
-
-
         }
         break;
       case "TX":
