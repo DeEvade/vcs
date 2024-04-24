@@ -3,7 +3,6 @@ import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
 
-
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
@@ -55,6 +54,8 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
       socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
         console.log("disconnecting from frequency")
+
+        
           
         usersToTalkTo.forEach((freqKey: string) => {
           if(hashMap.has(freqKey)){
@@ -68,30 +69,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
           io.emit("usersToTalkTo", usersToTalkTo);
         })
       })
-    
-      /*
-      const disconnectFromFreq = function (freq: string[], RX: number[], hashMap: Map <string, string[]>) {
-        const frequenciesToDisconnect = freq.filter(freq => !RX.includes(Number(freq)))  
-        
-        frequenciesToDisconnect.forEach((frequency: string) => {
-          if(hashMap.has(frequency)){
-            let usersInFreq = hashMap.get(frequency) || [];
-            if(usersInFreq.includes(socket.id)){
-              usersInFreq.forEach(userId => {
-                if (userId !== socket.id) {
-                  // Destroy signal channel between socketId and userId
-                  const peer = model.peers.get(userId);
-                  if (peer) {
-                    peer.destroy();
-                    model.peers.delete(userId);
-                  }
-                }
-              });
-            }  
-          }    
-        }); */
-      })
-    
+  
       const retMap = new Map<string, string[]>();
       console.log("frequency list before retMap " + freq);
   
@@ -103,7 +81,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         }
       })
       console.log("frequency list after retMap " + freq);
-    
+
     for (const [key, value] of retMap) {
       console.log(`${key}:`, value);
     }
@@ -113,7 +91,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       if(userIds !== undefined) {
         userIds.forEach((key: string) => {
           console.log("keys: " + key)
-          users[key].emit("newUser", socket.id, freq);
+          users[key].emit("newUser", socket.id);
         })
       }
     }
@@ -145,6 +123,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         from: data.from,
       });
     });
+    })
 
     socket.on("getCurrentConfig", async () => {
       console.log("asking for config");
@@ -172,10 +151,11 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         socket.emit("getConfig", { error: error.message });
       }
     });
-  })
+  });
+};
 
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };
-}
+
 export default socketHandler;

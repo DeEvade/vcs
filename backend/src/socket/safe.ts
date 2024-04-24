@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
-import { model as baseModel } from "../models/Model";
+
 
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
@@ -11,16 +11,16 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
   // a hash table where keys are freqs and values are array of user IDs
   const hashMap = new Map<string, string[]>();
 
-   function filterUsers(freq: string[], hashMap: Map<string, string[]>): string[]{
-     let usersToTalk: string[] = [];
+  function filterUsers(freq: string[], hashMap: Map<string, string[]>): string[]{
+    let usersToTalk: string[] = [];
 
-     freq.forEach((freqKey: string) => {
-       if(hashMap.hasOwnProperty(freqKey)){
-         usersToTalk = usersToTalk.concat(hashMap.get(freqKey));
-       }
-     })
-     return usersToTalk;
-   }
+    freq.forEach((freqKey: string) => {
+      if(hashMap.hasOwnProperty(freqKey)){
+        usersToTalk = usersToTalk.concat(hashMap.get(freqKey));
+      }
+    })
+    return usersToTalk;
+  }
 
   const usersToTalkTo = filterUsers(freq, hashMap);
 
@@ -51,8 +51,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
           }
         }
       })
-          console.log("second frequency list " + freq);
-    })
+      console.log("second frequency list " + freq);
 
       socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
         console.log("disconnecting from frequency")
@@ -70,7 +69,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         })
       })
     
-      
+      /*
       const disconnectFromFreq = function (freq: string[], RX: number[], hashMap: Map <string, string[]>) {
         const frequenciesToDisconnect = freq.filter(freq => !RX.includes(Number(freq)))  
         
@@ -90,8 +89,8 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
               });
             }  
           }    
-        });
-
+        }); */
+      })
     
       const retMap = new Map<string, string[]>();
       console.log("frequency list before retMap " + freq);
@@ -104,7 +103,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         }
       })
       console.log("frequency list after retMap " + freq);
-      
+    
     for (const [key, value] of retMap) {
       console.log(`${key}:`, value);
     }
@@ -173,12 +172,11 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         socket.emit("getConfig", { error: error.message });
       }
     });
-  }
-});
+  })
+}
 
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };
-}
 
 export default socketHandler;
