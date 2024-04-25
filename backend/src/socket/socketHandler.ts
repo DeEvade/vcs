@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
+import { v4 as uuidv4 } from 'uuid';
 
 
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
@@ -11,12 +12,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
   // a hash table where keys are freqs and values are array of user IDs
   const hashMap = new Map<number, string[]>();
 
-  // hashmap over frequencies and which connections between two peers exist
-  type HashMap = {
-    [key: string]: string[];
-  }
-
-  const connections: HashMap = {};
 
   io.on("connection", (socket: Socket) => {
     if(!socket){
@@ -32,6 +27,15 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     socket.on("connectFreq", (freq: number[]) => {
       console.log("connecting to frequency")
       console.log("initial frequency list " + freq);
+
+      
+/* 
+      if(!socket.id){
+        userId = uuidv4();
+        freq.forEach((freqkey: number) => {
+          hashMap.set(freqkey, [userId]);
+        })
+      } */
   
       freq.forEach((freqKey: number) => {
         if(!hashMap.has(freqKey)){
@@ -46,22 +50,44 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         }
       })
 
-      socket.on("disconnectFreq", (RX: number[]) => {
-        console.log("RX" + "" + RX);
+      socket.on("disconnectFreq", (NORX: number[]) => {
+        console.log("NORX" + "" + NORX);
+        hashMap.forEach((value, key) => {
+          console.log("before updating map" + `${key}: ${value}`);
+        })
 
-        hashMap.forEach((userID: string[], freqKey: number) => {
-          if(!RX.includes(freqKey)){
-            if(userID.includes(socket.id)){
-              const temp = userID.filter(users => users !== socket.id);
+        let userId = uuidv4();
+
+        NORX.forEach((freqKey: number) => {
+          if(hashMap.has(freqKey)){
+            const users = hashMap.get(freqKey);
+            if(users.includes(socket.id)){
+              const temp = users.filter(user => user !== socket.id);
               console.log("temp" + "" + temp);
               hashMap.set(freqKey, temp);
-              io.emit("peerDisconnect", socket.id);
+              hashMap.forEach((value, key) => {
+                console.log("updated map" + `${key}: ${value}`);
+              })
+              
+              io.emit("peerDisconnect", socket.id); 
               console.log("We have emitted peerDisconnect");
+            } else {
+              return;
             }
           }else{
            // console.log("we are not in the if-statement");
           }
         })
+       /*  hashMap.forEach((userValues, freqkeys) =>{
+          if(userValues.includes(socket.id)){
+            const index = userValues.indexOf(socket.id);
+            userValues[index] = userId;
+            //hashMap.set(freqkeys, userValues);
+          }
+          console.log("hashmap updated before creating");
+          io.emit("reconnect", userId);
+        }) */
+        io.emit("reconnect", userId);
       })  
 
       console.log("second frequency list " + freq);
@@ -82,13 +108,12 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       console.log(`${key}:`, value);
     }
 
-
     // For each för att connecta till andra på samma freq
     for(const [freq, userIds] of retMap) {
       if(userIds !== undefined) {
         userIds.forEach((key: string) => {
           console.log("keys: " + key)
-          users[socket.id].emit("newUser",  key);
+          users[key]?.emit("newUser",  socket.id);
         })
       }
     }

@@ -63,6 +63,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
       case "RX":
         if (model.RXFrequencies.includes(id)) {
           //Remove from RX array
+          model.NORXFrequencies.push(id);
           model.RXFrequencies = model.RXFrequencies.filter(
             (value) => value !== id
           );

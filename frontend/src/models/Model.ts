@@ -66,8 +66,8 @@ export const model = {
       return;
     }
    // console.log("RX" + this.RXFrequencies);
-   if(this.RXFrequencies !== null){
-    this.socket.io.emit("disconnectFreq", this.RXFrequencies);
+   if(this.NORXFrequencies !== null){
+    this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
     console.log("Emitted disconnect");
    }
   },
