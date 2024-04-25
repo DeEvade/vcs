@@ -48,6 +48,8 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
       onClose();
     };
 
+    if (!model.configuration) return null;
+
     return (
       <Modal
         isOpen={isOpen}
@@ -83,6 +85,10 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
                       ATCO
                     </Button>
                     {model.configuration.roles
+                      .filter(
+                        (role) => !model.selectedRoles.includes(role.name)
+                      )
+
                       .filter((role) => role.type === "pilot")
                       .map((role) => (
                         <Button

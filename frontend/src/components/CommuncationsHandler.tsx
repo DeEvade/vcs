@@ -44,7 +44,7 @@ const PeerChannel = observer(
       <>
         <Flex direction="column" alignItems="center">
           <h1>{peerId}</h1>
-          <h2>Status: {peer.connected}</h2>
+          <h2>Status: {peer.connected !== true ? "online" : "offline"}</h2>
           <video
             style={{ width: "250px", height: "250px" }}
             autoPlay

@@ -23,6 +23,7 @@ import {
   InputRightElement,
   InputGroup,
   Text,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 
 const DashboardAddFrequency = observer(
@@ -52,7 +53,7 @@ const DashboardAddFrequency = observer(
             <ModalHeader>Add New Frequency</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>Frequency</FormLabel>
                 <NumberInput>
                   <InputGroup>
@@ -71,7 +72,15 @@ const DashboardAddFrequency = observer(
               <Button onClick={onClose} mr={3}>
                 Cancel
               </Button>
-              <Button colorScheme="green" onClick={saveFrequency}>
+              <Button
+                colorScheme="green"
+                onClick={saveFrequency}
+                isDisabled={
+                  !frequency.trim() ||
+                  parseInt(frequency) < 1 ||
+                  /[e+-]/.test(frequency)
+                }
+              >
                 Save
               </Button>
             </ModalFooter>

@@ -13,6 +13,7 @@ import {
   Stack,
   FormControl,
   FormLabel,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { useDisclosure, Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
@@ -34,9 +35,15 @@ const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
       name: role,
       configurationId: model.selectedConfigurationId!,
     });
-
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      console.log("Effekt test");
+      setRole("");
+    }
+  }, [isOpen]);
 
   return (
     <>
@@ -59,7 +66,7 @@ const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
                 <Radio value="pilot">PILOT</Radio>
               </Stack>
             </RadioGroup>
-            <FormControl>
+            <FormControl isRequired>
               <FormLabel>Role name</FormLabel>
               <Input
                 onChange={(e) => {
@@ -75,7 +82,11 @@ const DashboardAddRole = observer((props: { model: typeof DashboardModel }) => {
             <Button onClick={onClose} mr={3}>
               Cancel
             </Button>
-            <Button colorScheme="green" onClick={handleSave}>
+            <Button
+              colorScheme="green"
+              onClick={handleSave}
+              isDisabled={!role.trim()}
+            >
               Save
             </Button>
           </ModalFooter>

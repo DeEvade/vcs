@@ -13,30 +13,31 @@ import { useDisclosure, Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
-import { AddIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 const DashboardDeleteCard = observer(
   (props: {
     model: typeof DashboardModel;
     id: number;
     name: string;
-    type: string;
     cardType: string;
+    element: ReactJSXElement;
   }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [value, setValue] = useState<"ATC" | "pilot">("ATC");
     const { model } = props;
 
     const handleDelete = () => {
-      switch (props.type) {
+      switch (props.cardType.toLowerCase()) {
         case "role":
           model.deleteRole(props.id);
           break;
         case "config":
-          //model.deleteConfig(props.id);
+          model.deleteConfig(props.id);
           break;
         case "frequency":
-          //model.deleteFrequency(props.id);
+          model.deleteFrequency(props.id);
           break;
         default:
           break;
@@ -47,9 +48,10 @@ const DashboardDeleteCard = observer(
 
     return (
       <>
-        <Button cursor="pointer" onClick={onOpen}>
-          Delete
-        </Button>
+        <Center cursor="pointer" onClick={onOpen}>
+          {props.element}
+        </Center>
+
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
@@ -58,6 +60,7 @@ const DashboardDeleteCard = observer(
             <ModalBody>
               <Text>
                 Are you sure you want to delete {props.cardType.toLowerCase()}:{" "}
+                <br />
                 {props.name}
               </Text>
             </ModalBody>

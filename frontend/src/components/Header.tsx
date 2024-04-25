@@ -95,14 +95,19 @@ const Header = observer(function (props: Props) {
               {selectedRole}
             </Button>
           ))}
-          <Center marginRight={"5px"}>
-            <AddIcon
-              cursor="pointer"
-              onClick={() => {
-                model.setOpenRoleModal(true);
-              }}
-            />
-          </Center>
+          {model.configuration?.roles.length !== model.selectedRoles.length && (
+            <>
+              {" "}
+              <Center marginRight={"5px"}>
+                <AddIcon
+                  cursor="pointer"
+                  onClick={() => {
+                    model.setOpenRoleModal(true);
+                  }}
+                />
+              </Center>
+            </>
+          )}
         </Flex>
         <ConfigMenu model={model} />
       </Flex>

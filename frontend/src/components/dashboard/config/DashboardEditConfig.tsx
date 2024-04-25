@@ -1,4 +1,6 @@
-import DashboardModel from "@/models/DashboardModel";
+import DashboardModel, {
+  DashboardConfiguration,
+} from "@/models/DashboardModel";
 import { observer } from "mobx-react-lite";
 import {
   Modal,
@@ -14,38 +16,52 @@ import {
   FormControl,
   FormLabel,
   Input,
+  FormErrorMessage,
 } from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
-import { useState } from "react";
-const DashboardAddConfig = observer(
+import { EditIcon } from "@chakra-ui/icons";
+import { useEffect, useState } from "react";
+const DashboardEditConfig = observer(
   (props: { model: typeof DashboardModel }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { model } = props;
+
+    useEffect(() => {
+      const config = model.configs?.find(
+        (c) => c.id == model.selectedConfigurationId
+      );
+      if (config) {
+        setName(config.name);
+        setOriginalName(config.name);
+      }
+    }, [model.selectedConfigurationId]);
+
     const [name, setName] = useState<string>("");
+    const [originalName, setOriginalName] = useState<string>("");
 
     const handleClose = () => {
       onClose();
-      setName("");
+      setName(originalName);
     };
 
     const handleSubmit = () => {
-      model.addConfig(name);
-      handleClose();
+      model.editConfig(name);
+      setOriginalName(name);
+      onClose();
     };
 
     return (
       <>
         <Center marginRight={"5px"}>
-          <AddIcon cursor="pointer" onClick={onOpen} />
+          <EditIcon cursor="pointer" onClick={onOpen} />
         </Center>
         <Modal isOpen={isOpen} onClose={handleClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Add New Config</ModalHeader>
+            <ModalHeader>Edit Config</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!name.trim()}>
                 <FormLabel>Name</FormLabel>
                 <Input
                   type="name"
@@ -55,6 +71,9 @@ const DashboardAddConfig = observer(
                     setName(e.target.value);
                   }}
                 />
+                <FormErrorMessage>
+                  Configuration name is required!
+                </FormErrorMessage>
               </FormControl>
             </ModalBody>
 
@@ -79,4 +98,4 @@ const DashboardAddConfig = observer(
   }
 );
 
-export default DashboardAddConfig;
+export default DashboardEditConfig;

@@ -1,6 +1,8 @@
 import { Frequency, Role } from "@/types";
 
-export const rolesToFrequencies = (roles: Role[]): Frequency[] => {
+export const rolesToFrequencies = (roles: Role[] | null): Frequency[] => {
+  if (roles == null) return [];
+
   //Remove duplicates
   const arr: Frequency[] = [];
 

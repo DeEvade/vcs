@@ -8,12 +8,14 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Unique,
 } from "typeorm";
 import { Frequency } from "./Frequency";
 import { Configuration } from "./Configuration";
 import { RoleFrequency } from "./RoleFrequency";
 
 @Entity()
+@Unique("UQ_roleName_configurationId", ["name", "configurationId"])
 export class Role extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,7 +29,9 @@ export class Role extends BaseEntity {
   @Column()
   configurationId: number;
 
-  @ManyToOne((type) => Configuration, (configuration) => configuration)
+  @ManyToOne((type) => Configuration, (configuration) => configuration, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "configurationId" })
   public configuration: Configuration;
 

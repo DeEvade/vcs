@@ -1,14 +1,27 @@
 import DashboardModel from "@/models/DashboardModel";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
-import { Button, ButtonGroup, Switch, Stack } from "@chakra-ui/react";
+import { Button, ButtonGroup, Switch, Stack, Box } from "@chakra-ui/react";
 
 const DashboardSetActive = observer(
   (props: { model: typeof DashboardModel }) => {
+    const { model } = props;
     const [isClicked, setIsClicked] = useState(false);
     const handleClick = () => {
-      setIsClicked(!isClicked);
+      model.setActiveConfig(model.selectedConfigurationId || 0);
+      //setIsClicked(!isClicked);
     };
+
+    if (model.activeConfigId === model.selectedConfigurationId)
+      return (
+        <>
+          <Stack direction="row" spacing={4} align="center">
+            <Box colorScheme="red" position="absolute" top="10px" left="10px">
+              Active
+            </Box>
+          </Stack>
+        </>
+      );
     return (
       <>
         <Stack direction="row" spacing={4} align="center">
@@ -24,7 +37,6 @@ const DashboardSetActive = observer(
             {isClicked ? "Active" : "Set to Active"} {}
           </Button>
         </Stack>
-        ; ;
       </>
     );
   }

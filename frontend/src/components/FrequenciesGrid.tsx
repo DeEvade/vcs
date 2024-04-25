@@ -29,20 +29,34 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   );
 
   useEffect(() => {
-    console.log("selected role object: ");
+    //console.log("selected role object: ");
     const selectedRolesObject = model.getSelectedRolesObject();
-    console.log("selected role object: ", selectedRolesObject);
+    //console.log("selected role object: ", selectedRolesObject);
 
     setSelectedRolesObject(selectedRolesObject);
+    setUnorderedFrequencies(rolesToFrequencies(selectedRolesObject));
   }, [model.selectedRoles]);
+
+  const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
+    []
+  );
+
+  useEffect(() => {
+    const roleObject = model.getSelectedRolesObject();
+    console.log(
+      "got herea 123: ",
+      rolesToFrequencies(roleObject),
+      selectedRolesObject
+    );
+
+    setUnorderedFrequencies(rolesToFrequencies(roleObject));
+  }, [model.configuration!.roles]);
 
   if (selectedRolesObject === null || selectedRolesObject.length === 0) {
     //TODO fix this
     return <>Awaiting role select</>;
   }
 
-  const unorderedFrequencies: Frequency[] =
-    rolesToFrequencies(selectedRolesObject);
   //remove duplicates
 
   const frequencies: Frequency[] = unorderedFrequencies

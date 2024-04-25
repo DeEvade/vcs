@@ -5,6 +5,7 @@ import {
   BaseEntity,
   OneToMany,
   JoinTable,
+  Unique,
 } from "typeorm";
 import { Frequency } from "./Frequency";
 import { Role } from "./Role";
@@ -15,10 +16,12 @@ export class Configuration extends BaseEntity {
   id: number;
 
   @Column()
+  @Unique(["name"])
   name: string;
 
   @OneToMany((type) => Frequency, (frequency) => frequency.configuration)
   frequencies: Frequency[];
 
-  @OneToMany((type) => Role, (role) => role.configuration) roles: Role[];
+  @OneToMany((type) => Role, (role) => role.configuration)
+  roles: Role[];
 }

@@ -1,15 +1,3 @@
-/* eslint-disable 
-import DashboardModel from "@/models/DashboardModel";
-import { Box } from "@chakra-ui/react";
-import { observer } from "mobx-react-lite";
-
-const DashboardRoleCard = () => {
-  return <Box></Box>;
-};
-
-export default DashboardRoleCard;
-*/
-
 import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
 
 import {
@@ -29,10 +17,23 @@ import {
   Select,
   Stack,
   Tag,
+  Menu,
+  MenuItem,
+  MenuList,
+  MenuItemOption,
+  MenuButton,
+  MenuOptionGroup,
+  Icon,
+  Center,
+  IconButton,
+  SimpleGrid,
+  FormErrorMessage,
 } from "@chakra-ui/react";
+import { MdAddCircleOutline, MdClear } from "react-icons/md";
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardDeleteCard from "../DashboardDeleteCard";
+import DashboardRoleFrequencyCard from "./DashboardRoleFrequencyCard";
 
 const DashboardFrequenceCard = observer(
   (props: { model: typeof DashboardModel; role: DashboardRole }) => {
@@ -46,6 +47,7 @@ const DashboardFrequenceCard = observer(
       return RFs.map((RF) => {
         const f = RF.frequency;
         f["order"] = RF.order;
+        f["isPrimary"] = RF.isPrimary;
         return f;
       });
     };
@@ -57,15 +59,62 @@ const DashboardFrequenceCard = observer(
 
       frequencies: getFrequenciesForRole(role, model),
     };
+
+    const [preSaveState, setPreSaveState] = useState(initialState);
+
+    useEffect(() => {
+      setRoleState(initialState);
+      console.log("role changed");
+    }, [model.roleFrequencies]);
+
+    useEffect(() => {
+      {
+        roleState.name != initialState.name ||
+        roleState.type != initialState.type ||
+        JSON.stringify(roleState.frequencies) !==
+          JSON.stringify(preSaveState.frequencies)
+          ? setSaveState(true)
+          : setSaveState(false);
+      }
+    });
+
     const [roleState, setRoleState] = useState(initialState);
+
+    const [saveState, setSaveState] = useState(false);
 
     const changeState = (key: any, value: any) => {
       setRoleState({ ...roleState, [key]: value });
     };
 
-    const [primaryFrequency, setPrimaryFrequency] = useState(
-      initialState.frequencies.find((f) => f.order === 1)
+    const handleEdit = () => {
+      model.editRole({
+        roleId: roleState.id,
+        name: roleState.name,
+        type: roleState.type,
+      });
+    };
+
+    const handleCancel = () => {
+      setRoleState(initialState);
+    };
+
+    const frequencies = model.frequencies.filter(
+      (f) => f.configurationId === model.selectedConfigurationId
     );
+
+    const onDeleteRoleFrequency = (roleId: number, frequencyId: number) => {
+      model.onDeleteRoleFrequency(roleId, frequencyId);
+      console.log(saveState);
+    };
+
+    const onAddPrimaryFrequency = (frequencyId: number, roleId: number) => {
+      model.onAddPrimaryFrequency(roleId, frequencyId);
+    };
+
+    const onAddSecondaryFrequency = (frequencyId: number, roleId: number) => {
+      model.onAddSecondaryFrequency(roleId, frequencyId);
+    };
+
     return (
       <Accordion allowToggle>
         <AccordionItem>
@@ -92,7 +141,11 @@ const DashboardFrequenceCard = observer(
                   <Radio value="pilot">PILOT</Radio>
                 </Stack>
               </RadioGroup>
-              <FormControl>
+              <FormControl
+                pb="10px"
+                isRequired
+                isInvalid={!roleState.name.trim()}
+              >
                 <FormLabel>Role name</FormLabel>
                 <Input
                   value={roleState.name}
@@ -101,41 +154,145 @@ const DashboardFrequenceCard = observer(
                   }}
                   placeholder="Enter role name"
                 />
+                <FormErrorMessage>Role name is required!</FormErrorMessage>
               </FormControl>
-              <FormLabel>Primary Frequency</FormLabel>
-              <Select
-                onSelect={(e) => {
-                  e.preventDefault();
-                }}
-                defaultValue={primaryFrequency?.id}
-              >
-                <option>None</option>
-                {roleState.frequencies.map((frequency) => (
-                  <option key={frequency.id} value={frequency.id}>
-                    {frequency.frequency}
-                  </option>
-                ))}
-              </Select>
 
-              <Flex direction="column" gap="10px">
-                {roleState.frequencies
-                  .filter((f) => f.order !== 1)
-                  .map((frequency) => (
-                    <Box key={frequency.id}>{frequency.frequency}</Box>
-                  ))}
-              </Flex>
+              {roleState.type != "pilot" && (
+                <>
+                  <Box
+                    backgroundColor="gray.750"
+                    borderRadius="lg"
+                    height="40px"
+                    alignContent="center"
+                    fontWeight="bold"
+                  >
+                    Assign primary frequency
+                  </Box>
+                  <Box>
+                    <SimpleGrid columns={2} spacing={5}>
+                      {roleState.frequencies
+                        .filter((f) => f.isPrimary)
+                        .map((frequency) => (
+                          <DashboardRoleFrequencyCard
+                            key={`${frequency.frequency}:${roleState.name}`}
+                            model={model}
+                            name={frequency.frequency}
+                            onDelete={() => {
+                              onDeleteRoleFrequency(roleState.id, frequency.id);
+                            }}
+                          />
+                        ))}
+                    </SimpleGrid>
+                  </Box>
+                  <Menu>
+                    <Center>
+                      <MenuButton
+                        as={IconButton}
+                        icon={<MdAddCircleOutline size={25} />}
+                        backgroundColor="transparent"
+                      />
+                    </Center>
+
+                    <MenuList>
+                      {frequencies
+                        .filter(
+                          (f) =>
+                            !roleState.frequencies.find((f2) => f2.id === f.id)
+                        )
+                        .map((frequency) => (
+                          <MenuItemOption
+                            key={frequency.id}
+                            value={frequency.id.toString()}
+                            onClick={() => {
+                              onAddPrimaryFrequency(frequency.id, roleState.id);
+                            }}
+                          >
+                            {parseFloat(frequency.frequency).toFixed(3)} MHz
+                          </MenuItemOption>
+                        ))}
+                    </MenuList>
+                  </Menu>
+                </>
+              )}
+
+              <Box
+                backgroundColor="gray.750"
+                borderRadius="lg"
+                height="40px"
+                alignContent="center"
+                fontWeight="bold"
+              >
+                Assign secondary frequency
+              </Box>
+              <Box>
+                <SimpleGrid columns={2} spacing={5}>
+                  {roleState.frequencies
+                    .filter((f) => !f.isPrimary)
+                    .map((frequency) => (
+                      <DashboardRoleFrequencyCard
+                        key={frequency.id}
+                        model={model}
+                        name={frequency.frequency}
+                        onDelete={() => {
+                          onDeleteRoleFrequency(roleState.id, frequency.id);
+                        }}
+                      />
+                    ))}
+                </SimpleGrid>
+              </Box>
+
+              <Menu>
+                <Center>
+                  <MenuButton
+                    as={IconButton}
+                    icon={<MdAddCircleOutline size={25} />}
+                    backgroundColor="transparent"
+                  />
+                </Center>
+
+                <MenuList>
+                  {frequencies
+                    .filter(
+                      (f) => !roleState.frequencies.find((f2) => f2.id === f.id)
+                    )
+                    .map((frequency) => (
+                      <MenuItemOption
+                        key={frequency.id}
+                        value={frequency.id.toString()}
+                        onClick={() => {
+                          onAddSecondaryFrequency(frequency.id, roleState.id);
+                        }}
+                      >
+                        {parseFloat(frequency.frequency).toFixed(3)} MHz
+                      </MenuItemOption>
+                    ))}
+                </MenuList>
+              </Menu>
+
               <Flex direction="row" gap="10px">
-                <Button
-                  colorScheme="green"
-                  onClick={() => {
-                    //TODO“
-                  }}
-                >
-                  Save
-                </Button>
+                {saveState != false && roleState.name.trim() ? (
+                  <>
+                    <Button colorScheme="green" onClick={handleEdit}>
+                      Save
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button isDisabled={true}>Save</Button>
+                  </>
+                )}
+
+                {saveState != false ? (
+                  <>
+                    <Button onClick={handleCancel}>Cancel</Button>
+                  </>
+                ) : (
+                  <Button isDisabled={true}>Cancel</Button>
+                )}
+
                 <DashboardDeleteCard
                   model={model}
-                  type={"role"}
+                  element={<Button>Delete</Button>}
                   name={roleState.name}
                   id={roleState.id}
                   cardType="Role"

@@ -25,34 +25,36 @@ AppDataSource.initialize()
     } catch (error) {
       console.log("Error during default configuration creation", error);
     }
+
+    //Start app
+
+    app.get("/", (req: any, res: any) => {
+      try {
+        res.send("Hello World!");
+      } catch (error) {
+        res.send("Error: " + error.message);
+      }
+    });
+
+    const server = createServer(app);
+
+    const io = new Server(server, {
+      cors: {
+        origin: "*",
+      },
+    });
+
+    app.get("/", (req, res) => {
+      res.send("Hello World!");
+    });
+    await socketHandler(io, AppDataSource);
+
+    const port = process.env.SERVER_PORT || 8080;
+
+    server.listen(port, () => {
+      console.log(`Server running on  http://localhost:${port}`);
+    });
   })
   .catch((err: any) => {
     console.error("Error during Data Source initialization", err);
   });
-
-app.get("/", (req: any, res: any) => {
-  try {
-    res.send("Hello World!");
-  } catch (error) {
-    res.send("Error: " + error.message);
-  }
-});
-
-const server = createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-socketHandler(io, AppDataSource);
-
-const port = process.env.SERVER_PORT || 8080;
-
-server.listen(port, () => {
-  console.log(`Server running on  http://localhost:${port}`);
-});

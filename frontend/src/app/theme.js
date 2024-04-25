@@ -23,6 +23,7 @@ const theme = extendTheme({
       500: "#718096", // Mid gray for secondary text/icons
       600: "#4A5568", // Slightly darker gray, good for less emphasized elements
       700: "#2D3748", // Darker still, for subtle borders or inactive elements
+      750: "#2C313D", // Dark gray, used in some heading boxes in the dashboard
       800: "#1A202C", // Your primary dark mode color
       900: "#171923", // Even darker, for the deepest contrasts
     },

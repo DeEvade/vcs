@@ -1,4 +1,4 @@
-import DashboardModel from "@/models/DashboardModel";
+import DashboardModel, { DashboardFrequency } from "@/models/DashboardModel";
 import {
   Accordion,
   AccordionButton,
@@ -17,14 +17,16 @@ import {
   Icon,
   Center,
   Text,
+  useDisclosure,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { MdHeadsetMic } from "react-icons/md";
 import { observer } from "mobx-react-lite";
 import DashboardDeleteCard from "../DashboardDeleteCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const DashboardFrequenceCard = observer(
-  (props: { model: typeof DashboardModel; frequency: any }) => {
+  (props: { model: typeof DashboardModel; frequency: DashboardFrequency }) => {
     const { model, frequency } = props;
 
     const initialState = {
@@ -35,13 +37,40 @@ const DashboardFrequenceCard = observer(
     const changeState = (key: any, value: any) => {
       setFrequencyState({ ...frequencyState, [key]: value });
     };
+
+    const [saveState, setSaveState] = useState(false);
+
+    const [preSaveState, setPreSaveState] = useState(initialState);
+
+    const editsaveFrequency = () => {
+      model.editFrequency({
+        frequencyId: frequency.id,
+        frequency: frequencyState.frequency,
+        configurationId: model.selectedConfigurationId!,
+      });
+      //onClose();
+    };
+
+    const handleCancel = () => {
+      console.log("Freq initial state " + initialState.frequency);
+      setFrequencyState(initialState);
+    };
+
+    useEffect(() => {
+      {
+        frequencyState.frequency != initialState.frequency
+          ? setSaveState(true)
+          : setSaveState(false);
+      }
+    });
+
     return (
       <Accordion allowToggle>
         <AccordionItem>
           <h2>
             <AccordionButton>
               <Box as="span" flex="1" textAlign="left">
-                {frequency.frequency} MHz
+                {parseFloat(frequency.frequency).toFixed(3)} MHz
               </Box>
               <Flex dir="row" pr="10px">
                 <Center gap="5px" color="turquoise">
@@ -54,32 +83,61 @@ const DashboardFrequenceCard = observer(
             </AccordionButton>
           </h2>
           <AccordionPanel pb={4}>
-            <FormControl>
+            <FormControl
+              isRequired
+              isInvalid={!frequencyState.frequency.trim()}
+            >
               <FormLabel>Frequency</FormLabel>
-              <NumberInput>
+              <NumberInput value={frequencyState.frequency}>
                 <InputGroup>
                   <NumberInputField
                     value={frequencyState.frequency}
                     onChange={(e) => {
-                      changeState("", e.target.value);
+                      changeState("frequency", e.target.value);
                     }}
+                    placeholder="frequency in MHz"
                   />
                   <InputRightElement width="4.5rem">MHz</InputRightElement>
                 </InputGroup>
+                <FormErrorMessage>Frequency is required!</FormErrorMessage>
               </NumberInput>
             </FormControl>
             <Flex direction="row" gap="10px" pt="10px">
-              <Button
-                colorScheme="green"
-                onClick={() => {
-                  //TODO“
-                }}
-              >
-                Save
-              </Button>
+              {saveState != false &&
+              frequencyState.frequency.trim() &&
+              parseInt(frequencyState.frequency) > 0 &&
+              !/[e+-]/.test(frequencyState.frequency) ? (
+                <>
+                  <Button colorScheme="green" onClick={editsaveFrequency}>
+                    Save
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button isDisabled={true}>Save</Button>
+                </>
+              )}
+
+              {saveState != false ? (
+                <>
+                  <Button onClick={handleCancel}>Cancel</Button>
+                </>
+              ) : (
+                <>
+                  <Button isDisabled={true}>Cancel</Button>
+                </>
+              )}
+
+              <DashboardDeleteCard
+                model={model}
+                element={<Button>Delete</Button>}
+                name={frequency.frequency + "MHz"}
+                id={frequency.id}
+                cardType="Frequency"
+              />
               {/*<DashboardDeleteCard
                 model={model}
-                name={frequency.frequency}
+                name={frequency.frequency + "MHz"}
                 cardType="Frequency"
               />*/}
             </Flex>
