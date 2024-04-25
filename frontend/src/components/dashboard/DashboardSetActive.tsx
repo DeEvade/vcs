@@ -12,16 +12,7 @@ const DashboardSetActive = observer(
       //setIsClicked(!isClicked);
     };
 
-    if (model.activeConfigId === model.selectedConfigurationId)
-      return (
-        <>
-          <Stack direction="row" spacing={4} align="center">
-            <Box colorScheme="red" position="absolute" top="10px" left="10px">
-              Active
-            </Box>
-          </Stack>
-        </>
-      );
+    if (model.activeConfigId === model.selectedConfigurationId) return <></>;
     return (
       <>
         <Stack direction="row" spacing={4} align="center">
