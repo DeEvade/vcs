@@ -18,13 +18,13 @@ export const model = {
 
   // Keeps track in which frequency a user has a peer.
   // <[id, frequency], peer>
-
-  // peers: new Map() as Map<[string, string], Peer.Instance>,
+  peersToFreq: new Map() as Map<[string, string], Peer.Instance>,
 
   // Regular map
   peers: new Map() as Map<string, Peer.Instance>,
 
   RXFrequencies: [] as number[],
+  NORXFrequencies: [] as number[], // (before updating RX) RX frequencies that are not active anymore
   TXFrequencies: [] as number[],
   XCFrequencies: [] as number[],
 
@@ -65,16 +65,11 @@ export const model = {
     if (!this.socket.io || !this.socket.connected || (this.RXFrequencies == null)) {
       return;
     }
-    let temp: number[] = [];
-    temp = this.RXFrequencies;
-    for(let i = 0; i < this.RXFrequencies.length; i++){
-      if(temp[i] !== this.RXFrequencies[i]){
-        temp[i] = this.RXFrequencies[i];
-      }
-    }
-    this.socket.io.emit("disconnectFreq", temp);
+   // console.log("RX" + this.RXFrequencies);
+   if(this.RXFrequencies !== null){
+    this.socket.io.emit("disconnectFreq", this.RXFrequencies);
     console.log("Emitted disconnect");
-    this.RXFrequencies = temp;
+   }
   },
 
   fetchConfiguration: function () {

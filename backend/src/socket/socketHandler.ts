@@ -9,20 +9,14 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
 
   const freq: string[] = [];
   // a hash table where keys are freqs and values are array of user IDs
-  const hashMap = new Map<string, string[]>();
+  const hashMap = new Map<number, string[]>();
 
-   function filterUsers(freq: string[], hashMap: Map<string, string[]>): string[]{
-     let usersToTalk: string[] = [];
+  // hashmap over frequencies and which connections between two peers exist
+  type HashMap = {
+    [key: string]: string[];
+  }
 
-     freq.forEach((freqKey: string) => {
-       if(hashMap.hasOwnProperty(freqKey)){
-         usersToTalk = usersToTalk.concat(hashMap.get(freqKey));
-       }
-     })
-     return usersToTalk;
-   }
-
-  const usersToTalkTo = filterUsers(freq, hashMap);
+  const connections: HashMap = {};
 
   io.on("connection", (socket: Socket) => {
     if(!socket){
@@ -35,11 +29,11 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       users[socket.id] = socket;
     }
 
-    socket.on("connectFreq", (freq: string[]) => {
+    socket.on("connectFreq", (freq: number[]) => {
       console.log("connecting to frequency")
       console.log("initial frequency list " + freq);
   
-      freq.forEach((freqKey: string) => {
+      freq.forEach((freqKey: number) => {
         if(!hashMap.has(freqKey)){
           console.log("if table has not the freq")
           hashMap.set(freqKey, [socket.id]);
@@ -52,42 +46,27 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
         }
       })
 
-      socket.on("disconnectFreq", (usersToTalkTo: string[]) => {
-        console.log("disconnecting from frequency")
+      socket.on("disconnectFreq", (RX: number[]) => {
+        console.log("RX" + "" + RX);
 
-        usersToTalkTo.forEach((freqKey: string) => {
-          if(hashMap.has(freqKey)){
-            let usersInFreq = hashMap.get(freqKey) || [];
-            const index = usersInFreq.indexOf(socket.id);
-            if(index !== -1){
-              usersInFreq.splice(index, 1);
+        hashMap.forEach((userID: string[], freqKey: number) => {
+          if(!RX.includes(freqKey)){
+            if(userID.includes(socket.id)){
+              const temp = userID.filter(users => users !== socket.id);
+              console.log("temp" + "" + temp);
+              hashMap.set(freqKey, temp);
+              io.emit("peerDisconnect", socket.id);
+              console.log("We have emitted peerDisconnect");
             }
-            hashMap.set(freqKey, usersInFreq);
+          }else{
+           // console.log("we are not in the if-statement");
           }
-          io.emit("usersToTalkTo", usersToTalkTo);
         })
-
-        function disconnectFromFreq (socketID: string, freq: string[], RX: number[], hashMap: Map<string, string[]>){
-          const frequenciesToDisconnect = freq.filter(freq => !RX.includes(Number(freq)));
-    
-          frequenciesToDisconnect.forEach((frequency: string) => {
-            if(hashMap.has(frequency)){
-              let usersInFreq = hashMap.get(frequency) || [];
-              if(usersInFreq.includes(socketID)){
-                usersInFreq.forEach((userID: string) => {
-                  if(userID != socketID){
-                  io.emit("peerDisconnect", userID);
-                  }
-                })
-              }
-            }
-          })
-        }
-      })
+      })  
 
       console.log("second frequency list " + freq);
 
-      const retMap = new Map<string, string[]>();
+      const retMap = new Map<number, string[]>();
       console.log("frequency list before retMap " + freq);
   
       hashMap.forEach((freqValues, freqKey) => {
@@ -103,12 +82,13 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       console.log(`${key}:`, value);
     }
 
+
     // For each för att connecta till andra på samma freq
     for(const [freq, userIds] of retMap) {
       if(userIds !== undefined) {
         userIds.forEach((key: string) => {
           console.log("keys: " + key)
-          users[key].emit("newUser", socket.id);
+          users[socket.id].emit("newUser",  key);
         })
       }
     }

@@ -71,30 +71,16 @@ const SocketHandler = observer((props: Props) => {
       console.log("Peer has connected");
 
       peer.on("signal", (offerSignal) => {
-        // io.on("connectFreq", () => {
-        console.log("we are hereee!!!")
+        console.log("initiator sending offer signal")
           io.emit("callUser", {
             userToCall: user,
             signalData: offerSignal,
             from: io.id,
+            freq: freq,
           });
-        // });
-        console.log("we are leavinggg")
         model.peers.set(user, peer); 
         })
     });
-
-    io.on("usersToTalkTo", (usersToTalkTo: string[]) => {
-      console.log("Received users to talk to");
-      setUsersToTalkTo(usersToTalkTo);
-    })
-
-    io.on("peerDisconnect", (userID: string) => {
-      const peer = model.peers.get(userID);
-      if(peer){
-        peer.destroy();
-      }
-    })
 
     io.on("userLeft", (user: string) => {
       const peer = model.peers.get(user);
@@ -116,7 +102,8 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("hey", (data: any) => {
-      console.log("Stream in hey", stream); 
+      console.log("Stream in hey", stream);
+      
 
       const peer = new Peer({
         initiator: false,
@@ -136,14 +123,15 @@ const SocketHandler = observer((props: Props) => {
         },
       });
 
-      console.log("hey", data.from, data.signal);
+      console.log("hey", data.from);
 
-      peer.on("signal", (answerSignal) => {
-        console.log("Acceptcall and will emit signal");
+      peer.on("signal", (answerSignal: any, freq: string) => {
+        console.log("Acceptcall and will emit signal", answerSignal);
         io.emit("acceptCall", {
           signal: answerSignal,
           to: data.from,
           from: io.id,
+          freq: freq
         });
       });
 

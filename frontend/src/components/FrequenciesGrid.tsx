@@ -39,10 +39,11 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
 
   // Handles all updated receiver lists
   useEffect(() => {
-    console.log("RX changed")
+    console.log("RX changed");
+    console.log("RX: " + model.RXFrequencies)
     //console.log("frequence" + JSON.stringify(frequencyState));
     model.handleFrequencyJoined();
-    //model.handleFrequencyDisconnect();
+    model.handleFrequencyDisconnect();
     toast.success(JSON.stringify(model.RXFrequencies));
   }, [model.RXFrequencies])
 
