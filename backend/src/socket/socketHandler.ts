@@ -4,7 +4,6 @@ import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
 
-
 const socketHandler = (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
@@ -27,15 +26,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     socket.on("connectFreq", (freq: number[]) => {
       console.log("connecting to frequency")
       console.log("initial frequency list " + freq);
-
-      
-/* 
-      if(!socket.id){
-        userId = uuidv4();
-        freq.forEach((freqkey: number) => {
-          hashMap.set(freqkey, [userId]);
-        })
-      } */
   
       freq.forEach((freqKey: number) => {
         if(!hashMap.has(freqKey)){
@@ -74,19 +64,8 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
             } else {
               return;
             }
-          }else{
-           // console.log("we are not in the if-statement");
           }
         })
-       /*  hashMap.forEach((userValues, freqkeys) =>{
-          if(userValues.includes(socket.id)){
-            const index = userValues.indexOf(socket.id);
-            userValues[index] = userId;
-            //hashMap.set(freqkeys, userValues);
-          }
-          console.log("hashmap updated before creating");
-          io.emit("reconnect", userId);
-        }) */
         io.emit("reconnect", userId);
       })  
 
@@ -98,7 +77,7 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
       hashMap.forEach((freqValues, freqKey) => {
         console.log("creating retMap and looping over table")
         if(freqValues.includes(socket.id) && freqValues.length > 1){
-          console.log("user id is in freqValues")
+          console.log("user id is in freqValues ")
           retMap.set(freqKey, freqValues.filter((userId) => userId !== socket.id));
         }
       })
@@ -112,7 +91,8 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
     for(const [freq, userIds] of retMap) {
       if(userIds !== undefined) {
         userIds.forEach((key: string) => {
-          console.log("keys: " + key)
+          
+          console.log("keys: " + key);
           users[key]?.emit("newUser",  socket.id);
         })
       }

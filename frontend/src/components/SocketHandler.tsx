@@ -93,52 +93,25 @@ const SocketHandler = observer((props: Props) => {
 
     io.on("peerDisconnect", (userId: string) => {
       const peer = model.peers.get(userId);
+      console.log("user id to disconnect " + userId);
+      console.log("peer to disconnect " + peer?.connected);
       if(peer){
-        peer.destroy();        
+        peer.destroy(); 
         model.peers.delete(userId);
       }
+      console.log("peer to disconnect after destroy " + peer?.connected);    
     })
 
-    /* io.on("reconnect", (userId: string) => {
-      
-      const newPeer = new Peer({
-        initiator: true,
-        trickle: false,
-        stream: stream ?? undefined,
-        config: {
-          iceServers: [
-            {
-              urls: [
-                "stun:stun1.l.google.com:19302",
-                "stun:stun2.l.google.com:19302",
-              ],
-            },
-          ], 
-          iceCandidatePoolSize: 10, 
-        },
-      });
-      newPeer.on("signal", (offerSignal) => {
-        console.log("initiator sending offer signal")
-          io.emit("callUser", {
-            userToCall: userId,
-            signalData: offerSignal,
-            from: io.id,
-          });
-        })
-      console.log("Peer has reconnected");
-      model.peers.set(userId, newPeer);
-
-      io.emit("connectFreq", [userId]);
-      
-    }) */
-
-    io.on("userLeft", (user: string) => {
-      const peer = model.peers.get(user);
-      if (!peer) {
-        return;
-      }
-      model.peers.delete(user);
-    });
+    // io.on("userLeft", (user: string) => {
+    //   console.log("we are in userLeft")
+    //   const peer = model.peers.get(user);
+    //   if (!peer) {
+    //     console.log("userLeft not happening")
+    //     return;
+    //   }
+    //   console.log("userLeft now")
+    //   model.peers.delete(user);
+    // });
 
     io.on("callAccepted", (signal: any) => {
       
