@@ -10,6 +10,7 @@ import {
   ButtonGroup,
   Spacer,
 } from "@chakra-ui/react";
+import { CheckIcon } from "@chakra-ui/icons";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
@@ -65,6 +66,7 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
               .map((config) => (
                 <option key={config.id} value={config.id}>
                   {config.name}
+                  {config.id === model.selectedConfigurationId && <CheckIcon />}
                 </option>
               ))}
           </Select>
