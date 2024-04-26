@@ -96,10 +96,6 @@ const SocketHandler = observer((props: Props) => {
       if(peer){
         peer.destroy();        
         model.peers.delete(userId);
-        console.log("peers map ");
-        model.peers.forEach((value, key) => {
-          console.log(`${key}: ${value}`);
-        })
       }
     })
 
@@ -154,7 +150,6 @@ const SocketHandler = observer((props: Props) => {
       }
       
       peer.signal(signal.signal);
-       
     });
 
     io.on("hey", (data: any) => {

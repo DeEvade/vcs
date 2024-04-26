@@ -136,7 +136,6 @@ const socketHandler = (io: Server, AppDataSource: DataSource) => {
           value.splice(value.indexOf(socket.id));
         }
       }
-      io.emit("userLeft", socket.id);
     });
   
     socket.on("acceptCall", (data) => {
