@@ -1,6 +1,6 @@
 // src/compontens/FrequencyCard.tsx
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import { usePTT } from "../contexts/PTTContext";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { Frequency } from "@/types";
+import toast from "react-hot-toast";
+
 
 interface Props {
   frequency: Frequency;
@@ -71,7 +73,10 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     } else if (type === "XC") {
       onToggle(frequency.id, "XC");
     }
+
   };
+
+
 
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {

@@ -7,9 +7,11 @@ import { Flex } from "@chakra-ui/react";
 interface Props {
   model: typeof baseModel;
 }
+console.log("communications handler file");
 
 const CommunicationsHandler = observer(({ model }: Props) => {
   if (!model.socket?.io) {
+    console.log("???????");
     return null; // Return null instead of <></> for clarity
   }
 
@@ -26,9 +28,11 @@ const CommunicationsHandler = observer(({ model }: Props) => {
 
 const PeerChannel = observer(
   ({ peer, peerId }: { peer: Peer.Instance; peerId: string }) => {
+    console.log("BEFORE GETTING STREM!!!");
     const [stream, setStream] = useState<MediaStream | null>(null);
     useEffect(() => {
       // Do something with the peer
+      console.log("BEFORE GETTING STREAM ON!!!!")
       peer.on("stream", (stream) => {
         console.log("GETTING STREAM!!!!");
 
@@ -37,6 +41,11 @@ const PeerChannel = observer(
 
       return () => {
         // Clean up
+        if(stream){
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          })
+        }
       };
     }, [peer]);
 

@@ -6,7 +6,11 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
+
+import toast from "react-hot-toast";
+
 import { rolesToFrequencies } from "@/utils/tools";
+
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -37,6 +41,20 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     setUnorderedFrequencies(rolesToFrequencies(selectedRolesObject));
   }, [model.selectedRoles]);
 
+
+
+  // Handles all updated receiver lists
+  useEffect(() => {
+    console.log("RX changed");
+    console.log("RX: " + model.RXFrequencies)
+    //console.log("frequence" + JSON.stringify(frequencyState));
+    model.handleFrequencyJoined();
+    model.handleFrequencyDisconnect();
+    toast.success(JSON.stringify(model.RXFrequencies));
+  }, [model.RXFrequencies])
+
+  
+  if (selectedRoleObject === null) {
   const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
     []
   );
@@ -68,12 +86,13 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
       case "RX":
         if (model.RXFrequencies.includes(id)) {
           //Remove from RX array
+          model.NORXFrequencies.push(id);
           model.RXFrequencies = model.RXFrequencies.filter(
             (value) => value !== id
           );
         } else {
           //Add to RX array
-          model.RXFrequencies.push(id);
+          model.RXFrequencies = model.RXFrequencies.concat([id])
         }
         break;
       case "TX":
@@ -84,7 +103,8 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to TX array
-          model.TXFrequencies.push(id);
+          model.TXFrequencies = model.TXFrequencies.concat([id])
+
         }
         break;
 
@@ -96,8 +116,9 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to XC array
-          model.XCFrequencies.push(id);
-        }
+          model.XCFrequencies = model.XCFrequencies.concat([id])
+
+         }
         break;
 
       default:

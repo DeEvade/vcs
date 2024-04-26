@@ -7,15 +7,19 @@ import toast from "react-hot-toast";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
 import { log } from "console";
+import { v4 as uuidv4 } from 'uuid';
+
 interface Props {
   model: typeof baseModel;
 }
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
+  
 
   useEffect(() => {
-    if (stream !== null) return;
+    if(stream !== null) return;
+
     if (navigator.mediaDevices === undefined) {
       toast("Media devices not supported", { icon: "❌" });
       return;
@@ -23,8 +27,8 @@ const SocketHandler = observer((props: Props) => {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        console.log("Got stream", stream);
         setStream(stream);
+        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
       })
       .catch((error) => {
         console.error("Error getting stream", error);
@@ -48,8 +52,16 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("newUser", (user: string) => {
+      console.log("new user has connected"); //vi kommer hit
       const peerExists = model.peers.get(user);
-      if (peerExists) {
+
+      if (peerExists && (!peerExists.destroyed)) {
+        console.log("peer exists already");
+        return;
+      }
+
+      if (peerExists?.connected) {
+        console.log("already connected");
         return;
       }
 
@@ -57,6 +69,7 @@ const SocketHandler = observer((props: Props) => {
         initiator: true,
         trickle: false,
         stream: stream ?? undefined,
+        wrtc: {RTCPeerConnection, RTCSessionDescription, RTCIceCandidate},
         config: {
           iceServers: [
             {
@@ -65,41 +78,61 @@ const SocketHandler = observer((props: Props) => {
                 "stun:stun2.l.google.com:19302",
               ],
             },
-          ],
-          iceCandidatePoolSize: 10,
+          ], 
+          iceCandidatePoolSize: 10, 
         },
       });
+      console.log("Peer has connected");
 
-      peer.on("signal", (data) => {
-        io.emit("callUser", {
-          userToCall: user,
-          signalData: data,
-          from: io.id,
-        });
-      });
-      model.peers.set(user, peer);
+      
+      peer.on("signal", (offerSignal) => {
+        console.log("initiator sending offer signal")
+          io.emit("callUser", {
+            userToCall: user,
+            signalData: offerSignal,
+            from: io.id,
+          });
+        model.peers.set(user, peer); 
+        })
     });
 
-    io.on("userLeft", (user: string) => {
-      const peer = model.peers.get(user);
-      if (!peer) {
-        return;
+    io.on("peerDisconnect", (userId: string) => {
+      const peer = model.peers.get(userId);
+      console.log("user id to disconnect " + userId);
+      console.log("peer to disconnect " + peer?.connected);
+      if(peer){
+        peer.destroy(); 
+        model.peers.delete(userId);
       }
-      model.peers.delete(user);
-    });
+      console.log("peer to disconnect after destroy " + peer?.connected);    
+    })
+
+    // io.on("userLeft", (user: string) => {
+    //   console.log("we are in userLeft")
+    //   const peer = model.peers.get(user);
+    //   if (!peer) {
+    //     console.log("userLeft not happening")
+    //     return;
+    //   }
+    //   console.log("userLeft now")
+    //   model.peers.delete(user);
+    // });
 
     io.on("callAccepted", (signal: any) => {
+      
       console.log("call accepted", signal);
-
+      
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;
       }
+      
       peer.signal(signal.signal);
     });
 
     io.on("hey", (data: any) => {
       console.log("Stream in hey", stream);
+      
 
       const peer = new Peer({
         initiator: false,
@@ -119,11 +152,13 @@ const SocketHandler = observer((props: Props) => {
         },
       });
 
-      console.log("hey", data.from, data.signal);
+      console.log("hey", data.from);
 
-      peer.on("signal", (signalData) => {
+      peer.on("signal", (answerSignal: any, freq: string) => {
+        
+        console.log("Acceptcall and will emit signal", answerSignal);
         io.emit("acceptCall", {
-          signal: signalData,
+          signal: answerSignal,
           to: data.from,
           from: io.id,
         });
