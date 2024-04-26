@@ -68,7 +68,7 @@ const SocketHandler = observer((props: Props) => {
         initiator: true,
         trickle: false,
         stream: stream ?? undefined,
-        wrtc: { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate },
+        // wrtc: { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate },
         config: {
           iceServers: [
             {
