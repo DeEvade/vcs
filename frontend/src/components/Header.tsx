@@ -1,11 +1,19 @@
 // src/components/Header.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { Flex, Text, Box, useColorMode, Button } from "@chakra-ui/react";
+import {
+  Flex,
+  Text,
+  Box,
+  useColorMode,
+  Button,
+  Center,
+} from "@chakra-ui/react";
 import ConfigMenu from "./ConfigMenu"; // Ensure the path is correct
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
 import Peer from "simple-peer";
+import { AddIcon } from "@chakra-ui/icons";
 
 const UtcClock = () => {
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -52,14 +60,14 @@ interface Props {
 
 const Header = observer(function (props: Props) {
   const { model } = props;
-  const selectedRole = model.selectedRole;
+  const selectedRoles = model.selectedRoles;
   const { colorMode } = useColorMode();
   const bgColor = colorMode === "light" ? "gray.100" : "gray.800";
 
-  const resetSelectedRole = () => {
-    model.setSelectedRole("");
-    model.setOpenRoleModal(true);
+  const removeSelectedRole = (role: string) => {
+    model.removeSelectedRole(role);
   };
+
   const connected = model.socket.connected;
   return (
     <Box bg={bgColor} px={4}>
@@ -77,8 +85,30 @@ const Header = observer(function (props: Props) {
             {connected ? "Online" : "Offline"}
           </Text>
         </Flex>
-
-        <Button onClick={resetSelectedRole}>{selectedRole}</Button>
+        <Flex direction="row" gap="10px" alignItems="center">
+          {selectedRoles.map((selectedRole) => (
+            <Button
+              onClick={() => {
+                removeSelectedRole(selectedRole);
+              }}
+            >
+              {selectedRole}
+            </Button>
+          ))}
+          {model.configuration?.roles.length !== model.selectedRoles.length && (
+            <>
+              {" "}
+              <Center marginRight={"5px"}>
+                <AddIcon
+                  cursor="pointer"
+                  onClick={() => {
+                    model.setOpenRoleModal(true);
+                  }}
+                />
+              </Center>
+            </>
+          )}
+        </Flex>
         <ConfigMenu model={model} />
       </Flex>
     </Box>

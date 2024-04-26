@@ -3,7 +3,6 @@
 export interface Frequency {
   id: number;
   frequency: string;
-  label: string;
   order: number;
 }
 

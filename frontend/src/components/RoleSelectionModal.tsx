@@ -25,7 +25,7 @@ interface RoleSelectionModalProps {
 const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
   function ({ isOpen, model }) {
     const setSelectedRole = (role: string) => {
-      model.setSelectedRole(role);
+      model.addSelectedRole(role);
     };
     const [atcoSelected, setAtcoSelected] = useState(false);
     const atcoButtonColor = useColorModeValue("green", "teal");
@@ -48,9 +48,7 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
       onClose();
     };
 
-    useEffect(() => {
-      console.log("selected role: ", model.selectedRole);
-    }, [model.selectedRole]);
+    if (!model.configuration) return null;
 
     return (
       <Modal
@@ -87,6 +85,10 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
                       ATCO
                     </Button>
                     {model.configuration.roles
+                      .filter(
+                        (role) => !model.selectedRoles.includes(role.name)
+                      )
+
                       .filter((role) => role.type === "pilot")
                       .map((role) => (
                         <Button

@@ -6,7 +6,11 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
+
 import toast from "react-hot-toast";
+
+import { rolesToFrequencies } from "@/utils/tools";
+
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -24,17 +28,19 @@ interface Props {
 const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const { model } = props;
 
-  const [selectedRoleObject, setSelectedRoleObject] = useState<Role | null>(
+  const [selectedRolesObject, setSelectedRolesObject] = useState<Role[] | null>(
     null
   );
 
   useEffect(() => {
-    console.log("selected role object: ");
-    const selectedRoleObject = model.getSelectedRoleObject();
-    console.log("selected role object: ", selectedRoleObject);
+    //console.log("selected role object: ");
+    const selectedRolesObject = model.getSelectedRolesObject();
+    //console.log("selected role object: ", selectedRolesObject);
 
-    setSelectedRoleObject(selectedRoleObject);
-  }, [model.selectedRole]);
+    setSelectedRolesObject(selectedRolesObject);
+    setUnorderedFrequencies(rolesToFrequencies(selectedRolesObject));
+  }, [model.selectedRoles]);
+
 
 
   // Handles all updated receiver lists
@@ -49,11 +55,28 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
 
   
   if (selectedRoleObject === null) {
+  const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
+    []
+  );
+
+  useEffect(() => {
+    const roleObject = model.getSelectedRolesObject();
+    console.log(
+      "got herea 123: ",
+      rolesToFrequencies(roleObject),
+      selectedRolesObject
+    );
+
+    setUnorderedFrequencies(rolesToFrequencies(roleObject));
+  }, [model.configuration!.roles]);
+
+  if (selectedRolesObject === null || selectedRolesObject.length === 0) {
     //TODO fix this
     return <>Awaiting role select</>;
   }
 
-  const unorderedFrequencies: Frequency[] = selectedRoleObject.frequencies;
+  //remove duplicates
+
   const frequencies: Frequency[] = unorderedFrequencies
     .slice()
     .sort((a, b) => a.order - b.order);

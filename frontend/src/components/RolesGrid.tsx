@@ -28,9 +28,9 @@ const RolesGrid: React.FC<RolesGridProps> = observer(function ({
   if (model.configuration === null) {
     return <>Awaiting configuration</>;
   }
-  const roles: Role[] = model.configuration.roles.filter(
-    (role) => role.type === "ATC"
-  );
+  const roles: Role[] = model.configuration.roles
+    .filter((role) => role.type === "ATC")
+    .filter((role) => !model.selectedRoles.includes(role.name));
 
   return (
     <Box p={2}>
