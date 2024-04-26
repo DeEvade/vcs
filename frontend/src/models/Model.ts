@@ -51,8 +51,12 @@ export const model = {
   },
   // Uses socket to emit all frequencies that the current user is recieving from.
   handleFrequencyJoined: function () {
-    console.log("handles frequency" + this.RXFrequencies)
-    if (!this.socket.io || !this.socket.connected || (this.RXFrequencies == null)) {
+    console.log("handles frequency" + this.RXFrequencies);
+    if (
+      !this.socket.io ||
+      !this.socket.connected ||
+      this.RXFrequencies == null
+    ) {
       return;
     }
     this.socket.io.emit("connectFreq", this.RXFrequencies);
@@ -60,15 +64,20 @@ export const model = {
   },
 
   handleFrequencyDisconnect: function () {
-    console.log("handles frequency" + this.RXFrequencies)
-    if (!this.socket.io || !this.socket.connected || (this.RXFrequencies == null)) {
+    console.log("handles frequency" + this.RXFrequencies);
+    if (
+      !this.socket.io ||
+      !this.socket.connected ||
+      this.RXFrequencies == null
+    ) {
       return;
     }
-   // console.log("RX" + this.RXFrequencies);
-   if(this.NORXFrequencies !== null){
-    this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
-    console.log("Emitted disconnect");
-   }
+    // console.log("RX" + this.RXFrequencies);
+    if (this.NORXFrequencies !== null) {
+      this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
+      console.log("Emitted disconnect");
+    }
+  },
 
   getRoleFromName: function (name: string): Role | null {
     if (!this.configuration) {

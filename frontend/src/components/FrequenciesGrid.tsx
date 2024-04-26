@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 
 import { rolesToFrequencies } from "@/utils/tools";
 
-
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
   { id: 1, frequency: "118.505", label: "SA TWR W" },
@@ -41,24 +40,18 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     setUnorderedFrequencies(rolesToFrequencies(selectedRolesObject));
   }, [model.selectedRoles]);
 
-
-
   // Handles all updated receiver lists
   useEffect(() => {
     console.log("RX changed");
-    console.log("RX: " + model.RXFrequencies)
+    console.log("RX: " + model.RXFrequencies);
     //console.log("frequence" + JSON.stringify(frequencyState));
     model.handleFrequencyJoined();
     model.handleFrequencyDisconnect();
     toast.success(JSON.stringify(model.RXFrequencies));
-  }, [model.RXFrequencies])
-
-  
-  if (selectedRoleObject === null) {
+  }, [model.RXFrequencies]);
   const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
     []
   );
-
   useEffect(() => {
     const roleObject = model.getSelectedRolesObject();
     console.log(
@@ -69,7 +62,6 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
 
     setUnorderedFrequencies(rolesToFrequencies(roleObject));
   }, [model.configuration!.roles]);
-
   if (selectedRolesObject === null || selectedRolesObject.length === 0) {
     //TODO fix this
     return <>Awaiting role select</>;
@@ -92,7 +84,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to RX array
-          model.RXFrequencies = model.RXFrequencies.concat([id])
+          model.RXFrequencies = model.RXFrequencies.concat([id]);
         }
         break;
       case "TX":
@@ -103,8 +95,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to TX array
-          model.TXFrequencies = model.TXFrequencies.concat([id])
-
+          model.TXFrequencies = model.TXFrequencies.concat([id]);
         }
         break;
 
@@ -116,9 +107,8 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to XC array
-          model.XCFrequencies = model.XCFrequencies.concat([id])
-
-         }
+          model.XCFrequencies = model.XCFrequencies.concat([id]);
+        }
         break;
 
       default:
