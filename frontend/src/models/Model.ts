@@ -1,6 +1,6 @@
-import { Configuration, Role } from "@/types";
-import Peer from "simple-peer";
-import { Socket } from "socket.io-client";
+import { Configuration, Role } from '@/types';
+import Peer from 'simple-peer';
+import { Socket } from 'socket.io-client';
 
 export const model = {
   configuration: null as Configuration | null,
@@ -9,7 +9,7 @@ export const model = {
 
   easyMode: false as boolean,
   radioGain: 100 as number,
-  PTTKey: "Space" as string,
+  PTTKey: 'Space' as string,
 
   socket: {
     connected: false,
@@ -21,6 +21,12 @@ export const model = {
   RXFrequencies: [] as number[],
   TXFrequencies: [] as number[],
   XCFrequencies: [] as number[],
+
+  onFrequencyChange: function (frequencies: number[]) {
+    if (!this.socket.io || !this.socket.connected) return;
+
+    this.socket.io.emit('updatedFrequencies', frequencies);
+  },
 
   getFrequencyState: function (frequency: number) {
     return {
@@ -56,7 +62,7 @@ export const model = {
     if (!this.socket.io || !this.socket.connected) {
       return;
     }
-    this.socket.io.emit("getCurrentConfig");
+    this.socket.io.emit('getCurrentConfig');
   },
 
   setPTTKey: function (key: string) {
