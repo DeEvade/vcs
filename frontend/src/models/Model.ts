@@ -28,6 +28,12 @@ export const model = {
     this.socket.io.emit('updatedFrequencies', frequencies);
   },
 
+  crossCoupling: function (XCfrequencies: number[]){
+    if (!this.socket.io || !this.socket.connected) return;
+
+    this.socket.io.emit("crossCoupling", XCfrequencies);
+  },
+
   getFrequencyState: function (frequency: number) {
     return {
       RX: this.RXFrequencies.includes(frequency),

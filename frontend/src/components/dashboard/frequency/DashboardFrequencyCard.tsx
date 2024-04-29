@@ -24,10 +24,13 @@ import { MdHeadsetMic } from "react-icons/md";
 import { observer } from "mobx-react-lite";
 import DashboardDeleteCard from "../DashboardDeleteCard";
 import { useState, useEffect } from "react";
+import { io as socket } from "socket.io-client";
 
 const DashboardFrequenceCard = observer(
   (props: { model: typeof DashboardModel; frequency: DashboardFrequency }) => {
     const { model, frequency } = props;
+
+    const [userCounts, setUserCounts] = useState<{ [key: number]: number}>({});
 
     const initialState = {
       frequency: frequency.frequency,
@@ -64,6 +67,15 @@ const DashboardFrequenceCard = observer(
       }
     });
 
+    useEffect(() => {
+      if(!model.socket.io){
+        return;
+      }
+      model.socket.io.on("countUsersOnFreq", (countUsersOnFreq) => {
+        setUserCounts(countUsersOnFreq);
+      })
+    })
+
     return (
       <Accordion allowToggle>
         <AccordionItem>
@@ -74,7 +86,7 @@ const DashboardFrequenceCard = observer(
               </Box>
               <Flex dir="row" pr="10px">
                 <Center gap="5px" color="turquoise">
-                  0
+                  {userCounts[frequency.id] || 0} 
                   <Icon as={MdHeadsetMic} />
                 </Center>
               </Flex>

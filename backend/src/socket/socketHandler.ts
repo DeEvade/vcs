@@ -4,12 +4,18 @@ import { Role } from '../database/entities/Role';
 import { DataSource } from 'typeorm';
 import { Frequency } from '../database/entities/Frequency';
 import { RoleFrequency } from '../database/entities/RoleFrequency';
+import { XC } from '../database/entities/XC';
+
 
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
   //Hashmap to store the frequencies of each user
-  const userToFrequencies = new Map<string, number[]>();
+  const userToFrequencies = new Map<string, number[]>(); //vanliga hashmapen
+  const xcConnection = new Map<string, number[]>();
+  // keys are frequencies and values are count of users on the frequency
+  const countUsersOnFreq = new Map<number, number>();
+
   let currentConfigId: number = 0;
   try {
     const configs = await AppDataSource.getRepository(Configuration).find();
@@ -35,24 +41,76 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       userToFrequencies.set(socket.id, newFrequencies);
       console.log('updatedFrequencies', userToFrequencies);
 
-      Object.keys(users).forEach((key) => {
-        if (key === socket.id) return;
+      Object.keys(users).forEach((key) => { //Går igenom hashmapen 
+        if (key === socket.id) return; 
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
+            if(countUsersOnFreq.has(frequency)){
+              const currentCount = countUsersOnFreq.get(frequency);
+              countUsersOnFreq.set(frequency, currentCount+1);
+            }else if(!countUsersOnFreq.has(frequency)){
+              countUsersOnFreq.set(frequency, 1);
+            }
+            users[userId].emit("countUsersOnFreq", countUsersOnFreq);
             if (newFrequencies.includes(frequency)) {
               users[userId].emit('tryConnectPeer', socket.id);
               return;
             }
+            xcConnection.forEach((values, key)=>{
+              if(newFrequencies.includes(frequency) && values.includes(frequency)){
+                users[userId].emit("tryConnectPeer", socket.id);
+                return;
+              }
+            })
           }
           //User has no frequencies in common with the updated user
           console.log('no frequencies in common', userId, socket.id);
           users[userId].emit('tryDisconnectPeer', socket.id);
           socket.emit('tryDisconnectPeer', userId);
-        });
-
+        })
         //users[key].emit('sending to', usersArray);
       });
+    });
+
+    socket.on("createXC", async (data: any) => {
+      console.log("creating XC", data);
+      try {
+        const XCRepo = AppDataSource.getRepository(XC);
+        const xc = XCRepo.create(data.frequencyIds);
+        const savedXC = await XCRepo.save(xc);
+        if (!savedXC || savedXC.length === 0)
+          throw new Error("Error saving XC");
+        xcConnection.set(savedXC[0].id, savedXC[0].frequencyIds);
+        socket.emit("createXC", savedXC);
+        socket.broadcast.emit("createXC", savedXC);
+      } catch (error) {
+        console.log("error creating XC", error.message);
+        socket.emit("createXC", { error: error.message });
+      }
+    });
+
+    socket.on("updateXC", async (data: any) => {
+      try {
+        const XCRepo = AppDataSource.getRepository(XC);
+        if (data.frequencyIds.length === 0) {
+          xcConnection.delete(data.id);
+          await XCRepo.delete(data.id);
+          socket.broadcast.emit("deleteXC", data);
+          socket.emit("deleteXC", data);
+          console.log("deleted XC", data);
+        }
+        const xc = await XCRepo.findOneBy({ id: data.id });
+        if (!xc) throw new Error("Error getting XC");
+        xc.frequencyIds = data.frequencyIds;
+        const savedXC = await XCRepo.save(xc);
+        if (!savedXC) throw new Error("Error saving XC");
+        xcConnection.set(savedXC.id, savedXC.frequencyIds);
+        socket.broadcast.emit("updateXC", savedXC);
+        socket.emit("updateXC", savedXC);
+      } catch (error) {
+        socket.emit("updateXC", { error: error.message });
+      }
     });
 
     //Send all users to all users except the one that just connected

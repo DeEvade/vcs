@@ -88,6 +88,7 @@ const SocketHandler = observer((props: Props) => {
         });
       });
       model.peers.set(user, peer);
+
     });
 
     io.on('callAccepted', (signal: any) => {
