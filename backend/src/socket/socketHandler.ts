@@ -82,11 +82,13 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     });
 
     socket.on("updateXC", async (data: any) => {
+      console.log("updating XC", data);
+
       try {
-        data.frequencyIds = Array.from(new Set(data.frequencyIds));
+        const noDuplicates = Array.from(new Set(data.frequencyIds)) as number[];
 
         const XCRepo = AppDataSource.getRepository(XC);
-        if (data.frequencyIds.length < 2) {
+        if (noDuplicates.length < 2) {
           xcConnection.delete(data.id);
           await XCRepo.delete(data.id);
           socket.broadcast.emit("deleteXC", data);
@@ -96,7 +98,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         }
         const xc = await XCRepo.findOneBy({ id: data.id });
         if (!xc) throw new Error("Error getting XC");
-        xc.frequencyIds = data.frequencyIds;
+        xc.frequencyIds = noDuplicates;
         const savedXC = await XCRepo.save(xc);
         if (!savedXC) throw new Error("Error saving XC");
         xcConnection.set(savedXC.id, savedXC.frequencyIds);
