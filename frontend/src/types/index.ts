@@ -24,3 +24,8 @@ export interface FrequencyState {
   TX: boolean;
   XC: boolean;
 }
+
+export interface XC {
+  id: number;
+  frequencyIds: number[];
+}

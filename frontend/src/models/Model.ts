@@ -1,6 +1,6 @@
-import { Configuration, Role } from '@/types';
-import Peer from 'simple-peer';
-import { Socket } from 'socket.io-client';
+import { Configuration, Role, XC } from "@/types";
+import Peer from "simple-peer";
+import { Socket } from "socket.io-client";
 
 export const model = {
   configuration: null as Configuration | null,
@@ -9,7 +9,7 @@ export const model = {
 
   easyMode: false as boolean,
   radioGain: 100 as number,
-  PTTKey: 'Space' as string,
+  PTTKey: "Space" as string,
 
   socket: {
     connected: false,
@@ -20,12 +20,12 @@ export const model = {
 
   RXFrequencies: [] as number[],
   TXFrequencies: [] as number[],
-  XCFrequencies: [] as number[],
+  XCFrequencies: [] as XC[],
 
   onFrequencyChange: function (frequencies: number[]) {
     if (!this.socket.io || !this.socket.connected) return;
 
-    this.socket.io.emit('updatedFrequencies', frequencies);
+    this.socket.io.emit("updatedFrequencies", frequencies);
   },
 
   crossCoupling: function (XCfrequencies: number[]){
@@ -38,7 +38,7 @@ export const model = {
     return {
       RX: this.RXFrequencies.includes(frequency),
       TX: this.TXFrequencies.includes(frequency),
-      XC: this.XCFrequencies.includes(frequency),
+      XC: this.XCFrequencies.find((f) => f.frequencyIds.includes(frequency)),
     };
   },
 
@@ -68,7 +68,33 @@ export const model = {
     if (!this.socket.io || !this.socket.connected) {
       return;
     }
-    this.socket.io.emit('getCurrentConfig');
+    this.socket.io.emit("getCurrentConfig");
+  },
+
+  fetchXC: function () {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("getCurrentXC");
+  },
+
+  createXC(frequencyId: number, checkedFrequencies: number[]) {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("createXC", {
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
+  },
+
+  updateXC(frequencyId: number, checkedFrequencies: number[], XCId: number) {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("updateXC", {
+      id: XCId,
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
   },
 
   setPTTKey: function (key: string) {
