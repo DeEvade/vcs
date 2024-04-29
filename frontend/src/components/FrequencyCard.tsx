@@ -8,11 +8,21 @@ import {
   Grid,
   GridItem,
   useColorMode,
+  PopoverTrigger,
+  Portal,
+  PopoverContent,
+  PopoverArrow,
+  PopoverHeader,
+  PopoverCloseButton,
+  PopoverBody,
+  PopoverFooter,
+  Popover,
 } from "@chakra-ui/react";
 import { usePTT } from "../contexts/PTTContext";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { Frequency } from "@/types";
+import XCButton from "./XCButton";
 
 interface Props {
   frequency: Frequency;
@@ -130,16 +140,23 @@ const FrequencyCard: React.FC<Props> = observer(function ({
         </GridItem>
 
         <GridItem colSpan={1} width="50%">
-          <Button
-            colorScheme={getButtonColorScheme("XC")}
-            _focus={{ outline: "none", boxShadow: "none" }}
-            _active={{ outline: "none" }}
-            onClick={() => handleToggle("XC")}
-            width="100%"
-            height="100%"
-          >
-            XC
-          </Button>
+          <XCButton
+            key={frequency.id}
+            frequencyId={frequency.id}
+            onToggle={onToggle}
+            model={model}
+            buttonElement={
+              <Button
+                colorScheme={getButtonColorScheme("XC")}
+                _focus={{ outline: "none", boxShadow: "none" }}
+                _active={{ outline: "none" }}
+                width="100%"
+                height="100%"
+              >
+                XC
+              </Button>
+            }
+          />
         </GridItem>
 
         <GridItem colSpan={1}>
