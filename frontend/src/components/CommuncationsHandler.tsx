@@ -60,6 +60,7 @@ const PeerChannel = observer(
               video.srcObject = stream;
               video.onloadedmetadata = (e) => {
                 video.play();
+                // video.muted;
               }
             }
           }}

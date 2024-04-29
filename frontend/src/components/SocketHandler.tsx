@@ -19,12 +19,8 @@ interface Props {
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [volume, setVolume] = useState<number>();
-  //const audioContext = new AudioContext();
-  //const gainNode = audioContext.createGain();
-  const audioContextRef = useRef<AudioContext>(new AudioContext()); // Use useRef for AudioContext
-  const gainNodeRef = useRef<AudioNode>(audioContextRef.current.createGain()); // Use useRef for gainNode
-  
+  let audioContext = new AudioContext();  
+  let gainNode = audioContext.createGain();
 
   useEffect(() => {
     if(stream !== null) return;
@@ -46,35 +42,62 @@ const SocketHandler = observer((props: Props) => {
             }
          })
       .then((stream) => {
-
-        console.log("Got stream", stream); //kommer hit
-
+        setStream(stream);
+        console.log("Got stream", stream); //kommer hit        
+        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
+        return stream;
+      })
+      .then((stream) => {
         //const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        const mediaStreamSource = audioContextRef.current.createMediaStreamSource(stream);
-        gainNodeRef.current.gain.value = 1;
-        mediaStreamSource.connect(gainNodeRef.current);
-        gainNodeRef.current.connect(audioContextRef.current.destination);
+        //const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
         // const biquadFilter = audioContext.createBiquadFilter();
         // biquadFilter.type = "lowshelf";
         // biquadFilter.frequency.value = 1000;
         // biquadFilter.gain.value = 100;
 
-        //gainNode.gain.value = 1; //Defaul audio level
+        
+        //gainNode.gain.value = 1;
 
         //mediaStreamSource.connect(gainNode);
-        //gainNode.connect(audioContext.destination);
-
-        setStream(stream);
-
-        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
-      });
+        //gainNode.connect(mediaStreamDestination);
+      })
   }, []);
 
-  useEffect(() => {
+  
+  // useEffect(() => {
+
+  //   try {
+  //     //gainNode.gain.value = model.micGain/50;
+  //     console.log("Gain value is: " + model.micGain/50);
+  //     /*
+  //     navigator.mediaDevices.getUserMedia({ video: true, 
+  //       audio:
+  //         {
+  //          autoGainControl: false,
+  //          channelCount: 2,
+  //          echoCancellation: true,
+  //          noiseSuppression: true,
+  //          sampleRate: 44000,
+  //          sampleSize: 16,
+  //         }
+  //      }).then((stream) => {
+  //       const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+  
+  //       gainNode.gain.value = model.micGain;
+  //       mediaStreamSource.connect(gainNode);
+  //       gainNode.connect(audioContext.destination);
+  
+        
+  //       console.log("Gain value is: " + model.micGain);
+  
+  //       setStream(stream);
+  //     })*/
+  //   } catch (error) {
+  //     console.log("MEGAERROR!!");
+  //   }
     
-    })
-  },[model.radioGain]);
+  // },[model.micGain])
 
   useEffect(() => {
     if (!stream) {
@@ -159,7 +182,6 @@ const SocketHandler = observer((props: Props) => {
     io.on("callAccepted", (signal: any) => {
       
       console.log("call accepted", signal);
-      console.log("Volume value is " + volume);
       
       const peer = model.peers.get(signal.from);
       if (!peer) {
