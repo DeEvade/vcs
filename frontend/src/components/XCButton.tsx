@@ -41,16 +41,14 @@ const XCButton = observer((props: Props) => {
   const getButtonColorScheme = (type: string) => {
     return "blue";
   };
-  let potential = model.XCFrequencies.find((xc: XC) =>
-    xc.frequencyIds.includes(frequencyId)
-  );
   useEffect(() => {
-    potential = model.XCFrequencies.find((xc: XC) =>
+    const potential = model.XCFrequencies.find((xc: XC) =>
       xc.frequencyIds.includes(frequencyId)
     );
     console.log("potential: ", potential);
 
     if (!potential) {
+      setCheckedFrequencies([]);
       //toast.error("XC not found");
       return;
     }
@@ -73,6 +71,9 @@ const XCButton = observer((props: Props) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
 
   const handleSubmit = () => {
+    const potential = model.XCFrequencies.find((xc: XC) =>
+      xc.frequencyIds.includes(frequencyId)
+    );
     if (!potential) {
       model.createXC(frequencyId, checkedFrequencies);
     } else {
@@ -102,7 +103,8 @@ const XCButton = observer((props: Props) => {
             <Flex direction={"column"} gap={4}>
               {otherFrequencies.map((frequency: Frequency) => (
                 <Checkbox
-                  defaultChecked={checkedFrequencies.includes(frequency.id)}
+                  key={frequency.id}
+                  isChecked={checkedFrequencies.includes(frequency.id)}
                   onChange={(e) => {
                     if (e.target.checked) {
                       setCheckedFrequencies([
