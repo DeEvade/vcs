@@ -51,20 +51,27 @@ const PeerChannel = observer(
 
     return (
       <>
-        <Flex direction="column" alignItems="center">
-          <h1>{peerId}</h1>
-          <h2>Status: {peer.connected !== true ? "online" : "offline"}</h2>
-          <video
-            style={{ width: "250px", height: "250px" }}
-            autoPlay
-            playsInline
-            ref={(video) => {
-              if (video && stream) {
-                video.srcObject = stream;
-              }
-            }}
-          />
-        </Flex>
+        <video
+          style={{ width: "100px", height: "100px" }}
+          autoPlay
+          playsInline
+          ref={(video) => {
+            if (video && stream) {
+              video.srcObject = stream;
+              video.volume = baseModel.radioGain/100;
+            }
+          }}
+        />
+        <audio
+          ref={(audio) => {
+            if(stream && audio != null){
+              audio.srcObject = stream;
+              audio.volume = 0;
+              audio.play();
+              
+            }
+          }}
+        />
       </>
     ); // Show something meaningful
   }
