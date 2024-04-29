@@ -20,7 +20,13 @@ const SocketHandler = observer((props: Props) => {
       return;
     }
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia({
+        video: false,
+        audio: {
+          noiseSuppression: false,
+          echoCancellation: false,
+        },
+      })
       .then((stream) => {
         console.log("Got stream", stream);
         setStream(stream);
@@ -73,17 +79,17 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
-        /*config: {
+        config: {
           iceServers: [
             {
               urls: [
-                'stun:stun1.l.google.com:19302',
-                'stun:stun2.l.google.com:19302',
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
               ],
             },
           ],
           iceCandidatePoolSize: 10,
-        },*/
+        },
       });
 
       peer.on("signal", (data) => {
@@ -94,7 +100,6 @@ const SocketHandler = observer((props: Props) => {
         });
       });
       model.peers.set(user, peer);
-
     });
 
     io.on("callAccepted", (signal: any) => {
@@ -171,17 +176,17 @@ const SocketHandler = observer((props: Props) => {
           );
         },
         //ice servers
-        /*config: {
+        config: {
           iceServers: [
             {
               urls: [
-                'stun:stun1.l.google.com:19302',
-                'stun:stun2.l.google.com:19302',
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
               ],
             },
           ],
           iceCandidatePoolSize: 10,
-        },*/
+        },
       });
 
       console.log("hey", data.from, data.signal);

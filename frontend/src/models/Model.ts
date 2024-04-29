@@ -28,7 +28,7 @@ export const model = {
     this.socket.io.emit("updatedFrequencies", frequencies);
   },
 
-  crossCoupling: function (XCfrequencies: number[]){
+  crossCoupling: function (XCfrequencies: number[]) {
     if (!this.socket.io || !this.socket.connected) return;
 
     this.socket.io.emit("crossCoupling", XCfrequencies);
@@ -88,7 +88,13 @@ export const model = {
   },
 
   updateXC(frequencyId: number, checkedFrequencies: number[], XCId: number) {
-    if (!this.socket.io || !this.socket.connected) {
+    if (
+      !this.socket.io ||
+      !this.socket.connected ||
+      !XCId ||
+      !frequencyId ||
+      !checkedFrequencies
+    ) {
       return;
     }
     this.socket.io.emit("updateXC", {
