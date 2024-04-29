@@ -1,20 +1,30 @@
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
-
 import { io as socket } from "socket.io-client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
 import { log } from "console";
 import { v4 as uuidv4 } from "uuid";
+import micGain from "./ConfigMenu";
+import setMicGain from "./ConfigMenu";
+import ConfigMenu from "./ConfigMenu";
 
 interface Props {
   model: typeof baseModel;
 }
+
+
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [volume, setVolume] = useState<number>();
+  //const audioContext = new AudioContext();
+  //const gainNode = audioContext.createGain();
+  const audioContextRef = useRef<AudioContext>(new AudioContext()); // Use useRef for AudioContext
+  const gainNodeRef = useRef<AudioNode>(audioContextRef.current.createGain()); // Use useRef for gainNode
+  
 
   useEffect(() => {
     if (stream !== null) return;
@@ -24,9 +34,40 @@ const SocketHandler = observer((props: Props) => {
       return;
     }
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia(
+        { video: true, 
+          audio:
+            {
+             autoGainControl: false,
+             channelCount: 2,
+             echoCancellation: true,
+             noiseSuppression: true,
+             sampleRate: 44000,
+             sampleSize: 16,
+            }
+         })
       .then((stream) => {
+
+        console.log("Got stream", stream); //kommer hit
+
+        //const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        const mediaStreamSource = audioContextRef.current.createMediaStreamSource(stream);
+        gainNodeRef.current.gain.value = 1;
+        mediaStreamSource.connect(gainNodeRef.current);
+        gainNodeRef.current.connect(audioContextRef.current.destination);
+
+        // const biquadFilter = audioContext.createBiquadFilter();
+        // biquadFilter.type = "lowshelf";
+        // biquadFilter.frequency.value = 1000;
+        // biquadFilter.gain.value = 100;
+
+        //gainNode.gain.value = 1; //Defaul audio level
+
+        //mediaStreamSource.connect(gainNode);
+        //gainNode.connect(audioContext.destination);
+
         setStream(stream);
+
         console.log("reallyyy??!! Got stream???!", stream); // kommer hit
       })
       .catch((error) => {
@@ -36,7 +77,12 @@ const SocketHandler = observer((props: Props) => {
   }, []);
 
   useEffect(() => {
-    if (stream === null) {
+    
+    })
+  },[model.radioGain]);
+
+  useEffect(() => {
+    if (!stream) {
       return;
     } else {
       console.log("Stream in socket handler", stream);
@@ -118,7 +164,8 @@ const SocketHandler = observer((props: Props) => {
 
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
-
+      console.log("Volume value is " + volume);
+      
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;

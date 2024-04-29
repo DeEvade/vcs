@@ -42,6 +42,10 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     100% { transform: scale(1); }
    `;
 
+   const onMicValueChanged = (val: any) => {
+    model.micGain = val;
+   }
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (listeningForKey) {

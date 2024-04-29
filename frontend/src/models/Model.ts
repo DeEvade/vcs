@@ -9,6 +9,7 @@ export const model = {
 
   easyMode: false as boolean,
   radioGain: 100 as number,
+  micGain: 100 as number,
   PTTKey: "Space" as string,
 
   socket: {
