@@ -15,12 +15,13 @@ interface Props {
   model: typeof baseModel;
 }
 
-
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
-  let audioContext = new AudioContext();  
-  let gainNode = audioContext.createGain();
+  const [gainNode, setGainNode] = useState<GainNode | null>(null);
+
+  // const audioContext = new AudioContext();
+  // const gainNode = audioContext.createGain();
 
   useEffect(() => {
     if(stream !== null) return;
@@ -28,6 +29,7 @@ const SocketHandler = observer((props: Props) => {
       toast("Media devices not supported", { icon: "❌" });
       return;
     }
+
     navigator.mediaDevices
       .getUserMedia(
         { video: true, 
@@ -35,69 +37,49 @@ const SocketHandler = observer((props: Props) => {
             {
              autoGainControl: false,
              channelCount: 2,
-             echoCancellation: true,
-             noiseSuppression: true,
+             echoCancellation: false,
+             noiseSuppression: false,
              sampleRate: 44000,
              sampleSize: 16,
             }
          })
       .then((stream) => {
-        setStream(stream);
-        console.log("Got stream", stream); //kommer hit        
-        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
-        return stream;
-      })
-      .then((stream) => {
-        //const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        //const mediaStreamDestination = audioContext.createMediaStreamDestination();
-
-        // const biquadFilter = audioContext.createBiquadFilter();
-        // biquadFilter.type = "lowshelf";
-        // biquadFilter.frequency.value = 1000;
-        // biquadFilter.gain.value = 100;
-
+        console.log("Got stream", stream); //kommer hit   
         
-        //gainNode.gain.value = 1;
+        const audioContext = new AudioContext();
+        const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
-        //mediaStreamSource.connect(gainNode);
-        //gainNode.connect(mediaStreamDestination);
+        const lowpassFilter = audioContext.createBiquadFilter();
+        lowpassFilter.type = 'lowpass';
+        lowpassFilter.frequency.value = 2500;
+
+        const node = audioContext.createGain();
+        node.gain.value = model.micGain/50;
+        //gainNode.gain.value = model.micGain/50;
+
+        mediaStreamSource.connect(node).connect(lowpassFilter).connect(mediaStreamDestination);
+        //mediaStreamSource.connect(gainNode).connect(mediaStreamDestination);
+        
+        setStream(mediaStreamDestination.stream);
+    
+        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
+        setGainNode(node);
       })
   }, []);
 
   
-  // useEffect(() => {
+  useEffect(() => {
+    if (!gainNode) return;
 
-  //   try {
-  //     //gainNode.gain.value = model.micGain/50;
-  //     console.log("Gain value is: " + model.micGain/50);
-  //     /*
-  //     navigator.mediaDevices.getUserMedia({ video: true, 
-  //       audio:
-  //         {
-  //          autoGainControl: false,
-  //          channelCount: 2,
-  //          echoCancellation: true,
-  //          noiseSuppression: true,
-  //          sampleRate: 44000,
-  //          sampleSize: 16,
-  //         }
-  //      }).then((stream) => {
-  //       const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-  
-  //       gainNode.gain.value = model.micGain;
-  //       mediaStreamSource.connect(gainNode);
-  //       gainNode.connect(audioContext.destination);
-  
-        
-  //       console.log("Gain value is: " + model.micGain);
-  
-  //       setStream(stream);
-  //     })*/
-  //   } catch (error) {
-  //     console.log("MEGAERROR!!");
-  //   }
+    try {
+      gainNode.gain.value = model.micGain/50;
+      console.log("Gain value is: " + model.micGain/50);
+    } catch (error) {
+      console.log("MEGAERROR!!");
+    }
     
-  // },[model.micGain])
+  },[model.micGain, gainNode])
 
   useEffect(() => {
     if (!stream) {

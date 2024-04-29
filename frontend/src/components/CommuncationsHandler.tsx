@@ -52,16 +52,23 @@ const PeerChannel = observer(
     return (
       <>
         <video
-          style={{ width: "0px", height: "0px" }}
+          style={{ width: "100px", height: "100px" }}
           autoPlay
           playsInline
           ref={(video) => {
             if (video && stream) {
               video.srcObject = stream;
-              video.onloadedmetadata = (e) => {
-                video.play();
-                // video.muted;
-              }
+              video.volume = baseModel.radioGain/100;
+            }
+          }}
+        />
+        <audio
+          ref={(audio) => {
+            if(stream && audio != null){
+              audio.srcObject = stream;
+              audio.volume = 0;
+              audio.play();
+              
             }
           }}
         />
