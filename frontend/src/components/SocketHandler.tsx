@@ -105,7 +105,7 @@ const SocketHandler = observer((props: Props) => {
 
         //gain of white noise
         const noiseGain = audioContext.createGain();
-        noiseGain.gain.value = 0.005;
+        noiseGain.gain.value = 0.003;
 
         // push to talk gain
         const masterGain = audioContext.createGain();
@@ -196,6 +196,12 @@ const SocketHandler = observer((props: Props) => {
         initiator: true,
         trickle: false,
         stream: stream ?? undefined,
+        sdpTransform(sdp) {
+          return sdp.replace(
+            "a=fmtp:111 minptime=10;useinbandfec=1",
+            "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
+          );
+        },
         // wrtc: { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate },
         config: {
           iceServers: [
@@ -262,6 +268,12 @@ const SocketHandler = observer((props: Props) => {
         initiator: false,
         trickle: false,
         stream: stream ?? undefined,
+        sdpTransform(sdp) {
+          return sdp.replace(
+            "a=fmtp:111 minptime=10;useinbandfec=1",
+            "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
+          );
+        },
         //ice servers
         config: {
           iceServers: [
