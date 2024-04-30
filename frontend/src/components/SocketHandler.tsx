@@ -2,7 +2,6 @@ import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { io as socket } from "socket.io-client";
 import { useEffect, useState, useRef } from "react";
-import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
@@ -24,10 +23,7 @@ const SocketHandler = observer((props: Props) => {
 
   // const audioContext = new AudioContext();
   // const gainNode = audioContext.createGain();
-  const [gainNode, setGainNode] = useState<GainNode | null>(null);
 
-  // const audioContext = new AudioContext();
-  // const gainNode = audioContext.createGain();
 
   useEffect(() => {
     if (stream !== null) return;
@@ -52,25 +48,6 @@ const SocketHandler = observer((props: Props) => {
             }
          })
       .then((stream) => {
-        console.log("Got stream", stream); //kommer hit   
-        
-        const audioContext = new AudioContext();
-        const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        const mediaStreamDestination = audioContext.createMediaStreamDestination();
-
-        const lowpassFilter = audioContext.createBiquadFilter();
-        lowpassFilter.type = 'lowpass';
-        lowpassFilter.frequency.value = 2500;
-
-        const node = audioContext.createGain();
-        node.gain.value = model.micGain/50;
-        //gainNode.gain.value = model.micGain/50;
-
-        mediaStreamSource.connect(node).connect(lowpassFilter).connect(mediaStreamDestination);
-        //mediaStreamSource.connect(gainNode).connect(mediaStreamDestination);
-        
-        setStream(mediaStreamDestination.stream);
-    
         console.log("Got stream", stream); //kommer hit   
         
         const audioContext = new AudioContext();
