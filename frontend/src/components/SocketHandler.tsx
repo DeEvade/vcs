@@ -1,8 +1,9 @@
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { io as socket } from "socket.io-client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import toast from "react-hot-toast";
+import Tuna from "tunajs";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
 import { log } from "console";
@@ -10,6 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import micGain from "./ConfigMenu";
 import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
+import { PTTProvider, usePTT } from "../contexts/PTTContext";
 
 interface Props {
   model: typeof baseModel;
@@ -20,6 +22,8 @@ const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
+  const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
+  const { pttActive } = usePTT();
 
   // const audioContext = new AudioContext();
   // const gainNode = audioContext.createGain();
@@ -40,7 +44,7 @@ const SocketHandler = observer((props: Props) => {
           audio:
             {
              autoGainControl: false,
-             channelCount: 2,
+             channelCount: 1,
              echoCancellation: false,
              noiseSuppression: false,
              sampleRate: 44000,
@@ -50,43 +54,103 @@ const SocketHandler = observer((props: Props) => {
       .then((stream) => {
         console.log("Got stream", stream); //kommer hit   
         
+        
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
         const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
-        const lowpassFilter = audioContext.createBiquadFilter();
-        lowpassFilter.type = 'lowpass';
-        lowpassFilter.frequency.value = 2500;
+        let tuna = new Tuna(audioContext)
 
         const node = audioContext.createGain();
         node.gain.value = model.micGain/50;
         //gainNode.gain.value = model.micGain/50;
 
-        mediaStreamSource.connect(node).connect(lowpassFilter).connect(mediaStreamDestination);
+        // low pass filter for radio effect
+        const lowpassFilter= new tuna.Filter({
+          frequency: 2300,
+          Q: 80,
+          gain: 0,
+          filterType: 'lowpass',
+          bypass: false
+        })
+
+        // high pass filter for radio effect
+        const highpassFilter= new tuna.Filter({
+          frequency: 200,
+          Q: 80,
+          gain: 0,
+          filterType: 'highpass',
+          bypass: false
+        })
+
+        // overdrive giving audio distortion for radio effect
+        const overdrive = new tuna.Overdrive({
+          outputGain: 0,
+          drive: 0.2,
+          curveAmount: 0.3,
+          algorithmIndex: 2,
+          bypass: false
+        })
+
+        const bufferSize = 2 * audioContext.sampleRate;
+        const whiteNoiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const data = whiteNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1; // Generate random noise between -1 and 1
+        }
+        const whiteNoiseSource = audioContext.createBufferSource();
+        whiteNoiseSource.buffer = whiteNoiseBuffer;
+        whiteNoiseSource.loop = true;
+        whiteNoiseSource.start();
+
+        //gain of white noise
+        const noiseGain = audioContext.createGain();
+        noiseGain.gain.value = 0.005;
+
+        // push to talk gain
+        const masterGain = audioContext.createGain();
+        masterGain.gain.value = 0;
+
+        whiteNoiseSource.connect(noiseGain);
+        noiseGain.connect(masterGain);
+        
+        lowpassFilter.connect(highpassFilter);
+        highpassFilter.connect(overdrive);
+        mediaStreamSource.connect(lowpassFilter);
+        overdrive.connect(node);
+        node.connect(masterGain);
+
+        masterGain.connect(mediaStreamDestination);
+
+
+        // mediaStreamSource.connect(overdrive).connect().connect(noiseGainNode)
+
+        //mediaStreamSource.connect(overdrive).connect(bandPassFilter).connect(node).connect(mediaStreamDestination);
         //mediaStreamSource.connect(gainNode).connect(mediaStreamDestination);
         
         setStream(mediaStreamDestination.stream);
     
         console.log("reallyyy??!! Got stream???!", stream); // kommer hit
         setGainNode(node);
-        setGainNode(node);
+        setMasterGainNode(masterGain);
       })
   }, []);
 
-  
   useEffect(() => {
-    if (!gainNode) return;
-
+    if (!masterGainNode) {
+      console.log("MASTERGAIN ERRRRORR");
+      return;
+    };
     try {
-      gainNode.gain.value = model.micGain/50;
-      console.log("Gain value is: " + model.micGain/50);
+      masterGainNode.gain.value = pttActive ? 1 : 0;
+      console.log("ptt variable state: " + masterGainNode)
+      console.log("Push to talk active? " + pttActive);
     } catch (error) {
-      console.log("MEGAERROR!!");
+      console.log("MEGA MASTERGAIN ERROR!!");
     }
     
-  },[model.micGain, gainNode])
+  }, [pttActive, masterGainNode]);
 
-  
   useEffect(() => {
     if (!gainNode) return;
 

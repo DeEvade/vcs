@@ -30,7 +30,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const [selectedRolesObject, setSelectedRolesObject] = useState<Role[] | null>(
     null
   );
-
+  
   useEffect(() => {
     //console.log("selected role object: ");
     const selectedRolesObject = model.getSelectedRolesObject();

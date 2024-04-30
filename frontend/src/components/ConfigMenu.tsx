@@ -28,7 +28,7 @@ interface Props {
 }
 
 const ConfigMenu: React.FC<Props> = observer(function (props) {
-  const [radioGain, setRadioGain] = useState(50);
+  //const [radioGain, setRadioGain] = useState(50);
   const [listeningForKey, setListeningForKey] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
@@ -44,6 +44,10 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
 
    const onMicValueChanged = (val: any) => {
     model.micGain = val;
+   }
+
+   const onRadioValueChanged = (val: any) => {
+    model.radioGain = val;
    }
 
   useEffect(() => {
@@ -64,10 +68,8 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     };
   }, [listeningForKey]);
 
-  useEffect
-
   // Calculate the gain percentage for display
-  const displayGain = Math.round((radioGain / 100) * 200); // Convert slider value to percentage
+  const displayGain = Math.round((model.radioGain / 100) * 200); // Convert slider value to percentage
   const displayMicGain = Math.round(( model.micGain / 100) * 200);
 
   const animation = prefersReducedMotion
@@ -95,8 +97,8 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             defaultValue={50}
             min={0}
             max={100}
-            value={radioGain}
-            onChange={(val) => setRadioGain(val)}
+            value={model.radioGain}
+            onChange={(val) => onRadioValueChanged(val)}
           >
             <SliderTrack>
               <SliderFilledTrack />

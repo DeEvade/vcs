@@ -8,7 +8,7 @@ export const model = {
   openRoleModal: true as boolean,
 
   easyMode: false as boolean,
-  radioGain: 100 as number,
+  radioGain: 50 as number,
   micGain: 50 as number,
   PTTKey: "Space" as string,
 
