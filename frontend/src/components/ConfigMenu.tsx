@@ -68,8 +68,9 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     };
   }, [listeningForKey]);
 
-  // Calculate the gain percentage for display
-  const displayGain = Math.round((model.radioGain / 100) * 200); // Convert slider value to percentage
+  // Calculate the gain percentage for radio volume and mic gain.
+  // Converts slider values to percentage
+  const displayGain = Math.round((model.radioGain / 100) * 200);
   const displayMicGain = Math.round(( model.micGain / 100) * 200);
 
   const animation = prefersReducedMotion

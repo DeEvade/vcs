@@ -12,7 +12,7 @@ console.log("communications handler file");
 const CommunicationsHandler = observer(({ model }: Props) => {
   
   if (!model.socket?.io) {
-    console.log("???????");
+    console.log("Com. Handler no socket found");
     return null; // Return null instead of <></> for clarity
   }
 
@@ -29,14 +29,10 @@ const CommunicationsHandler = observer(({ model }: Props) => {
 
 const PeerChannel = observer(
   ({ peer, peerId, model }: { peer: Peer.Instance; peerId: string; model: typeof baseModel }) => {
-    console.log("BEFORE GETTING STREM!!!");
     const [stream, setStream] = useState<MediaStream | null>(null);
     useEffect(() => {
       // Do something with the peer
-      console.log("BEFORE GETTING STREAM ON!!!!")
       peer.on("stream", (stream) => {
-        console.log("GETTING STREAM!!!!");
-
         setStream(stream);
       });
 
@@ -49,10 +45,6 @@ const PeerChannel = observer(
         }
       };
     }, [peer]);
-
-    useEffect(() => {
-      console.log("########### ########## ######### radiogain is: " + model.radioGain);
-    }, [model.radioGain]);
 
     useEffect(() => {
       const updateVolume = () => {

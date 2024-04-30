@@ -17,17 +17,12 @@ interface Props {
   model: typeof baseModel;
 }
 
-
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
   const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
   const { pttActive } = usePTT();
-
-  // const audioContext = new AudioContext();
-  // const gainNode = audioContext.createGain();
-
 
   useEffect(() => {
     if (stream !== null) return;
@@ -36,7 +31,6 @@ const SocketHandler = observer((props: Props) => {
       toast("Media devices not supported", { icon: "❌" });
       return;
     }
-
 
     navigator.mediaDevices
       .getUserMedia(
@@ -83,6 +77,18 @@ const SocketHandler = observer((props: Props) => {
           bypass: false
         })
 
+        //Compressing the voice
+        const compressor = new tuna.Compressor({
+          threshold: -30,    
+          makeupGain: 1,     
+          attack: 5,         
+          release: 200,      
+          ratio: 10,          
+          knee: 5,         
+          automakeup: true, 
+          bypass: false
+        });
+
         // overdrive giving audio distortion for radio effect
         const overdrive = new tuna.Overdrive({
           outputGain: 0,
@@ -92,11 +98,12 @@ const SocketHandler = observer((props: Props) => {
           bypass: false
         })
 
+        //Generating some whitenoise to mix in with the mic input
         const bufferSize = 2 * audioContext.sampleRate;
         const whiteNoiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
         const data = whiteNoiseBuffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1; // Generate random noise between -1 and 1
+          data[i] = Math.random() * 2 - 1;
         }
         const whiteNoiseSource = audioContext.createBufferSource();
         whiteNoiseSource.buffer = whiteNoiseBuffer;
@@ -105,60 +112,53 @@ const SocketHandler = observer((props: Props) => {
 
         //gain of white noise
         const noiseGain = audioContext.createGain();
-        noiseGain.gain.value = 0.003;
+        noiseGain.gain.value = 0.05;
 
         // push to talk gain
         const masterGain = audioContext.createGain();
         masterGain.gain.value = 0;
 
+        // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);
         noiseGain.connect(masterGain);
         
-        lowpassFilter.connect(highpassFilter);
-        highpassFilter.connect(overdrive);
+        // connect chain for radio effect
         mediaStreamSource.connect(lowpassFilter);
+        lowpassFilter.connect(highpassFilter);
+        highpassFilter.connect(compressor);
+        compressor.connect(overdrive);
         overdrive.connect(node);
         node.connect(masterGain);
 
+        // master gain for push to talk
         masterGain.connect(mediaStreamDestination);
 
-
-        // mediaStreamSource.connect(overdrive).connect().connect(noiseGainNode)
-
-        //mediaStreamSource.connect(overdrive).connect(bandPassFilter).connect(node).connect(mediaStreamDestination);
-        //mediaStreamSource.connect(gainNode).connect(mediaStreamDestination);
-        
         setStream(mediaStreamDestination.stream);
-    
-        console.log("reallyyy??!! Got stream???!", stream); // kommer hit
         setGainNode(node);
         setMasterGainNode(masterGain);
       })
   }, []);
 
+  //Push to talk logic
   useEffect(() => {
-    if (!masterGainNode) {
-      console.log("MASTERGAIN ERRRRORR");
-      return;
-    };
+    if (!masterGainNode) return;
+    
     try {
       masterGainNode.gain.value = pttActive ? 1 : 0;
-      console.log("ptt variable state: " + masterGainNode)
-      console.log("Push to talk active? " + pttActive);
     } catch (error) {
-      console.log("MEGA MASTERGAIN ERROR!!");
+      console.log("Push to talk error: " + error);
     }
     
   }, [pttActive, masterGainNode]);
 
+  //Microphone gain logic
   useEffect(() => {
     if (!gainNode) return;
 
     try {
       gainNode.gain.value = model.micGain/50;
-      console.log("Gain value is: " + model.micGain/50);
     } catch (error) {
-      console.log("MEGAERROR!!");
+      console.log("Mic gain error: " + error);
     }
     
   },[model.micGain, gainNode])
@@ -202,7 +202,6 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
-        // wrtc: { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate },
         config: {
           iceServers: [
             {
@@ -238,17 +237,6 @@ const SocketHandler = observer((props: Props) => {
       }
       console.log("peer to disconnect after destroy " + peer?.connected);
     });
-
-    // io.on("userLeft", (user: string) => {
-    //   console.log("we are in userLeft")
-    //   const peer = model.peers.get(user);
-    //   if (!peer) {
-    //     console.log("userLeft not happening")
-    //     return;
-    //   }
-    //   console.log("userLeft now")
-    //   model.peers.delete(user);
-    // });
 
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
