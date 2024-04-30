@@ -1,7 +1,7 @@
 import { DataSource } from "typeorm";
 import { Configuration } from "../database/entities/Configuration";
 import { Frequency } from "../database/entities/Frequency";
-import { Role } from "../database/entities/Role"
+import { Role } from "../database/entities/Role";
 import { RoleFrequency } from "./entities/RoleFrequency";
 
 export const AppDataSource = new DataSource({

@@ -25,6 +25,7 @@ const SocketHandler = observer((props: Props) => {
 
   useEffect(() => {
     if(stream !== null) return;
+
     if (navigator.mediaDevices === undefined) {
       toast("Media devices not supported", { icon: "❌" });
       return;
@@ -82,8 +83,10 @@ const SocketHandler = observer((props: Props) => {
   },[model.micGain, gainNode])
 
   useEffect(() => {
-    if (!stream) {
+    if (stream === null) {
       return;
+    } else {
+      console.log("Stream in socket handler", stream);
     }
 
     const io = socket(window.location.hostname + ":8080");
@@ -210,6 +213,131 @@ const SocketHandler = observer((props: Props) => {
       peer.signal(data.signal);
 
       model.peers.set(data.from, peer);
+    });
+
+    io.on("addRole", (data: any) => {
+      if (data.error) {
+        return toast.error("error getting new role: " + data.error);
+      }
+      if (!model.configuration) return;
+      data["frequencies"] = [];
+      console.log("role added", data);
+
+      model.configuration.roles = model.configuration.roles.concat([data]);
+    });
+
+    io.on("deleteRole", (data: any) => {
+      if (data.error) {
+        return toast.error("error getting deleting role: " + data.error);
+      }
+      if (!model.configuration) return;
+      console.log("role deleted", data);
+
+      model.configuration.roles = model.configuration.roles.filter((role) => {
+        if (role.id !== data.id) {
+          return true;
+        }
+        model.selectedRoles = model.selectedRoles.filter(
+          (r) => r !== role.name
+        );
+
+        return false;
+      });
+    });
+
+    io.on("editRole", (data: any) => {
+      if (data.error) {
+        return toast.error("error getting new role: " + data.error);
+      }
+      if (!model.configuration) return;
+      console.log("role added", data);
+
+      model.configuration.roles = model.configuration.roles.map((role) => {
+        if (role.id === data.id) {
+          model.selectedRoles = model.selectedRoles.map((roleName) => {
+            if (roleName === role.name) {
+              return data.name;
+            }
+            return roleName;
+          });
+          return { ...role, ...data };
+        }
+        return role;
+      });
+    });
+
+    io.on("addRoleFrequency", (data: any) => {
+      if (data.error) {
+        return toast.error("error adding frequency: " + data.error);
+      }
+      if (!model.configuration) return;
+      console.log("frequency added", data);
+
+      model.configuration.roles = model.configuration.roles.map((role) => {
+        if (role.id === data.roleId) {
+          data.id = data.frequency.id;
+          data.frequency = data.frequency.frequency;
+
+          const obj = {
+            ...role,
+            frequencies: role.frequencies.concat([data]),
+          };
+          console.log("success", obj);
+
+          return obj;
+        }
+        return role;
+      });
+      console.log("new roles", model.configuration.roles);
+    });
+
+    io.on("editFrequency", (data: any) => {
+      if (data.error) {
+        return toast.error("error edit frequency: " + data.error);
+      }
+      if (!model.configuration) return;
+
+      model.configuration.roles = model.configuration.roles.map((role) => {
+        role.frequencies = role.frequencies.map((f) => {
+          if (f.id === data.id) {
+            return data;
+          }
+          return f;
+        });
+        return role;
+      });
+    });
+
+    io.on("deleteRoleFrequency", (data: any) => {
+      if (data.error) {
+        return toast.error("error deleting frequency: " + data.error);
+      }
+      if (!model.configuration) return;
+      console.log("frequency removed", data);
+
+      model.configuration.roles = model.configuration.roles.map((role) => {
+        if (role.id === data.roleId) {
+          role.frequencies = role.frequencies.filter(
+            (f) => f.id !== data.frequencyId
+          );
+          return role;
+        }
+        return role;
+      });
+    });
+
+    io.on("editfrequency", (data: any) => {
+      if (data.error) {
+        return toast.error("error editing frequency: " + data.error);
+      }
+      if (!model.configuration) return;
+    });
+
+    io.on("setActiveConfig", (data: any) => {
+      if (data.error) {
+        return toast.error("error setting active config: " + data.error);
+      }
+      window.location.reload();
     });
 
     io.on("getCurrentConfig", (config: any) => {

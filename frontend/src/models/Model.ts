@@ -4,7 +4,7 @@ import { Socket } from "socket.io-client";
 
 export const model = {
   configuration: null as Configuration | null,
-  selectedRole: null as string | null,
+  selectedRoles: [] as string[],
   openRoleModal: true as boolean,
 
   easyMode: false as boolean,
@@ -37,20 +37,19 @@ export const model = {
     };
   },
 
-  getSelectedRoleObject: function (): Role | null {
-    if (!this.configuration || !this.selectedRole) {
+  getSelectedRolesObject: function (): Role[] | null {
+    if (!this.configuration || !this.selectedRoles) {
       return null;
     }
 
     console.log(this.configuration.roles);
 
     return (
-      this.configuration.roles.find(
-        (role) => role.name === this.selectedRole
+      this.configuration.roles.filter((role) =>
+        this.selectedRoles?.includes(role.name)
       ) ?? null
     );
   },
-
   // Uses socket to emit all frequencies that the current user is recieving from.
   handleFrequencyJoined: function () {
     console.log("handles frequency" + this.RXFrequencies)
@@ -71,6 +70,13 @@ export const model = {
     this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
     console.log("Emitted disconnect");
    }
+
+  getRoleFromName: function (name: string): Role | null {
+    if (!this.configuration) {
+      return null;
+    }
+
+    return this.configuration.roles.find((role) => role.name === name) ?? null;
   },
 
   fetchConfiguration: function () {
@@ -92,7 +98,11 @@ export const model = {
     this.openRoleModal = isOpen;
   },
 
-  setSelectedRole: function (role: string) {
-    this.selectedRole = role;
+  addSelectedRole: function (role: string) {
+    this.selectedRoles = this.selectedRoles.concat(role);
+  },
+
+  removeSelectedRole: function (role: string) {
+    this.selectedRoles = this.selectedRoles.filter((r) => r !== role);
   },
 };
