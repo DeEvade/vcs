@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
 import { io as socket } from "socket.io-client";
 import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
@@ -15,9 +16,14 @@ interface Props {
   model: typeof baseModel;
 }
 
+
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [gainNode, setGainNode] = useState<GainNode | null>(null);
+
+  // const audioContext = new AudioContext();
+  // const gainNode = audioContext.createGain();
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
 
   // const audioContext = new AudioContext();
@@ -30,6 +36,7 @@ const SocketHandler = observer((props: Props) => {
       toast("Media devices not supported", { icon: "❌" });
       return;
     }
+
 
     navigator.mediaDevices
       .getUserMedia(
@@ -64,10 +71,43 @@ const SocketHandler = observer((props: Props) => {
         
         setStream(mediaStreamDestination.stream);
     
+        console.log("Got stream", stream); //kommer hit   
+        
+        const audioContext = new AudioContext();
+        const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        const mediaStreamDestination = audioContext.createMediaStreamDestination();
+
+        const lowpassFilter = audioContext.createBiquadFilter();
+        lowpassFilter.type = 'lowpass';
+        lowpassFilter.frequency.value = 2500;
+
+        const node = audioContext.createGain();
+        node.gain.value = model.micGain/50;
+        //gainNode.gain.value = model.micGain/50;
+
+        mediaStreamSource.connect(node).connect(lowpassFilter).connect(mediaStreamDestination);
+        //mediaStreamSource.connect(gainNode).connect(mediaStreamDestination);
+        
+        setStream(mediaStreamDestination.stream);
+    
         console.log("reallyyy??!! Got stream???!", stream); // kommer hit
+        setGainNode(node);
         setGainNode(node);
       })
   }, []);
+
+  
+  useEffect(() => {
+    if (!gainNode) return;
+
+    try {
+      gainNode.gain.value = model.micGain/50;
+      console.log("Gain value is: " + model.micGain/50);
+    } catch (error) {
+      console.log("MEGAERROR!!");
+    }
+    
+  },[model.micGain, gainNode])
 
   
   useEffect(() => {
