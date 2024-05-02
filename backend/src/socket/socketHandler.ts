@@ -119,9 +119,36 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     });
 
     socket.on("updatedFrequencies", (newFrequencies: number[]) => {
-      userToFrequencies.set(socket.id, newFrequencies);
       console.log("updatedFrequencies", userToFrequencies);
+      const previousfrequencies = userToFrequencies.get(socket.id) || [];
 
+      userToFrequencies.set(socket.id, newFrequencies);
+
+      previousfrequencies.forEach((frequency) => {
+        if(!newFrequencies.includes(frequency)){
+          if(countUsersOnFreq.has(frequency)){
+            countUsersOnFreq.set(frequency, countUsersOnFreq.get(frequency) - 1);
+            const amountdis = countUsersOnFreq.get(frequency);
+            console.log("amount of users in freq after disconnect:" + " " + amountdis);
+          } else {
+            countUsersOnFreq.set(frequency, 0);
+          }
+        }
+      })
+
+      newFrequencies.forEach((frequency) => {
+        if(!previousfrequencies.includes(frequency)){
+          if(countUsersOnFreq.has(frequency)){
+            countUsersOnFreq.set(frequency, countUsersOnFreq.get(frequency) + 1);
+            const amount = countUsersOnFreq.get(frequency);
+            console.log("amount of users in freq:" + frequency + " " + amount);
+          } else {
+            countUsersOnFreq.set(frequency, 1);
+          }
+        }
+      })
+      const userObject = Object.fromEntries(countUsersOnFreq.entries());
+      io.emit("countUsersOnFreq", userObject);
       const usersToConnect: string[] = [];
 
       Object.keys(users).forEach((key) => {
@@ -130,13 +157,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
-            if (countUsersOnFreq.has(frequency)) {
-              const currentCount = countUsersOnFreq.get(frequency);
-              countUsersOnFreq.set(frequency, currentCount + 1);
-            } else if (!countUsersOnFreq.has(frequency)) {
-              countUsersOnFreq.set(frequency, 1);
-            }
-            users[userId].emit("countUsersOnFreq", countUsersOnFreq);
             if (newFrequencies.includes(frequency)) {
               usersToConnect.push(userId);
               return;
@@ -433,9 +453,8 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         socket.emit("addRoleFrequency", { error: error.message });
       }
     });
-  });
-};
-
+  })
+}
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };
