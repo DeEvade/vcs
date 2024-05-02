@@ -7,9 +7,12 @@ import { Flex } from "@chakra-ui/react";
 interface Props {
   model: typeof baseModel;
 }
+console.log("communications handler file");
 
 const CommunicationsHandler = observer(({ model }: Props) => {
+  
   if (!model.socket?.io) {
+    console.log("Com. Handler no socket found");
     return null; // Return null instead of <></> for clarity
   }
 
@@ -17,7 +20,7 @@ const CommunicationsHandler = observer(({ model }: Props) => {
     <>
       <Flex maxWidth="1000px" wrap="wrap" justifyContent="center">
         {Array.from(model.peers.entries()).map(([id, peer]) => (
-          <PeerChannel key={id} peer={peer} peerId={id} />
+          <PeerChannel key={id} peer={peer} peerId={id} model={model}/>
         ))}
       </Flex>
     </>
@@ -25,37 +28,50 @@ const CommunicationsHandler = observer(({ model }: Props) => {
 });
 
 const PeerChannel = observer(
-  ({ peer, peerId }: { peer: Peer.Instance; peerId: string }) => {
+  ({ peer, peerId, model }: { peer: Peer.Instance; peerId: string; model: typeof baseModel }) => {
     const [stream, setStream] = useState<MediaStream | null>(null);
     useEffect(() => {
       // Do something with the peer
       peer.on("stream", (stream) => {
-        console.log("GETTING STREAM!!!!");
-
         setStream(stream);
       });
 
       return () => {
         // Clean up
+        if(stream){
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          })
+        }
       };
     }, [peer]);
 
+    useEffect(() => {
+      const updateVolume = () => {
+        if (stream) {
+          const video = document.getElementById(peerId) as HTMLVideoElement;
+          if (video) {
+            video.volume = model.radioGain / 100;
+          }
+        }
+      };
+    }, [model.radioGain]);
+
     return (
       <>
-        <Flex direction="column" alignItems="center">
-          <h1>{peerId}</h1>
-          <h2>Status: {peer.connected !== true ? "online" : "offline"}</h2>
-          <video
-            style={{ width: "250px", height: "250px" }}
-            autoPlay
-            playsInline
-            ref={(video) => {
-              if (video && stream) {
-                video.srcObject = stream;
-              }
-            }}
-          />
-        </Flex>
+        <script src="./SocketHandler.tsx"></script>
+        <video
+          style={{ width: "100px", height: "100px" }}
+          autoPlay
+          playsInline
+          id={peerId}
+          ref={(video) => {
+            if (video && stream) {
+              video.srcObject = stream;
+              video.volume = model.radioGain/100;
+            }
+          }}
+        />
       </>
     ); // Show something meaningful
   }

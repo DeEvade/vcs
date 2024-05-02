@@ -1,38 +1,171 @@
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
-
 import { io as socket } from "socket.io-client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import toast from "react-hot-toast";
+import Tuna from "tunajs";
 import { roleFrequencyToFrequency } from "@/utils/responseConverter";
 import Peer from "simple-peer";
+import { log } from "console";
+import { v4 as uuidv4 } from "uuid";
+import micGain from "./ConfigMenu";
+import setMicGain from "./ConfigMenu";
+import ConfigMenu from "./ConfigMenu";
+import { PTTProvider, usePTT } from "../contexts/PTTContext";
+
+
 interface Props {
   model: typeof baseModel;
 }
+
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [gainNode, setGainNode] = useState<GainNode | null>(null);
+  const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
+  const { pttActive } = usePTT();
 
   useEffect(() => {
     if (stream !== null) return;
+
     if (navigator.mediaDevices === undefined) {
       toast("Media devices not supported", { icon: "❌" });
       return;
     }
+
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia(
+        { video: true, 
+          audio:
+            {
+             autoGainControl: false,
+             channelCount: 1,
+             echoCancellation: false,
+             noiseSuppression: false,
+             sampleRate: 44000,
+             sampleSize: 16,
+            }
+         })
       .then((stream) => {
-        console.log("Got stream", stream);
-        setStream(stream);
+        console.log("Got stream", stream); //kommer hit   
+        
+        
+        const audioContext = new AudioContext();
+        const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        const mediaStreamDestination = audioContext.createMediaStreamDestination();
+
+        let tuna = new Tuna(audioContext)
+
+        const node = audioContext.createGain();
+        node.gain.value = model.micGain/50;
+        //gainNode.gain.value = model.micGain/50;
+
+        // low pass filter for radio effect
+        const lowpassFilter= new tuna.Filter({
+          frequency: 2300,
+          Q: 80,
+          gain: 0,
+          filterType: 'lowpass',
+          bypass: false
+        })
+
+        // high pass filter for radio effect
+        const highpassFilter= new tuna.Filter({
+          frequency: 200,
+          Q: 80,
+          gain: 0,
+          filterType: 'highpass',
+          bypass: false
+        })
+
+        //Compressing the voice
+        const compressor = new tuna.Compressor({
+          threshold: -30,    
+          makeupGain: 1,     
+          attack: 5,         
+          release: 200,      
+          ratio: 10,          
+          knee: 5,         
+          automakeup: true, 
+          bypass: false
+        });
+
+        // overdrive giving audio distortion for radio effect
+        const overdrive = new tuna.Overdrive({
+          outputGain: 0,
+          drive: 0.2,
+          curveAmount: 0.3,
+          algorithmIndex: 2,
+          bypass: false
+        })
+
+        //Generating some whitenoise to mix in with the mic input
+        const bufferSize = 2 * audioContext.sampleRate;
+        const whiteNoiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const data = whiteNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const whiteNoiseSource = audioContext.createBufferSource();
+        whiteNoiseSource.buffer = whiteNoiseBuffer;
+        whiteNoiseSource.loop = true;
+        whiteNoiseSource.start();
+
+        //gain of white noise
+        const noiseGain = audioContext.createGain();
+        noiseGain.gain.value = 0.05;
+
+        // push to talk gain
+        const masterGain = audioContext.createGain();
+        masterGain.gain.value = 0;
+
+        // connect chain for whitenoise
+        whiteNoiseSource.connect(noiseGain);
+        noiseGain.connect(masterGain);
+        
+        // connect chain for radio effect
+        mediaStreamSource.connect(lowpassFilter);
+        lowpassFilter.connect(highpassFilter);
+        highpassFilter.connect(compressor);
+        compressor.connect(overdrive);
+        overdrive.connect(node);
+        node.connect(masterGain);
+
+        // master gain for push to talk
+        masterGain.connect(mediaStreamDestination);
+
+        setStream(mediaStreamDestination.stream);
+        setGainNode(node);
+        setMasterGainNode(masterGain);
       })
-      .catch((error) => {
-        console.error("Error getting stream", error);
-        toast.error("Error getting stream");
-      });
   }, []);
 
+  //Push to talk logic
   useEffect(() => {
-    if (stream === null) {
+    if (!masterGainNode) return;
+    
+    try {
+      masterGainNode.gain.value = pttActive ? 1 : 0;
+    } catch (error) {
+      console.log("Push to talk error: " + error);
+    }
+    
+  }, [pttActive, masterGainNode]);
+
+  //Microphone gain logic
+  useEffect(() => {
+    if (!gainNode) return;
+
+    try {
+      gainNode.gain.value = model.micGain/50;
+    } catch (error) {
+      console.log("Mic gain error: " + error);
+    }
+    
+  },[model.micGain, gainNode])
+
+  useEffect(() => {
+    if (!stream) {
       return;
     } else {
       console.log("Stream in socket handler", stream);
@@ -46,6 +179,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
+
     io.on("tryDisconnectPeer", (user: string) => {
       console.log("try disconnect peer", user);
 
@@ -58,8 +192,16 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("tryConnectPeer", (user: string) => {
+
       const peerExists = model.peers.get(user);
-      if (peerExists) {
+
+      if (peerExists && !peerExists.destroyed) {
+        console.log("peer exists already");
+        return;
+      }
+
+      if (peerExists?.connected) {
+        console.log("already connected");
         return;
       }
 
@@ -73,7 +215,8 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
-        /*config: {
+
+        config: {
           iceServers: [
             {
               urls: [
@@ -83,26 +226,30 @@ const SocketHandler = observer((props: Props) => {
             },
           ],
           iceCandidatePoolSize: 10,
-        },*/
+        },
       });
+      console.log("Peer has connected");
 
-      peer.on("signal", (data) => {
+      peer.on("signal", (offerSignal) => {
+        console.log("initiator sending offer signal");
         io.emit("callUser", {
           userToCall: user,
-          signalData: data,
+          signalData: offerSignal,
           from: io.id,
         });
+        model.peers.set(user, peer);
       });
-      model.peers.set(user, peer);
     });
+
 
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
-
+      
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;
       }
+
       peer.signal(signal.signal);
     });
 
@@ -183,11 +330,12 @@ const SocketHandler = observer((props: Props) => {
         },*/
       });
 
-      console.log("hey", data.from, data.signal);
+      console.log("hey", data.from);
 
-      peer.on("signal", (signalData) => {
+      peer.on("signal", (answerSignal: any, freq: string) => {
+        console.log("Acceptcall and will emit signal", answerSignal);
         io.emit("acceptCall", {
-          signal: signalData,
+          signal: answerSignal,
           to: data.from,
           from: io.id,
         });

@@ -28,7 +28,7 @@ interface Props {
 }
 
 const ConfigMenu: React.FC<Props> = observer(function (props) {
-  const [radioGain, setRadioGain] = useState(50);
+  //const [radioGain, setRadioGain] = useState(50);
   const [listeningForKey, setListeningForKey] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
@@ -41,6 +41,14 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
    `;
+
+   const onMicValueChanged = (val: any) => {
+    model.micGain = val;
+   }
+
+   const onRadioValueChanged = (val: any) => {
+    model.radioGain = val;
+   }
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -60,8 +68,10 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     };
   }, [listeningForKey]);
 
-  // Calculate the gain percentage for display
-  const displayGain = Math.round((radioGain / 100) * 200); // Convert slider value to percentage
+  // Calculate the gain percentage for radio volume and mic gain.
+  // Converts slider values to percentage
+  const displayGain = Math.round((model.radioGain / 100) * 200);
+  const displayMicGain = Math.round(( model.micGain / 100) * 200);
 
   const animation = prefersReducedMotion
     ? undefined
@@ -88,8 +98,8 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             defaultValue={50}
             min={0}
             max={100}
-            value={radioGain}
-            onChange={(val) => setRadioGain(val)}
+            value={model.radioGain}
+            onChange={(val) => onRadioValueChanged(val)}
           >
             <SliderTrack>
               <SliderFilledTrack />
@@ -98,6 +108,24 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
               <Box color="gray.600" as={MdGraphicEq} />
             </SliderThumb>
           </Slider>
+
+          <Text mb={2}>Microphone Gain: {displayMicGain}%</Text>
+          <Slider
+            defaultValue={50}
+            min={0}
+            max={100}
+            value={model.micGain}
+            onChange={(val) => onMicValueChanged(val)}
+          >
+            <SliderTrack>
+              <SliderFilledTrack />
+            </SliderTrack>
+            <SliderThumb boxSize={5}>
+              <Box color="gray.600" as={MdGraphicEq} />
+            </SliderThumb>
+          </Slider>
+
+          
         </Box>
         <Box p={4}>
           <Text mb={2}>Push to Talk Key: {pttKey}</Text>

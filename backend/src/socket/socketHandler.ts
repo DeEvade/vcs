@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { Configuration } from "../database/entities/Configuration";
 import { Role } from "../database/entities/Role";
 import { DataSource } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 import { Frequency } from "../database/entities/Frequency";
 import { RoleFrequency } from "../database/entities/RoleFrequency";
 import { XC } from "../database/entities/XC";
@@ -23,6 +24,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error during default configuration creation", error);
   }
 
+
   try {
     const XCRepo = AppDataSource.getRepository(XC);
     const xcs = await XCRepo.find();
@@ -36,7 +38,12 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   }
 
   io.on("connection", (socket: Socket) => {
+    if (!socket) {
+      return "there is no socket";
+    }
     console.log("a user connected");
+    // save all user ids with same frequencies as socket.id in retMap
+
     if (!users[socket.id]) {
       users[socket.id] = socket;
     }
@@ -128,6 +135,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
+
     //Send all users to all users except the one that just connected
     /* Object.keys(users).forEach((key) => {
       if (key !== socket.id) {
@@ -142,7 +150,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         signal: data.signalData,
         from: data.from,
       });
-    });
+
 
     socket.on("acceptCall", (data) => {
       console.log("accepting user", data.to, data.from);
@@ -352,9 +360,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         console.log("Error during default configuration creation", error);
         socket.emit("getConfig", { error: error.message });
       }
-    });
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
     });
 
     socket.on("deleteRoleFrequency", async (data) => {
