@@ -34,6 +34,7 @@ import { observer } from "mobx-react-lite";
 import { useState, useEffect } from "react";
 import DashboardDeleteCard from "../DashboardDeleteCard";
 import DashboardRoleFrequencyCard from "./DashboardRoleFrequencyCard";
+import XCButton from "@/components/XCButton";
 
 const DashboardFrequenceCard = observer(
   (props: { model: typeof DashboardModel; role: DashboardRole }) => {
