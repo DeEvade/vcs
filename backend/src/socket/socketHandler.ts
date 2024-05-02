@@ -5,7 +5,7 @@ import { DataSource } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { Frequency } from "../database/entities/Frequency";
 import { RoleFrequency } from "../database/entities/RoleFrequency";
-import { XC } from "../database/entities/XC";
+import { XC } from "..//database/entities/XC";
 
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
@@ -13,7 +13,10 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   const xcConnection = new Map<number, number[]>();
 
   //Hashmap to store the frequencies of each user
-  const userToFrequencies = new Map<string, number[]>();
+  const userToFrequencies = new Map<string, number[]>(); //vanliga hashmapen
+  // keys are frequencies and values are count of users on the frequency
+  const countUsersOnFreq = new Map<number, number>();
+
   let currentConfigId: number = 0;
   try {
     const configs = await AppDataSource.getRepository(Configuration).find();
@@ -56,8 +59,11 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     socket.on("createXC", async (data: any) => {
       console.log("creating XC", data);
       try {
+        const noDuplicates = Array.from(new Set(data.frequencyIds)) as number[];
         const XCRepo = AppDataSource.getRepository(XC);
-        const xc = XCRepo.create({ frequencyIds: data.frequencyIds });
+        const xc = XCRepo.create({ frequencyIds: noDuplicates });
+        if (noDuplicates.length < 2)
+          throw new Error("XC must have at least 2 frequencies");
 
         const savedXC = await XCRepo.save(xc);
         if (!savedXC) throw new Error("Error saving XC");
@@ -86,11 +92,13 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     });
 
     socket.on("updateXC", async (data: any) => {
+      console.log("updating XC", data);
+
       try {
-        data.frequencyIds = Array.from(new Set(data.frequencyIds));
+        const noDuplicates = Array.from(new Set(data.frequencyIds)) as number[];
 
         const XCRepo = AppDataSource.getRepository(XC);
-        if (data.frequencyIds.length < 2) {
+        if (noDuplicates.length < 2) {
           xcConnection.delete(data.id);
           await XCRepo.delete(data.id);
           socket.broadcast.emit("deleteXC", data);
@@ -100,7 +108,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         }
         const xc = await XCRepo.findOneBy({ id: data.id });
         if (!xc) throw new Error("Error getting XC");
-        xc.frequencyIds = data.frequencyIds;
+        xc.frequencyIds = noDuplicates;
         const savedXC = await XCRepo.save(xc);
         if (!savedXC) throw new Error("Error saving XC");
         xcConnection.set(savedXC.id, savedXC.frequencyIds);
@@ -116,14 +124,31 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       console.log("updatedFrequencies", userToFrequencies);
 
       Object.keys(users).forEach((key) => {
+        //Går igenom hashmapen
         if (key === socket.id) return;
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
+            if (countUsersOnFreq.has(frequency)) {
+              const currentCount = countUsersOnFreq.get(frequency);
+              countUsersOnFreq.set(frequency, currentCount + 1);
+            } else if (!countUsersOnFreq.has(frequency)) {
+              countUsersOnFreq.set(frequency, 1);
+            }
+            users[userId].emit("countUsersOnFreq", countUsersOnFreq);
             if (newFrequencies.includes(frequency)) {
               users[userId].emit("tryConnectPeer", socket.id);
               return;
             }
+            xcConnection.forEach((values, key) => {
+              if (
+                newFrequencies.includes(frequency) &&
+                values.includes(frequency)
+              ) {
+                users[userId].emit("tryConnectPeer", socket.id);
+                return;
+              }
+            });
           }
           //User has no frequencies in common with the updated user
           console.log("no frequencies in common", userId, socket.id);

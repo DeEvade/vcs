@@ -4,7 +4,7 @@
 const nextConfig = {
   reactStrictMode: true,
   standalone: true,
-  // basePath: '/vcs', // required for some nginx production build
+  //basePath: "/vcs", // required for some nginx production build
   // You can uncomment these if static exporting and serving from a sub-directory
   // basePath: '/vcs',
   // assetPrefix: '/vcs',

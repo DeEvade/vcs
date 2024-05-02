@@ -171,7 +171,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("Stream in socket handler", stream);
     }
 
-    const io = socket(window.location.hostname + ":8080");
+    const io = socket(window.location.hostname + model.devMode ? ":8080" : "");
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;
@@ -220,8 +220,8 @@ const SocketHandler = observer((props: Props) => {
           iceServers: [
             {
               urls: [
-                'stun:stun1.l.google.com:19302',
-                'stun:stun2.l.google.com:19302',
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
               ],
             },
           ],
@@ -317,17 +317,17 @@ const SocketHandler = observer((props: Props) => {
           );
         },
         //ice servers
-        /*config: {
+        config: {
           iceServers: [
             {
               urls: [
-                'stun:stun1.l.google.com:19302',
-                'stun:stun2.l.google.com:19302',
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
               ],
             },
           ],
           iceCandidatePoolSize: 10,
-        },*/
+        },
       });
 
       console.log("hey", data.from);

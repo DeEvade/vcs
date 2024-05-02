@@ -3,6 +3,7 @@ import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
+  devMode: true as boolean,
   configuration: null as Configuration | null,
   selectedRoles: [] as string[],
   openRoleModal: true as boolean,
@@ -33,6 +34,12 @@ export const model = {
     if (!this.socket.io || !this.socket.connected) return;
 
     this.socket.io.emit("updatedFrequencies", frequencies);
+  },
+
+  crossCoupling: function (XCfrequencies: number[]) {
+    if (!this.socket.io || !this.socket.connected) return;
+
+    this.socket.io.emit("crossCoupling", XCfrequencies);
   },
 
   getFrequencyState: function (frequency: number) {
@@ -112,15 +119,25 @@ export const model = {
     if (!this.socket.io || !this.socket.connected) {
       return;
     }
+    console.log("createXC", frequencyId, checkedFrequencies);
+
     this.socket.io.emit("createXC", {
       frequencyIds: checkedFrequencies.concat(frequencyId),
     });
   },
 
   updateXC(frequencyId: number, checkedFrequencies: number[], XCId: number) {
-    if (!this.socket.io || !this.socket.connected) {
+    if (
+      !this.socket.io ||
+      !this.socket.connected ||
+      !XCId ||
+      !frequencyId ||
+      !checkedFrequencies
+    ) {
       return;
     }
+    console.log("updateXC", frequencyId, checkedFrequencies, XCId);
+
     this.socket.io.emit("updateXC", {
       id: XCId,
       frequencyIds: checkedFrequencies.concat(frequencyId),

@@ -13,7 +13,7 @@ const DashboardSocketHandler = observer((props: Props) => {
   const { model } = props;
 
   useEffect(() => {
-    const io = socket(window.location.hostname + ":8080");
+    const io = socket(window.location.hostname + model.devmode ? ":8080" : "");
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;

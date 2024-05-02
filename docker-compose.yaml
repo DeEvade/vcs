@@ -47,21 +47,37 @@ services:
     depends_on:
       - vcs-backend
     restart: always
+    volumes:
+      - ./build:/var/task/.next/rw
 
-  nginx:
+  nginx-server:
+    container_name: nginx-server
     image: nginx:latest
-    container_name: nginx
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
     restart: always
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:r # if modifications are needed at runtime
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+      - ./build:/app/.next/:ro
+    depends_on:
+      - vcs-frontend
 
   certbot:
+    depends_on:
+      - nginx-server
     image: certbot/certbot:latest
     volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+
+    #normal run
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+    #initial cert
+    #command: certonly --webroot --webroot-path=/var/www/certbot --email william.redgard@gmail.com --agree-tos --no-eff-email --domains lfv.popify.se
+
+    #expand
+    #command: certonly --expand --webroot --webroot-path=/var/www/certbot --email william.redgard@gmail.com --agree-tos --no-eff-email --domains lfv.popify.se

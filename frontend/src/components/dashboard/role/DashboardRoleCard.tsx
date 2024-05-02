@@ -128,6 +128,7 @@ const DashboardFrequenceCard = observer(
               <AccordionIcon />
             </AccordionButton>
           </h2>
+
           <AccordionPanel pb={4}>
             <Flex direction="column" gap="10px">
               <RadioGroup

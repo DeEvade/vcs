@@ -33,7 +33,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   );
   
   useEffect(() => {
-    toast.success("RX: " + model.RXFrequencies);
+    //toast.success("RX: " + model.RXFrequencies);
     model.onFrequencyChange(model.RXFrequencies);
   }, [model.RXFrequencies]);
 
