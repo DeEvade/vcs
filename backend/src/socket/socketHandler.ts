@@ -128,18 +128,18 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
-            if (countUsersOnFreq.has(frequency)) {
+            /*if (countUsersOnFreq.has(frequency)) {
               const currentCount = countUsersOnFreq.get(frequency);
               countUsersOnFreq.set(frequency, currentCount + 1);
             } else if (!countUsersOnFreq.has(frequency)) {
               countUsersOnFreq.set(frequency, 1);
-            }
-            users[userId].emit("countUsersOnFreq", countUsersOnFreq);
+            }*/
+            //users[userId].emit("countUsersOnFreq", countUsersOnFreq);
             if (newFrequencies.includes(frequency)) {
               users[userId].emit("tryConnectPeer", socket.id);
               return;
             }
-            xcConnection.forEach((values, key) => {
+            /*xcConnection.forEach((values, key) => {
               if (
                 newFrequencies.includes(frequency) &&
                 values.includes(frequency)
@@ -147,7 +147,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
                 users[userId].emit("tryConnectPeer", socket.id);
                 return;
               }
-            });
+            });*/
           }
           //User has no frequencies in common with the updated user
           console.log("no frequencies in common", userId, socket.id);
