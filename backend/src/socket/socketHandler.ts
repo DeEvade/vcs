@@ -27,7 +27,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error during default configuration creation", error);
   }
 
-
   try {
     const XCRepo = AppDataSource.getRepository(XC);
     const xcs = await XCRepo.find();
@@ -121,7 +120,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
     socket.on("updatedFrequencies", (newFrequencies: number[]) => {
       console.log("updatedFrequencies", userToFrequencies);
-
       const previousfrequencies = userToFrequencies.get(socket.id) || [];
 
       userToFrequencies.set(socket.id, newFrequencies);
@@ -151,6 +149,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       })
       const userObject = Object.fromEntries(countUsersOnFreq.entries());
       io.emit("countUsersOnFreq", userObject);
+      const usersToConnect: string[] = [];
 
       Object.keys(users).forEach((key) => {
         //Går igenom hashmapen
@@ -159,9 +158,18 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
             if (newFrequencies.includes(frequency)) {
-              users[userId].emit("tryConnectPeer", socket.id);
+              usersToConnect.push(userId);
               return;
             }
+            xcConnection.forEach((values, key) => {
+              if (
+                values.includes(frequency) &&
+                values.some((value) => newFrequencies.includes(value))
+              ) {
+                usersToConnect.push(userId);
+                return;
+              }
+            });
           }
           //User has no frequencies in common with the updated user
           console.log("no frequencies in common", userId, socket.id);
@@ -171,8 +179,15 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
         //users[key].emit('sending to', usersArray);
       });
-    });
+      console.log("action user: " + socket.id);
 
+      console.log("users to connect", usersToConnect);
+      //remove dupliactes
+      const uniqueUsersToConnect = Array.from(new Set(usersToConnect));
+      uniqueUsersToConnect.forEach((userId) => {
+        users[userId].emit("tryConnectPeer", socket.id);
+      });
+    });
 
     //Send all users to all users except the one that just connected
     /* Object.keys(users).forEach((key) => {
@@ -188,7 +203,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         signal: data.signalData,
         from: data.from,
       });
-    })
+    });
 
     socket.on("acceptCall", (data) => {
       console.log("accepting user", data.to, data.from);

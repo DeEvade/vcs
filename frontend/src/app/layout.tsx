@@ -13,6 +13,8 @@ interface LayoutProps {
 export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
+      <title>VCS Training</title>
+      <meta property="og:image" content="favicon.ico" />
       <body>
         <PTTProvider>
           <ChakraProvider theme={theme}>{children}</ChakraProvider>

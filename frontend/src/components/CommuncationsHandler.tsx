@@ -10,17 +10,18 @@ interface Props {
 console.log("communications handler file");
 
 const CommunicationsHandler = observer(({ model }: Props) => {
-  
   if (!model.socket?.io) {
     console.log("Com. Handler no socket found");
     return null; // Return null instead of <></> for clarity
   }
 
+  console.log("Com. Handler got socket");
+
   return (
     <>
       <Flex maxWidth="1000px" wrap="wrap" justifyContent="center">
         {Array.from(model.peers.entries()).map(([id, peer]) => (
-          <PeerChannel key={id} peer={peer} peerId={id} model={model}/>
+          <PeerChannel key={id} peer={peer} peerId={id} model={model} />
         ))}
       </Flex>
     </>
@@ -28,7 +29,15 @@ const CommunicationsHandler = observer(({ model }: Props) => {
 });
 
 const PeerChannel = observer(
-  ({ peer, peerId, model }: { peer: Peer.Instance; peerId: string; model: typeof baseModel }) => {
+  ({
+    peer,
+    peerId,
+    model,
+  }: {
+    peer: Peer.Instance;
+    peerId: string;
+    model: typeof baseModel;
+  }) => {
     const [stream, setStream] = useState<MediaStream | null>(null);
     useEffect(() => {
       // Do something with the peer
@@ -38,37 +47,25 @@ const PeerChannel = observer(
 
       return () => {
         // Clean up
-        if(stream){
+        if (stream) {
           stream.getTracks().forEach((track) => {
             track.stop();
-          })
+          });
         }
       };
     }, [peer]);
 
-    useEffect(() => {
-      const updateVolume = () => {
-        if (stream) {
-          const video = document.getElementById(peerId) as HTMLVideoElement;
-          if (video) {
-            video.volume = model.radioGain / 100;
-          }
-        }
-      };
-    }, [model.radioGain]);
-
     return (
       <>
         <script src="./SocketHandler.tsx"></script>
-        <video
-          style={{ width: "100px", height: "100px" }}
+        <audio
           autoPlay
           playsInline
           id={peerId}
-          ref={(video) => {
-            if (video && stream) {
-              video.srcObject = stream;
-              video.volume = model.radioGain/100;
+          ref={(audio) => {
+            if (audio && stream) {
+              audio.srcObject = stream;
+              audio.volume = model.radioGain / 100;
             }
           }}
         />
