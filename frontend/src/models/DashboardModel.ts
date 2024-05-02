@@ -1,7 +1,7 @@
 import { Socket } from "socket.io-client";
 
 export default {
-  devmode: true as boolean,
+  devmode: false as boolean,
   fetchConfigs: function () {
     if (!this.socket.connected) {
       return;

@@ -6,11 +6,8 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
-
 import toast from "react-hot-toast";
-
 import { rolesToFrequencies } from "@/utils/tools";
-import toast from "react-hot-toast";
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -31,7 +28,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const [selectedRolesObject, setSelectedRolesObject] = useState<Role[] | null>(
     null
   );
-  
+
   useEffect(() => {
     //toast.success("RX: " + model.RXFrequencies);
     model.onFrequencyChange(model.RXFrequencies);
@@ -91,7 +88,6 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
         } else {
           //Add to RX array
           model.RXFrequencies = model.RXFrequencies.concat([id]);
-
         }
         break;
       case "TX":
@@ -103,7 +99,6 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
         } else {
           //Add to TX array
           model.TXFrequencies = model.TXFrequencies.concat([id]);
-
         }
         break;
 

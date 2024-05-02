@@ -13,7 +13,6 @@ import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
 
-
 interface Props {
   model: typeof baseModel;
 }
@@ -34,60 +33,59 @@ const SocketHandler = observer((props: Props) => {
     }
 
     navigator.mediaDevices
-      .getUserMedia(
-        { video: true, 
-          audio:
-            {
-             autoGainControl: false,
-             channelCount: 1,
-             echoCancellation: false,
-             noiseSuppression: false,
-             sampleRate: 44000,
-             sampleSize: 16,
-            }
-         })
+      .getUserMedia({
+        video: true,
+        audio: {
+          autoGainControl: false,
+          channelCount: 1,
+          echoCancellation: false,
+          noiseSuppression: false,
+          sampleRate: 44000,
+          sampleSize: 16,
+        },
+      })
       .then((stream) => {
-        console.log("Got stream", stream); //kommer hit   
-        
-        
+        console.log("Got stream", stream); //kommer hit
+
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        const mediaStreamDestination = audioContext.createMediaStreamDestination();
+        const mediaStreamDestination =
+          audioContext.createMediaStreamDestination();
 
-        let tuna = new Tuna(audioContext)
+        let tuna = new Tuna(audioContext);
 
         const node = audioContext.createGain();
-        node.gain.value = model.micGain/50;
+        node.gain.value = model.micGain / 50;
         //gainNode.gain.value = model.micGain/50;
 
         // low pass filter for radio effect
-        const lowpassFilter= new tuna.Filter({
+        const lowpassFilter = new tuna.Filter({
           frequency: 2300,
           Q: 80,
           gain: 0,
-          filterType: 'lowpass',
-          bypass: false
-        })
+          filterType: "lowpass",
+          bypass: false,
+        });
 
         // high pass filter for radio effect
-        const highpassFilter= new tuna.Filter({
+        const highpassFilter = new tuna.Filter({
           frequency: 200,
           Q: 80,
           gain: 0,
-          filterType: 'highpass',
-          bypass: false
-        })
+          filterType: "highpass",
+          bypass: false,
+        });
 
         //Compressing the voice
         const compressor = new tuna.Compressor({
-          threshold: -30,    
-          makeupGain: 1,     
-          attack: 5,         
-          release: 200,      
-          ratio: 10,          
-          knee: 5,         
-          automakeup: true, 
-          bypass: false
+          threshold: -30,
+          makeupGain: 1,
+          attack: 5,
+          release: 200,
+          ratio: 10,
+          knee: 5,
+          automakeup: true,
+          bypass: false,
         });
 
         // overdrive giving audio distortion for radio effect
@@ -96,12 +94,16 @@ const SocketHandler = observer((props: Props) => {
           drive: 0.2,
           curveAmount: 0.3,
           algorithmIndex: 2,
-          bypass: false
-        })
+          bypass: false,
+        });
 
         //Generating some whitenoise to mix in with the mic input
         const bufferSize = 2 * audioContext.sampleRate;
-        const whiteNoiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const whiteNoiseBuffer = audioContext.createBuffer(
+          1,
+          bufferSize,
+          audioContext.sampleRate
+        );
         const data = whiteNoiseBuffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
           data[i] = Math.random() * 2 - 1;
@@ -122,7 +124,7 @@ const SocketHandler = observer((props: Props) => {
         // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);
         noiseGain.connect(masterGain);
-        
+
         // connect chain for radio effect
         mediaStreamSource.connect(lowpassFilter);
         lowpassFilter.connect(highpassFilter);
@@ -137,19 +139,18 @@ const SocketHandler = observer((props: Props) => {
         setStream(mediaStreamDestination.stream);
         setGainNode(node);
         setMasterGainNode(masterGain);
-      })
+      });
   }, []);
 
   //Push to talk logic
   useEffect(() => {
     if (!masterGainNode) return;
-    
+
     try {
       masterGainNode.gain.value = pttActive ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
     }
-    
   }, [pttActive, masterGainNode]);
 
   //Microphone gain logic
@@ -157,12 +158,11 @@ const SocketHandler = observer((props: Props) => {
     if (!gainNode) return;
 
     try {
-      gainNode.gain.value = model.micGain/50;
+      gainNode.gain.value = model.micGain / 50;
     } catch (error) {
       console.log("Mic gain error: " + error);
     }
-    
-  },[model.micGain, gainNode])
+  }, [model.micGain, gainNode]);
 
   useEffect(() => {
     if (!stream) {
@@ -171,14 +171,15 @@ const SocketHandler = observer((props: Props) => {
       console.log("Stream in socket handler", stream);
     }
 
-    const io = socket(window.location.hostname + model.devMode ? ":8080" : "");
+    const io = socket(
+      window.location.hostname + (model.devMode === true ? ":8080" : "")
+    );
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;
       model.socket.connected = true;
       console.log("connected to socket server");
     });
-
 
     io.on("tryDisconnectPeer", (user: string) => {
       console.log("try disconnect peer", user);
@@ -192,7 +193,6 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("tryConnectPeer", (user: string) => {
-
       const peerExists = model.peers.get(user);
 
       if (peerExists && !peerExists.destroyed) {
@@ -241,10 +241,9 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
-
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
-      
+
       const peer = model.peers.get(signal.from);
       if (!peer) {
         return;

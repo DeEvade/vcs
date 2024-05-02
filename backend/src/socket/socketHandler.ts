@@ -27,7 +27,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error during default configuration creation", error);
   }
 
-
   try {
     const XCRepo = AppDataSource.getRepository(XC);
     const xcs = await XCRepo.find();
@@ -160,7 +159,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
-
     //Send all users to all users except the one that just connected
     /* Object.keys(users).forEach((key) => {
       if (key !== socket.id) {
@@ -175,7 +173,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         signal: data.signalData,
         from: data.from,
       });
-
+    });
 
     socket.on("acceptCall", (data) => {
       console.log("accepting user", data.to, data.from);
