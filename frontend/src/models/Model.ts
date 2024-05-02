@@ -1,4 +1,4 @@
-import { Configuration, Role } from "@/types";
+import { Configuration, Role, XC } from "@/types";
 import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
@@ -27,13 +27,19 @@ export const model = {
   RXFrequencies: [] as number[],
   NORXFrequencies: [] as number[], // (before updating RX) RX frequencies that are not active anymore
   TXFrequencies: [] as number[],
-  XCFrequencies: [] as number[],
+  XCFrequencies: [] as XC[],
+
+  onFrequencyChange: function (frequencies: number[]) {
+    if (!this.socket.io || !this.socket.connected) return;
+
+    this.socket.io.emit("updatedFrequencies", frequencies);
+  },
 
   getFrequencyState: function (frequency: number) {
     return {
       RX: this.RXFrequencies.includes(frequency),
       TX: this.TXFrequencies.includes(frequency),
-      XC: this.XCFrequencies.includes(frequency),
+      XC: this.XCFrequencies.find((f) => f.frequencyIds.includes(frequency)),
     };
   },
 
@@ -93,6 +99,32 @@ export const model = {
       return;
     }
     this.socket.io.emit("getCurrentConfig");
+  },
+
+  fetchXC: function () {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("getCurrentXC");
+  },
+
+  createXC(frequencyId: number, checkedFrequencies: number[]) {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("createXC", {
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
+  },
+
+  updateXC(frequencyId: number, checkedFrequencies: number[], XCId: number) {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("updateXC", {
+      id: XCId,
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
   },
 
   setPTTKey: function (key: string) {

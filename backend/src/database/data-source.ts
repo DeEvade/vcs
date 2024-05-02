@@ -3,6 +3,7 @@ import { Configuration } from "../database/entities/Configuration";
 import { Frequency } from "../database/entities/Frequency";
 import { Role } from "../database/entities/Role";
 import { RoleFrequency } from "./entities/RoleFrequency";
+import { XC } from "./entities/XC";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -13,7 +14,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "vcs",
   synchronize: true,
   logging: true,
-  entities: [Configuration, Frequency, Role, RoleFrequency],
+  entities: [Configuration, Frequency, Role, RoleFrequency, XC],
   subscribers: [],
   migrations: [],
 });

@@ -10,6 +10,7 @@ import { model as baseModel } from "@/models/Model";
 import toast from "react-hot-toast";
 
 import { rolesToFrequencies } from "@/utils/tools";
+import toast from "react-hot-toast";
 
 // Some hardcoded frequencies
 /*const initialFrequencies: Frequency[] = [
@@ -31,6 +32,11 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     null
   );
   
+  useEffect(() => {
+    toast.success("RX: " + model.RXFrequencies);
+    model.onFrequencyChange(model.RXFrequencies);
+  }, [model.RXFrequencies]);
+
   useEffect(() => {
     //console.log("selected role object: ");
     const selectedRolesObject = model.getSelectedRolesObject();
@@ -85,6 +91,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
         } else {
           //Add to RX array
           model.RXFrequencies = model.RXFrequencies.concat([id]);
+
         }
         break;
       case "TX":
@@ -96,19 +103,22 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
         } else {
           //Add to TX array
           model.TXFrequencies = model.TXFrequencies.concat([id]);
+
         }
         break;
 
       case "XC":
-        if (model.XCFrequencies.includes(id)) {
+        //TODO
+        /*if (model.XCFrequencies.includes(id)) {
           //Remove from XC array
           model.XCFrequencies = model.XCFrequencies.filter(
             (value) => value !== id
           );
         } else {
           //Add to XC array
-          model.XCFrequencies = model.XCFrequencies.concat([id]);
-        }
+
+          model.XCFrequencies = model.XCFrequencies.concat(id);
+        }*/
         break;
 
       default:

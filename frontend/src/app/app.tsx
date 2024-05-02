@@ -26,6 +26,15 @@ const App = observer(function (props: Props) {
       return;
     }
     model.fetchConfiguration();
+    model.fetchXC();
+  }, [model.socket.io]);
+
+  useEffect(() => {
+    if (!model.socket.connected) {
+      return;
+    }
+
+    model.fetchXC();
   }, [model.socket.io]);
 
   return (

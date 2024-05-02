@@ -5,9 +5,15 @@ import { DataSource } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { Frequency } from "../database/entities/Frequency";
 import { RoleFrequency } from "../database/entities/RoleFrequency";
+import { XC } from "../database/entities/XC";
 
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
+
+  const xcConnection = new Map<number, number[]>();
+
+  //Hashmap to store the frequencies of each user
+  const userToFrequencies = new Map<string, number[]>();
   let currentConfigId: number = 0;
   try {
     const configs = await AppDataSource.getRepository(Configuration).find();
@@ -18,9 +24,18 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error during default configuration creation", error);
   }
 
-  const freq: string[] = [];
-  // a hash table where keys are freqs and values are array of user IDs
-  const hashMap = new Map<number, string[]>();
+
+  try {
+    const XCRepo = AppDataSource.getRepository(XC);
+    const xcs = await XCRepo.find();
+    if (xcs.length > 0) {
+      xcs.forEach((xc) => {
+        xcConnection.set(xc.id, xc.frequencyIds);
+      });
+    }
+  } catch (error) {
+    console.log("Error getting XC", error);
+  }
 
   io.on("connection", (socket: Socket) => {
     if (!socket) {
@@ -32,109 +47,117 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     if (!users[socket.id]) {
       users[socket.id] = socket;
     }
+    socket.on("disconnect", () => {
+      delete users[socket.id];
+      userToFrequencies.delete(socket.id);
+      socket.broadcast.emit("tryDisconnectPeer", socket.id);
+    });
 
-    socket.on("connectFreq", (freq: number[]) => {
-      console.log("connecting to frequency");
-      console.log("initial frequency list " + freq);
+    socket.on("createXC", async (data: any) => {
+      console.log("creating XC", data);
+      try {
+        const XCRepo = AppDataSource.getRepository(XC);
+        const xc = XCRepo.create({ frequencyIds: data.frequencyIds });
 
-      freq.forEach((freqKey: number) => {
-        if (!hashMap.has(freqKey)) {
-          console.log("if table has not the freq");
-          hashMap.set(freqKey, [socket.id]);
-        } else {
-          console.log("table has the freq");
-          if (!hashMap.get(freqKey).includes(socket.id)) {
-            console.log("table has not user id");
-            hashMap.get(freqKey).push(socket.id);
-          }
+        const savedXC = await XCRepo.save(xc);
+        if (!savedXC) throw new Error("Error saving XC");
+        xcConnection.set(savedXC.id, savedXC.frequencyIds);
+        socket.emit("createXC", savedXC);
+        socket.broadcast.emit("createXC", savedXC);
+      } catch (error) {
+        console.log("error creating XC", error.message);
+        socket.emit("createXC", { error: error.message });
+      }
+    });
+
+    socket.on("getCurrentXC", async () => {
+      try {
+        socket.emit(
+          "getCurrentXC",
+          Array.from(xcConnection).map(([id, frequencies]) => ({
+            id,
+            frequencyIds: frequencies,
+          }))
+        );
+      } catch (error) {
+        socket.emit("getCurrentXC", { error: error.message });
+        console.log("error getting XC", error.message);
+      }
+    });
+
+    socket.on("updateXC", async (data: any) => {
+      try {
+        data.frequencyIds = Array.from(new Set(data.frequencyIds));
+
+        const XCRepo = AppDataSource.getRepository(XC);
+        if (data.frequencyIds.length < 2) {
+          xcConnection.delete(data.id);
+          await XCRepo.delete(data.id);
+          socket.broadcast.emit("deleteXC", data);
+          socket.emit("deleteXC", data);
+          console.log("deleted XC", data);
+          return;
         }
-      });
+        const xc = await XCRepo.findOneBy({ id: data.id });
+        if (!xc) throw new Error("Error getting XC");
+        xc.frequencyIds = data.frequencyIds;
+        const savedXC = await XCRepo.save(xc);
+        if (!savedXC) throw new Error("Error saving XC");
+        xcConnection.set(savedXC.id, savedXC.frequencyIds);
+        socket.broadcast.emit("updateXC", savedXC);
+        socket.emit("updateXC", savedXC);
+      } catch (error) {
+        socket.emit("updateXC", { error: error.message });
+      }
+    });
 
-      socket.on("disconnectFreq", (NORX: number[]) => {
-        console.log("NORX" + "" + NORX);
-        hashMap.forEach((value, key) => {
-          console.log("before updating map" + `${key}: ${value}`);
-        });
+    socket.on("updatedFrequencies", (newFrequencies: number[]) => {
+      userToFrequencies.set(socket.id, newFrequencies);
+      console.log("updatedFrequencies", userToFrequencies);
 
-        let userId = uuidv4();
-
-        NORX.forEach((freqKey: number) => {
-          if (hashMap.has(freqKey)) {
-            const users = hashMap.get(freqKey);
-            if (users.includes(socket.id)) {
-              const temp = users.filter((user) => user !== socket.id);
-              console.log("temp" + "" + temp);
-              hashMap.set(freqKey, temp);
-              hashMap.forEach((value, key) => {
-                console.log("updated map" + `${key}: ${value}`);
-              });
-
-              io.emit("peerDisconnect", socket.id);
-              console.log("We have emitted peerDisconnect");
-            } else {
+      Object.keys(users).forEach((key) => {
+        if (key === socket.id) return;
+        userToFrequencies.forEach((frequencies, userId) => {
+          if (userId === socket.id) return;
+          for (const frequency of frequencies) {
+            if (newFrequencies.includes(frequency)) {
+              users[userId].emit("tryConnectPeer", socket.id);
               return;
             }
           }
+          //User has no frequencies in common with the updated user
+          console.log("no frequencies in common", userId, socket.id);
+          users[userId].emit("tryDisconnectPeer", socket.id);
+          socket.emit("tryDisconnectPeer", userId);
         });
-        io.emit("reconnect", userId);
+
+        //users[key].emit('sending to', usersArray);
       });
+    });
 
-      console.log("second frequency list " + freq);
 
-      const retMap = new Map<number, string[]>();
-      console.log("frequency list before retMap " + freq);
-
-      hashMap.forEach((freqValues, freqKey) => {
-        console.log("creating retMap and looping over table");
-        if (freqValues.includes(socket.id) && freqValues.length > 1) {
-          console.log("user id is in freqValues ");
-          retMap.set(
-            freqKey,
-            freqValues.filter((userId) => userId !== socket.id)
-          );
-        }
-      });
-      console.log("frequency list after retMap " + freq);
-
-      for (const [key, value] of retMap) {
-        console.log(`${key}:`, value);
+    //Send all users to all users except the one that just connected
+    /* Object.keys(users).forEach((key) => {
+      if (key !== socket.id) {
+        users[key].emit('newUser', socket.id);
       }
+    });*/
 
-      // For each för att connecta till andra på samma freq
-      for (const [freq, userIds] of retMap) {
-        if (userIds !== undefined) {
-          userIds.forEach((key: string) => {
-            console.log("keys: " + key);
-            users[key]?.emit("newUser", socket.id);
-          });
-        }
-      }
+    socket.on("callUser", (data) => {
+      console.log("calling user", data.userToCall, data.from);
 
-      socket.on("callUser", (data) => {
-        io.to(data.userToCall).emit("hey", {
-          signal: data.signalData,
-          from: data.from,
-        });
+      io.to(data.userToCall).emit("hey", {
+        signal: data.signalData,
+        from: data.from,
       });
 
-      socket.on("disconnect", () => {
-        console.log("user disconnected");
-        delete users[socket.id];
 
-        // Remove user from all mentions in map
-        for (const [key, value] of hashMap.entries()) {
-          if (value.includes(socket.id)) {
-            console.log("removes user");
-            value.splice(value.indexOf(socket.id));
-          }
-        }
-      });
+    socket.on("acceptCall", (data) => {
+      console.log("accepting user", data.to, data.from);
 
-      socket.on("acceptCall", (data) => {
-        io.to(data.to).emit("callAccepted", {
-          signal: data.signal,
-          from: data.from,
-        });
+      io.to(data.to).emit("callAccepted", {
+        signal: data.signal,
+        from: data.from,
       });
     });
 

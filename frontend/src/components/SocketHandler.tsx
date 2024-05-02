@@ -13,6 +13,7 @@ import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
 
+
 interface Props {
   model: typeof baseModel;
 }
@@ -178,8 +179,20 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
-    io.on("newUser", (user: string) => {
-      console.log("new user has connected"); //vi kommer hit
+
+    io.on("tryDisconnectPeer", (user: string) => {
+      console.log("try disconnect peer", user);
+
+      const peer = model.peers.get(user);
+      if (!peer) {
+        return;
+      }
+      peer.destroy();
+      model.peers.delete(user);
+    });
+
+    io.on("tryConnectPeer", (user: string) => {
+
       const peerExists = model.peers.get(user);
 
       if (peerExists && !peerExists.destroyed) {
@@ -202,12 +215,13 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
+
         config: {
           iceServers: [
             {
               urls: [
-                "stun:stun1.l.google.com:19302",
-                "stun:stun2.l.google.com:19302",
+                'stun:stun1.l.google.com:19302',
+                'stun:stun2.l.google.com:19302',
               ],
             },
           ],
@@ -227,16 +241,6 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
-    io.on("peerDisconnect", (userId: string) => {
-      const peer = model.peers.get(userId);
-      console.log("user id to disconnect " + userId);
-      console.log("peer to disconnect " + peer?.connected);
-      if (peer) {
-        peer.destroy();
-        model.peers.delete(userId);
-      }
-      console.log("peer to disconnect after destroy " + peer?.connected);
-    });
 
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
@@ -247,6 +251,56 @@ const SocketHandler = observer((props: Props) => {
       }
 
       peer.signal(signal.signal);
+    });
+
+    io.on("getCurrentXC", (data: any) => {
+      if (data.error) {
+        return toast.error("error getting XC: " + data.error);
+      }
+      toast.success("Got XC");
+      console.log("got XC", data);
+
+      model.XCFrequencies = data;
+    });
+
+    io.on("createXC", (data: any) => {
+      if (data.error) {
+        return toast.error("error creating XC: " + data.error);
+      }
+      toast.success("XC created");
+      console.log("XC created", data);
+
+      model.XCFrequencies = model.XCFrequencies.concat([data]);
+    });
+
+    io.on("deleteXC", (data: any) => {
+      if (data.error) {
+        return toast.error("error deleting XC: " + data.error);
+      }
+      toast.success("XC deleted");
+      console.log("XC deleted", data);
+
+      model.XCFrequencies = model.XCFrequencies.filter((xc) => {
+        if (xc.id !== data.id) {
+          return true;
+        }
+        return false;
+      });
+    });
+
+    io.on("updateXC", (data: any) => {
+      if (data.error) {
+        return toast.error("error updating XC: " + data.error);
+      }
+      toast.success("XC updated");
+      console.log("XC updated", data);
+
+      model.XCFrequencies = model.XCFrequencies.map((xc) => {
+        if (xc.id === data.id) {
+          return data;
+        }
+        return xc;
+      });
     });
 
     io.on("hey", (data: any) => {
@@ -263,17 +317,17 @@ const SocketHandler = observer((props: Props) => {
           );
         },
         //ice servers
-        config: {
+        /*config: {
           iceServers: [
             {
               urls: [
-                "stun:stun1.l.google.com:19302",
-                "stun:stun2.l.google.com:19302",
+                'stun:stun1.l.google.com:19302',
+                'stun:stun2.l.google.com:19302',
               ],
             },
           ],
           iceCandidatePoolSize: 10,
-        },
+        },*/
       });
 
       console.log("hey", data.from);
