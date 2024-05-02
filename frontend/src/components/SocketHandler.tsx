@@ -21,7 +21,7 @@ const SocketHandler = observer((props: Props) => {
     }
     navigator.mediaDevices
       .getUserMedia({
-        video: false,
+        video: true,
         audio: {
           noiseSuppression: false,
           echoCancellation: false,
@@ -44,7 +44,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("Stream in socket handler", stream);
     }
 
-    const io = socket(window.location.hostname + ":8080");
+    const io = socket(window.location.hostname);
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;
