@@ -4,3 +4,4 @@ frontend/.next
 .DS_Store
 /backend/DS_Store
 certbot/conf/*
+testbackup
