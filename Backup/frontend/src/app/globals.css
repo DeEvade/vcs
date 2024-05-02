@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'B612';
+    src: url('/fonts/B612-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'B612';
+    src: url('/fonts/B612-Italic.ttf') format('truetype');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'B612';
+    src: url('/fonts/B612-Bold.ttf') format('truetype');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'B612';
+    src: url('/fonts/B612-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
