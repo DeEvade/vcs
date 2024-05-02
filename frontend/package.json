@@ -31,7 +31,9 @@
     "react-native-webrtc": "^118.0.6",
     "simple-peer": "^9.11.1",
     "socket.io": "^4.7.5",
-    "socket.io-client": "^4.7.5"
+    "socket.io-client": "^4.7.5",
+    "tunajs": "^1.0.15",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -39,6 +41,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/simple-peer": "^9.11.8",
+    "@types/tunajs": "^1.0.3",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.1.0",

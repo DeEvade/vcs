@@ -6,6 +6,9 @@ import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
+
+import toast from "react-hot-toast";
+
 import { rolesToFrequencies } from "@/utils/tools";
 import toast from "react-hot-toast";
 
@@ -28,7 +31,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
   const [selectedRolesObject, setSelectedRolesObject] = useState<Role[] | null>(
     null
   );
-
+  
   useEffect(() => {
     //toast.success("RX: " + model.RXFrequencies);
     model.onFrequencyChange(model.RXFrequencies);
@@ -43,10 +46,18 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     setUnorderedFrequencies(rolesToFrequencies(selectedRolesObject));
   }, [model.selectedRoles]);
 
+  // Handles all updated receiver lists
+  useEffect(() => {
+    console.log("RX changed");
+    console.log("RX: " + model.RXFrequencies);
+    //console.log("frequence" + JSON.stringify(frequencyState));
+    model.handleFrequencyJoined();
+    model.handleFrequencyDisconnect();
+    toast.success(JSON.stringify(model.RXFrequencies));
+  }, [model.RXFrequencies]);
   const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
     []
   );
-
   useEffect(() => {
     const roleObject = model.getSelectedRolesObject();
     console.log(
@@ -57,7 +68,6 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
 
     setUnorderedFrequencies(rolesToFrequencies(roleObject));
   }, [model.configuration!.roles]);
-
   if (selectedRolesObject === null || selectedRolesObject.length === 0) {
     //TODO fix this
     return <>Awaiting role select</>;
@@ -74,12 +84,14 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
       case "RX":
         if (model.RXFrequencies.includes(id)) {
           //Remove from RX array
+          model.NORXFrequencies.push(id);
           model.RXFrequencies = model.RXFrequencies.filter(
             (value) => value !== id
           );
         } else {
           //Add to RX array
-          model.RXFrequencies = model.RXFrequencies.concat(id);
+          model.RXFrequencies = model.RXFrequencies.concat([id]);
+
         }
         break;
       case "TX":
@@ -90,7 +102,8 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to TX array
-          model.TXFrequencies = model.TXFrequencies.concat(id);
+          model.TXFrequencies = model.TXFrequencies.concat([id]);
+
         }
         break;
 
@@ -103,6 +116,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
           );
         } else {
           //Add to XC array
+
           model.XCFrequencies = model.XCFrequencies.concat(id);
         }*/
         break;
