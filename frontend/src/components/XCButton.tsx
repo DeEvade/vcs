@@ -124,7 +124,7 @@ const XCButton = observer((props: Props) => {
             </Flex>
           </PopoverBody>
           <PopoverFooter>
-            <Button colorScheme="blue" onClick={() => handleSubmit()}>
+            <Button colorScheme="blue" onClick={handleSubmit}>
               Save
             </Button>
           </PopoverFooter>

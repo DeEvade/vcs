@@ -52,8 +52,11 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     socket.on("createXC", async (data: any) => {
       console.log("creating XC", data);
       try {
+        const noDuplicates = Array.from(new Set(data.frequencyIds)) as number[];
         const XCRepo = AppDataSource.getRepository(XC);
-        const xc = XCRepo.create({ frequencyIds: data.frequencyIds });
+        const xc = XCRepo.create({ frequencyIds: noDuplicates });
+        if (noDuplicates.length < 2)
+          throw new Error("XC must have at least 2 frequencies");
 
         const savedXC = await XCRepo.save(xc);
         if (!savedXC) throw new Error("Error saving XC");
@@ -148,46 +151,6 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
         //users[key].emit('sending to', usersArray);
       });
-    });
-
-    socket.on("createXC", async (data: any) => {
-      console.log("creating XC", data);
-      try {
-        const XCRepo = AppDataSource.getRepository(XC);
-        const xc = XCRepo.create(data.frequencyIds);
-        const savedXC = await XCRepo.save(xc);
-        if (!savedXC || savedXC.length === 0)
-          throw new Error("Error saving XC");
-        xcConnection.set(savedXC[0].id, savedXC[0].frequencyIds);
-        socket.emit("createXC", savedXC);
-        socket.broadcast.emit("createXC", savedXC);
-      } catch (error) {
-        console.log("error creating XC", error.message);
-        socket.emit("createXC", { error: error.message });
-      }
-    });
-
-    socket.on("updateXC", async (data: any) => {
-      try {
-        const XCRepo = AppDataSource.getRepository(XC);
-        if (data.frequencyIds.length === 0) {
-          xcConnection.delete(data.id);
-          await XCRepo.delete(data.id);
-          socket.broadcast.emit("deleteXC", data);
-          socket.emit("deleteXC", data);
-          console.log("deleted XC", data);
-        }
-        const xc = await XCRepo.findOneBy({ id: data.id });
-        if (!xc) throw new Error("Error getting XC");
-        xc.frequencyIds = data.frequencyIds;
-        const savedXC = await XCRepo.save(xc);
-        if (!savedXC) throw new Error("Error saving XC");
-        xcConnection.set(savedXC.id, savedXC.frequencyIds);
-        socket.broadcast.emit("updateXC", savedXC);
-        socket.emit("updateXC", savedXC);
-      } catch (error) {
-        socket.emit("updateXC", { error: error.message });
-      }
     });
 
     //Send all users to all users except the one that just connected

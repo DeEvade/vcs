@@ -44,7 +44,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("Stream in socket handler", stream);
     }
 
-    const io = socket(window.location.hostname);
+    const io = socket(window.location.hostname + model.devMode ? ":8080" : "");
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;
