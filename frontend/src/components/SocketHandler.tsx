@@ -46,9 +46,9 @@ const SocketHandler = observer((props: Props) => {
       })
       .then((stream) => {
         console.log("Got stream", stream); //kommer hit
-        setStream(stream);
+        //setStream(stream);
 
-        /*const audioContext = new AudioContext();
+        const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
         const mediaStreamDestination =
           audioContext.createMediaStreamDestination();
@@ -139,12 +139,12 @@ const SocketHandler = observer((props: Props) => {
 
         setStream(mediaStreamDestination.stream);
         setGainNode(node);
-        setMasterGainNode(masterGain);*/
+        setMasterGainNode(masterGain);
       });
   }, []);
 
   //Push to talk logic
-  /*useEffect(() => {
+  useEffect(() => {
     if (!masterGainNode) return;
 
     try {
@@ -163,7 +163,7 @@ const SocketHandler = observer((props: Props) => {
     } catch (error) {
       console.log("Mic gain error: " + error);
     }
-  }, [model.micGain, gainNode]);*/
+  }, [model.micGain, gainNode]);
 
   useEffect(() => {
     if (!stream) {
@@ -316,7 +316,6 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
-        //ice servers
         config: {
           iceServers: [
             {

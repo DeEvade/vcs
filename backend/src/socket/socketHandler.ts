@@ -122,32 +122,34 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       userToFrequencies.set(socket.id, newFrequencies);
       console.log("updatedFrequencies", userToFrequencies);
 
+      const usersToConnect: string[] = [];
+
       Object.keys(users).forEach((key) => {
         //Går igenom hashmapen
         if (key === socket.id) return;
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
           for (const frequency of frequencies) {
-            /*if (countUsersOnFreq.has(frequency)) {
+            if (countUsersOnFreq.has(frequency)) {
               const currentCount = countUsersOnFreq.get(frequency);
               countUsersOnFreq.set(frequency, currentCount + 1);
             } else if (!countUsersOnFreq.has(frequency)) {
               countUsersOnFreq.set(frequency, 1);
-            }*/
-            //users[userId].emit("countUsersOnFreq", countUsersOnFreq);
+            }
+            users[userId].emit("countUsersOnFreq", countUsersOnFreq);
             if (newFrequencies.includes(frequency)) {
-              users[userId].emit("tryConnectPeer", socket.id);
+              usersToConnect.push(userId);
               return;
             }
-            /*xcConnection.forEach((values, key) => {
+            xcConnection.forEach((values, key) => {
               if (
-                newFrequencies.includes(frequency) &&
-                values.includes(frequency)
+                values.includes(frequency) &&
+                values.some((value) => newFrequencies.includes(value))
               ) {
-                users[userId].emit("tryConnectPeer", socket.id);
+                usersToConnect.push(userId);
                 return;
               }
-            });*/
+            });
           }
           //User has no frequencies in common with the updated user
           console.log("no frequencies in common", userId, socket.id);
@@ -156,6 +158,14 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         });
 
         //users[key].emit('sending to', usersArray);
+      });
+      console.log("action user: " + socket.id);
+
+      console.log("users to connect", usersToConnect);
+      //remove dupliactes
+      const uniqueUsersToConnect = Array.from(new Set(usersToConnect));
+      uniqueUsersToConnect.forEach((userId) => {
+        users[userId].emit("tryConnectPeer", socket.id);
       });
     });
 

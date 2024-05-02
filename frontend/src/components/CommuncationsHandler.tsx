@@ -55,17 +55,6 @@ const PeerChannel = observer(
       };
     }, [peer]);
 
-    useEffect(() => {
-      const updateVolume = () => {
-        if (stream) {
-          const audio = document.getElementById(peerId) as HTMLAudioElement;
-          if (audio) {
-            audio.volume = model.radioGain / 100;
-          }
-        }
-      };
-    }, [model.radioGain]);
-
     return (
       <>
         <script src="./SocketHandler.tsx"></script>
