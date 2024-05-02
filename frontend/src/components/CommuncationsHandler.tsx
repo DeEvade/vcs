@@ -16,6 +16,8 @@ const CommunicationsHandler = observer(({ model }: Props) => {
     return null; // Return null instead of <></> for clarity
   }
 
+  console.log("Com. Handler got socket")
+
   return (
     <>
       <Flex maxWidth="1000px" wrap="wrap" justifyContent="center">
@@ -49,9 +51,9 @@ const PeerChannel = observer(
     useEffect(() => {
       const updateVolume = () => {
         if (stream) {
-          const video = document.getElementById(peerId) as HTMLVideoElement;
-          if (video) {
-            video.volume = model.radioGain / 100;
+          const audio = document.getElementById(peerId) as HTMLAudioElement;
+          if (audio) {
+            audio.volume = model.radioGain / 100;
           }
         }
       };
@@ -60,15 +62,14 @@ const PeerChannel = observer(
     return (
       <>
         <script src="./SocketHandler.tsx"></script>
-        <video
-          style={{ width: "100px", height: "100px" }}
+        <audio
           autoPlay
           playsInline
           id={peerId}
-          ref={(video) => {
-            if (video && stream) {
-              video.srcObject = stream;
-              video.volume = model.radioGain/100;
+          ref={(audio) => {
+            if (audio && stream) {
+              audio.srcObject = stream;
+              audio.volume = model.radioGain/100;
             }
           }}
         />

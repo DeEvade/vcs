@@ -34,7 +34,7 @@ const SocketHandler = observer((props: Props) => {
 
     navigator.mediaDevices
       .getUserMedia({
-        video: true,
+        video: false,
         audio: {
           autoGainControl: false,
           channelCount: 1,
