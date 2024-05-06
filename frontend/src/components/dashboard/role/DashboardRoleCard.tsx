@@ -28,6 +28,10 @@ import {
   IconButton,
   SimpleGrid,
   FormErrorMessage,
+  Switch,
+  NumberInput,
+  NumberInputField,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { MdAddCircleOutline, MdClear } from "react-icons/md";
 import { observer } from "mobx-react-lite";
@@ -79,12 +83,24 @@ const DashboardFrequenceCard = observer(
       }
     });
 
+    useEffect(() => {
+      console.log(model.delayTime);
+    }, [model.delayTime]);
+
     const [roleState, setRoleState] = useState(initialState);
 
     const [saveState, setSaveState] = useState(false);
 
+    const [delayState, setDelayState] = useState(false);
+
     const changeState = (key: any, value: any) => {
       setRoleState({ ...roleState, [key]: value });
+    };
+
+    const handleDelaySwitch = () => {
+      {
+        delayState == true ? setDelayState(false) : setDelayState(true);
+      }
     };
 
     const handleEdit = () => {
@@ -116,6 +132,11 @@ const DashboardFrequenceCard = observer(
       model.onAddSecondaryFrequency(roleId, frequencyId);
     };
 
+    const onDelayValueChanged = (val: any) => {
+      model.delayTime = val;
+      console.log("onDelayValueChanged is " + val);
+    };
+
     return (
       <Accordion allowToggle>
         <AccordionItem>
@@ -143,6 +164,28 @@ const DashboardFrequenceCard = observer(
                   <Radio value="pilot">PILOT</Radio>
                 </Stack>
               </RadioGroup>
+              {roleState.type == "pilot" && (
+                <FormControl display="flex" alignItems="center">
+                  <FormLabel mb="0">Satellite Delay?</FormLabel>
+                  <Switch
+                    pr="20px"
+                    onChange={handleDelaySwitch}
+                    isChecked={delayState}
+                  />
+                  {delayState == true && (
+                    <NumberInput>
+                      <NumberInputField
+                        placeholder="Seconds"
+                        value={model.delayTime}
+                        onChange={(e) => {
+                          onDelayValueChanged(parseInt(e.target.value));
+                          // model.delayTime = parseInt(e.target.value);
+                        }}
+                      />
+                    </NumberInput>
+                  )}
+                </FormControl>
+              )}
               <FormControl
                 pb="10px"
                 isRequired
@@ -158,11 +201,10 @@ const DashboardFrequenceCard = observer(
                 />
                 <FormErrorMessage>Role name is required!</FormErrorMessage>
               </FormControl>
-
               {roleState.type != "pilot" && (
                 <>
                   <Box
-                    backgroundColor="gray.750"
+                    bg={useColorModeValue("gray.200", "gray.750")}
                     borderRadius="lg"
                     height="40px"
                     alignContent="center"
@@ -216,9 +258,8 @@ const DashboardFrequenceCard = observer(
                   </Menu>
                 </>
               )}
-
               <Box
-                backgroundColor="gray.750"
+                bg={useColorModeValue("gray.200", "gray.750")}
                 borderRadius="lg"
                 height="40px"
                 alignContent="center"
@@ -242,7 +283,6 @@ const DashboardFrequenceCard = observer(
                     ))}
                 </SimpleGrid>
               </Box>
-
               <Menu>
                 <Center>
                   <MenuButton
@@ -270,7 +310,6 @@ const DashboardFrequenceCard = observer(
                     ))}
                 </MenuList>
               </Menu>
-
               <Flex direction="row" gap="10px">
                 {saveState != false && roleState.name.trim() ? (
                   <>

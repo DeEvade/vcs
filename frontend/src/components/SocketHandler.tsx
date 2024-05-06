@@ -18,11 +18,13 @@ interface Props {
   model: typeof baseModel;
 }
 
+const p2pToTrack = new Map<[string, string], MediaStreamTrack>();
+
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
-  const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
+  const [pttGainNode, setPttGainNode] = useState<GainNode | null>(null);
   const { pttActive } = usePTT();
 
   useEffect(() => {
@@ -47,7 +49,6 @@ const SocketHandler = observer((props: Props) => {
       })
       .then((stream) => {
         console.log("Got stream", stream); //kommer hit
-        //setStream(stream);
 
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
@@ -56,8 +57,8 @@ const SocketHandler = observer((props: Props) => {
 
         let tuna = new Tuna(audioContext);
 
-        const node = audioContext.createGain();
-        node.gain.value = model.micGain / 50;
+        const masterGainNode = audioContext.createGain();
+        masterGainNode.gain.value = model.micGain / 50;
         //gainNode.gain.value = model.micGain/50;
 
         // low pass filter for radio effect
@@ -120,40 +121,41 @@ const SocketHandler = observer((props: Props) => {
         noiseGain.gain.value = 0.05;
 
         // push to talk gain
-        const masterGain = audioContext.createGain();
-        masterGain.gain.value = 0;
+        const pttGain = audioContext.createGain();
+        pttGain.gain.value = 0;
 
         // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);
-        noiseGain.connect(masterGain);
+        noiseGain.connect(masterGainNode);
 
         // connect chain for radio effect
         mediaStreamSource.connect(lowpassFilter);
         lowpassFilter.connect(highpassFilter);
         highpassFilter.connect(compressor);
         compressor.connect(overdrive);
-        overdrive.connect(node);
-        node.connect(masterGain);
+        overdrive.connect(masterGainNode);
 
-        // master gain for push to talk
-        masterGain.connect(mediaStreamDestination);
+        // Gain for push to talk
+        masterGainNode.connect(pttGain);
+        pttGain.connect(mediaStreamDestination);
 
         setStream(mediaStreamDestination.stream);
-        setGainNode(node);
-        setMasterGainNode(masterGain);
+        setGainNode(masterGainNode);
+        setPttGainNode(pttGain);
       });
   }, []);
 
   //Push to talk logic
   useEffect(() => {
-    if (!masterGainNode) return;
+    if (!pttGainNode) return;
 
     try {
-      masterGainNode.gain.value = pttActive ? 1 : 0;
+      console.log(model.txState);
+      pttGainNode.gain.value = pttActive && model.txState ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
     }
-  }, [pttActive, masterGainNode]);
+  }, [pttActive, pttGainNode, model.txState]);
 
   //Microphone gain logic
   useEffect(() => {
@@ -161,6 +163,7 @@ const SocketHandler = observer((props: Props) => {
 
     try {
       gainNode.gain.value = model.micGain / 50;
+      console.log("Mic gain: " + model.micGain);
     } catch (error) {
       console.log("Mic gain error: " + error);
     }
@@ -268,6 +271,7 @@ const SocketHandler = observer((props: Props) => {
         },
       });
       console.log("Peer has connected");
+      console.log("PEER CONNECT TRACKS " + stream.getTracks().length);
 
       peer.on("signal", (offerSignal) => {
         console.log("initiator sending offer signal");

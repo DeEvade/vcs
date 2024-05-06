@@ -1,6 +1,7 @@
 "use client";
 
 import { model } from "@/models/Model";
+import { default as dashModel } from "@/models/DashboardModel";
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import {
@@ -63,7 +64,7 @@ const App = observer(function (props: Props) {
   return (
     <Flex direction="column" minH="100vh" bg={bgColor}>
       <SocketHandler model={model} />
-      <CommunicationsHandler model={model} />
+      <CommunicationsHandler model={model} dashboardModel={dashModel}/>
       <Header model={model} />
       <Flex flex="1" direction={{ base: "column", md: "row" }}>
         <Box w={{ base: "100%", lg: "66%" }} p={2}>
