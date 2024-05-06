@@ -1,7 +1,7 @@
 import { Socket } from "socket.io-client";
 
 export default {
-  devmode: false as boolean,
+  devmode: true as boolean,
   fetchConfigs: function () {
     if (!this.socket.connected) {
       return;
@@ -10,6 +10,8 @@ export default {
   },
   selectedConfigurationId: null as number | null,
   activeConfigId: null as number | null,
+
+  delayTime: 1 as number,
 
   addRole: function (role: {
     name: string;
