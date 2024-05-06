@@ -1,3 +1,6 @@
+import { XC } from "@/types";
+import { create } from "domain";
+import { get } from "http";
 import { Socket } from "socket.io-client";
 
 export default {
@@ -138,6 +141,36 @@ export default {
       frequencyId: frequencyId,
     });
   },
+  fetchXC: function () {
+    if (!this.socket.connected || !this.socket.io) {
+      return;
+    }
+    this.socket.io?.emit("getCurrentXC");
+  },
+  createXC(frequencyId: number, checkedFrequencies: number[]) {
+    if (!this.socket.connected || !this.socket.io) {
+      return;
+    }
+    this.socket.io?.emit("createXC", {
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
+  },
+  updateXC(frequencyId: number, checkedFrequencies: number[], XCId: number) {
+    if (!this.socket.connected || !this.socket.io) {
+      return;
+    }
+    this.socket.io?.emit("updateXC", {
+      id: XCId,
+      frequencyIds: checkedFrequencies.concat(frequencyId),
+    });
+  },
+  deleteXC(XCId: number) {
+    if (!this.socket.connected || !this.socket.io) {
+      return;
+    }
+    this.socket.io?.emit("deleteXC", { id: XCId });
+  },
+
 
   selectedFrequency: undefined as any | undefined,
 
@@ -145,6 +178,7 @@ export default {
   frequencies: [] as DashboardFrequency[],
   roleFrequencies: [] as DashboardRoleFrequency[],
   configs: undefined as DashboardConfiguration[] | undefined,
+  XCFrequencies: [] as XC[],
 
   socket: {
     connected: false,

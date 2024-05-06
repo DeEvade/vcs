@@ -174,13 +174,14 @@ const DashboardFrequenceCard = observer(
                         .filter((f) => f.isPrimary)
                         .map((frequency) => (
                           <DashboardRoleFrequencyCard
+                            role={role}
                             key={`${frequency.frequency}:${roleState.name}`}
                             model={model}
                             name={frequency.frequency}
                             onDelete={() => {
                               onDeleteRoleFrequency(roleState.id, frequency.id);
-                            }}
-                          />
+                            } } 
+                            frequencyId={frequency.id}                          />
                         ))}
                     </SimpleGrid>
                   </Box>
@@ -230,12 +231,14 @@ const DashboardFrequenceCard = observer(
                     .filter((f) => !f.isPrimary)
                     .map((frequency) => (
                       <DashboardRoleFrequencyCard
+                        role = {role}
                         key={frequency.id}
                         model={model}
                         name={frequency.frequency}
                         onDelete={() => {
                           onDeleteRoleFrequency(roleState.id, frequency.id);
                         }}
+                        frequencyId={frequency.id}
                       />
                     ))}
                 </SimpleGrid>

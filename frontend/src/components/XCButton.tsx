@@ -60,14 +60,7 @@ const XCButton = observer((props: Props) => {
   const otherFrequencies = freqs.filter(
     (frequency: Frequency) => frequency.id !== frequencyId
   );
-  /*
-  connectFrequencies(frequencyId: number, checkedFrequencies: number[]) {
-    const frequency = this.frequencies.find(f => f.id === frequencyId);
-    if (frequency) {
-      frequency.connectedFrequencies = checkedFrequencies;
-    }
-  },
-  */
+
   const { onOpen, onClose, isOpen } = useDisclosure();
 
   const handleSubmit = () => {
@@ -83,13 +76,6 @@ const XCButton = observer((props: Props) => {
     onClose();
   };
 
-  /*
-  <Flex direction={"column"} gap={4}>
-  {otherFrequencies.map((frequency: Frequency) => (
-    <Checkbox value={frequency.id}>{frequency.frequency}</Checkbox>
-  ))}
-</Flex>
-*/
 
   return (
     <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>

@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite";
 import { model as baseModel } from "@/models/Model";
-
 import { io as socket } from "socket.io-client";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";

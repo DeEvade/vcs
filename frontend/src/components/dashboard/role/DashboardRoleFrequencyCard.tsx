@@ -1,23 +1,35 @@
-import DashboardModel from "@/models/DashboardModel";
+import DashboardModel, {DashboardFrequency, DashboardRole} from "@/models/DashboardModel";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Box, Center, Flex, Icon } from "@chakra-ui/react";
 import { observer } from "mobx-react-lite";
 import { MdClear } from "react-icons/md";
+import { Button } from "@chakra-ui/react";
+import { AccordionIcon } from "@chakra-ui/accordion";
+import DashboardXCButton from "./DashboardXCButton";
+import Dashboard from "@/pages/dashboard";
+
 
 interface Props {
   model: typeof DashboardModel;
   name: string;
   onDelete: () => void;
+  role: DashboardRole;
+  frequencyId: number;
 }
+
 const DashboardRoleFrequencyCard = observer((props: Props) => {
-  const { model, onDelete, name } = props;
+  const { model, onDelete, name, role, frequencyId } = props;
+
   return (
     <Box p={2} borderRadius="lg" border="1px" borderColor="gray.500">
       <Flex direction={"row"}>
-        <Flex flex={1}></Flex>
+        <DashboardXCButton model={model} role={role} frequencyId={frequencyId}
+          buttonElement={ 
+            <Button colorScheme="blue">XC</Button>
+          }
+        />
         <Center>{parseFloat(name).toFixed(3)} MHz</Center>
-        <Flex flex={1}>
-          <Flex flex={1}></Flex>
+        <Flex>
           <Center marginRight={"5px"}>
             <Icon
               as={MdClear}
