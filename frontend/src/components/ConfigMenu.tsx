@@ -16,6 +16,9 @@ import {
   SliderThumb,
   keyframes,
   usePrefersReducedMotion,
+  Switch,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { MdGraphicEq } from "react-icons/md";
@@ -32,6 +35,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
   const [listeningForKey, setListeningForKey] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const { model } = props;
 
@@ -42,13 +46,13 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     100% { transform: scale(1); }
    `;
 
-   const onMicValueChanged = (val: any) => {
+  const onMicValueChanged = (val: any) => {
     model.micGain = val;
-   }
+  };
 
-   const onRadioValueChanged = (val: any) => {
+  const onRadioValueChanged = (val: any) => {
     model.radioGain = val;
-   }
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -71,7 +75,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
   // Calculate the gain percentage for radio volume and mic gain.
   // Converts slider values to percentage
   const displayGain = Math.round((model.radioGain / 100) * 200);
-  const displayMicGain = Math.round(( model.micGain / 100) * 200);
+  const displayMicGain = Math.round((model.micGain / 100) * 200);
 
   const animation = prefersReducedMotion
     ? undefined
@@ -125,7 +129,13 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             </SliderThumb>
           </Slider>
 
-          
+          <FormControl display="flex" alignItems="center">
+            <FormLabel mb="0">Realistic colors</FormLabel>
+            <Switch
+              isChecked={colorMode == "light"}
+              onChange={toggleColorMode}
+            />
+          </FormControl>
         </Box>
         <Box p={4}>
           <Text mb={2}>Push to Talk Key: {pttKey}</Text>

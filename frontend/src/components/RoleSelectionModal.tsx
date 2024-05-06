@@ -29,6 +29,7 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
     };
     const [atcoSelected, setAtcoSelected] = useState(false);
     const atcoButtonColor = useColorModeValue("green", "teal");
+    const bgColor = useColorModeValue("gray.100", "gray.700");
 
     const onClose = () => {
       model.setOpenRoleModal(false);

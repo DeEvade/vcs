@@ -3,7 +3,7 @@
 import { model } from "@/models/Model";
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { Flex, Box } from "@chakra-ui/react";
+import { Flex, Box, useColorModeValue } from "@chakra-ui/react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import FrequenciesGrid from "@/components/FrequenciesGrid";
@@ -20,6 +20,8 @@ const App = observer(function (props: Props) {
   const onMakeCall = (role: string) => {
     //Make call to selected role
   };
+
+  const bgColor = useColorModeValue("gray.100", "gray.800");
 
   useEffect(() => {
     if (model.configuration || !model.socket.connected) {
@@ -38,10 +40,10 @@ const App = observer(function (props: Props) {
   }, [model.socket.io]);
 
   return (
-    <Flex direction="column" minH="100vh">
-      <SocketHandler model={model}/>
+    <Flex direction="column" minH="100vh" bg={bgColor}>
+      <SocketHandler model={model} />
       <CommunicationsHandler model={model} />
-      <Header model={model}/>
+      <Header model={model} />
       <Flex flex="1" direction={{ base: "column", md: "row" }}>
         <Box w={{ base: "100%", lg: "66%" }} p={2}>
           {model.configuration && (

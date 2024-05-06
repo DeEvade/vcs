@@ -16,8 +16,10 @@ const theme = extendTheme({
   colors: {
     gray: {
       50: "#F7FAFC",
-      100: "#EDF2F7",
-      200: "#E2E8F0",
+      //100: "#EDF2F7",
+      //200: "#E2E8F0",
+      100: "#EDEAE5", //Primary lightmode color
+      200: "#DBD8D1", //Secondary lightmode color
       300: "#CBD5E0",
       400: "#A0AEC0",
       500: "#718096", // Mid gray for secondary text/icons

@@ -1,6 +1,6 @@
 // src/components/RolesGrid.tsx
 import React from "react";
-import { Box, SimpleGrid } from "@chakra-ui/react";
+import { Box, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
 import RoleCard from "./RoleCard";
 import { Role } from "@/types";
 import { observer } from "mobx-react-lite";
@@ -39,6 +39,7 @@ const RolesGrid: React.FC<RolesGridProps> = observer(function ({
         spacing={4}
         boxShadow="md"
         border="1px"
+        bg={useColorModeValue("gray.200", "gray.800")}
         borderColor="gray.500"
         padding="1rem"
         marginRight="2rem"
