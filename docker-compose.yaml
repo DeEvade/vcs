@@ -34,6 +34,8 @@ services:
       interval: 1s
       timeout: 10s
       retries: 5
+    volumes:
+      - ./data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 

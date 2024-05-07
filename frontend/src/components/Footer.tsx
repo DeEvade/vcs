@@ -7,6 +7,7 @@ import {
   Flex,
   Input,
   Text,
+  useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
 import {
@@ -23,11 +24,14 @@ const Footer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = React.useRef();
 
+  const bgColor = useColorModeValue("gray.200", "gray.700");
+  const bgColorTitle = useColorModeValue("black", "white");
+
   return (
     <Box p={4} mt={4}>
       <Flex alignItems="center" justifyContent="center">
         <Text textAlign="center">Voice Communication System 2024</Text>
-        <Button ml={10} color={"white"} bgColor={"gray.700"} onClick={onOpen}>
+        <Button ml={10} color={bgColorTitle} bgColor={bgColor} onClick={onOpen}>
           Tutorial
         </Button>
       </Flex>
@@ -35,7 +39,7 @@ const Footer = () => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader style={{ color: "white" }} fontSize="xl">
+          <DrawerHeader style={{ color: bgColorTitle }} fontSize="xl">
             Tutorial
           </DrawerHeader>
 
@@ -51,11 +55,11 @@ const Footer = () => {
                 After selecting your role, you can connect to a frequency by
                 pressing either RX (receive only) or TX (transmit and receive).
                 You can also choose to take on multiple ATCO roles by pressing
-                the + button next to your current ATCO role. Cross
+                the + button next to your current ATCO role.
               </Text>
 
               <Text as="h2" fontSize="lg" mt={4} fontWeight="bold">
-                Coupling:
+                Cross Coupling:
               </Text>
               <Text>
                 As an ATCO, you have the option to cross-couple two or more
