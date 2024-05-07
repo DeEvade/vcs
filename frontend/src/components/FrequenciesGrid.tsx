@@ -1,6 +1,6 @@
 // src/components/FrequenciesGrid.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { SimpleGrid } from "@chakra-ui/react";
 import FrequencyCard from "./FrequencyCard";
 import { Frequency, FrequencyState, Role } from "../types";
