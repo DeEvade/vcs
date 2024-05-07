@@ -43,6 +43,14 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   const frequencyState = model.getFrequencyState(frequency.id);
 
+  useEffect(() => {
+    if (model.TXFrequencies.length > 0) {
+      model.txState = true;
+    } else {
+      model.txState = false;
+    }
+  },[model.TXFrequencies])
+
   //kolla varje rolls första order och visa den
 
   const getFrequencyLabel = (id: number): string => {
@@ -75,11 +83,6 @@ const FrequencyCard: React.FC<Props> = observer(function ({
       }
     } else if (type === "TX") {
       // Activating TX should always activate RX if it's not already active.
-      if (model.txState == true) {
-        model.txState = false;
-      } else {
-        model.txState = true;
-      }
 
       if (!frequencyState.RX) {
         onToggle(frequency.id, "RX");

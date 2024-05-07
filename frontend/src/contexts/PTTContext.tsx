@@ -32,6 +32,8 @@ interface PTTProviderProps {
 export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
   const [pttKey, setPttKey] = useState("Space");
   const [pttActive, setPttActive] = useState(false);
+  const requiredSequence = "FISKGJUSE"; //EGG
+  const [lastNineChars, setLastNineChars] = useState(""); //EGG
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -57,6 +59,29 @@ export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [pttKey]);
+
+  useEffect(() => {
+    //EGG
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const { key } = event;
+      setLastNineChars((prevChars) => (prevChars + key).slice(-9));
+    };
+    console.log("sequence is: " + lastNineChars);
+
+    const checkSequence = () => {
+      if (lastNineChars.toUpperCase() === requiredSequence.toUpperCase()) {
+        console.log("Sequence matched!");
+      }
+    };
+
+    checkSequence();
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lastNineChars, requiredSequence]);
 
   return (
     <PTTContext.Provider value={{ pttKey, setPttKey, pttActive }}>

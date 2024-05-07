@@ -18,9 +18,6 @@ interface Props {
   model: typeof baseModel;
 }
 
-// Mapping of frequency to stream
-const freqToStream = new Map<number, MediaStream>();
-
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -48,11 +45,15 @@ const SocketHandler = observer((props: Props) => {
   };
 
   useEffect(() => {
-    if (model.txState === true) {
-      console.log("TX STATE IS TRUE!")
+    const arrayDiff = model.RXFrequencies.filter(
+      (item) => !model.TXFrequencies.includes(item)
+    );
+
+    if (model.TXFrequencies.length > 0) {
+      console.log("TX STATE IS TRUEe!");
       // Set streams to unmute
       streamPeers.forEach((peer) => {
-        if (model.RXFrequencies.includes(peer.freq)) {
+        if (arrayDiff.includes(peer.freq)) {
           // Unmute the stream
           peer.stream.getAudioTracks().forEach((track) => {
             track.enabled = true;
@@ -61,17 +62,22 @@ const SocketHandler = observer((props: Props) => {
       });
     } else {
       // Mute streams
-      console.log("TX STATE IS FALSE!")
+      console.log("TX STATE IS FALSE!");
       streamPeers.forEach((peer) => {
-        if (model.RXFrequencies.includes(peer.freq)) {
+        console.log("peer freq is " + peer.freq);
+        console.log("diff freq is " + arrayDiff[0]);
+        console.log("diff includes " + arrayDiff.includes(2));
+        if (arrayDiff.includes(peer.freq)) {
           // Mute the stream
+          console.log("LOLOLOLOLOLOLOLOL#############");
           peer.stream.getAudioTracks().forEach((track) => {
+            console.log("MUUUUUTTTTIIING!!!!!!!!!!!!!!");
             track.enabled = false;
           });
         }
       });
     }
-  }, [model.txState]);
+  }, [model.TXFrequencies, model.txState]);
 
   useEffect(() => {
     if (stream !== null) return;
@@ -193,10 +199,19 @@ const SocketHandler = observer((props: Props) => {
 
   //Push to talk logic
   useEffect(() => {
+    console.log("TX FREQ ARRAY!: " + model.TXFrequencies);
     if (!pttGainNode) return;
 
     try {
       console.log(model.txState);
+
+      // gud vet vad för console log
+      const entries = Array.from(model.freqToMediaStream.entries());
+      for (const [key, mediaStream] of entries) {
+        console.log("State of " + key);
+        console.log("is: " + mediaStream.getTracks()[0].enabled);
+      }
+
       pttGainNode.gain.value = pttActive && model.txState ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
@@ -214,6 +229,21 @@ const SocketHandler = observer((props: Props) => {
       console.log("Mic gain error: " + error);
     }
   }, [model.micGain, gainNode]);
+
+  // Gud vet vad för logic
+  useEffect(() => {
+    const entries = Array.from(model.freqToMediaStream.entries());
+    console.log("Currently turned on TX: " + model.TXFrequencies);
+    for (const [key, mediaStream] of entries) {
+      if (!model.TXFrequencies.includes(key)) {
+        console.log("Disabling: " + key);
+        mediaStream.getTracks()[0].enabled = false;
+      } else {
+        console.log("Enabling: " + key);
+        mediaStream.getTracks()[0].enabled = true;
+      }
+    }
+  }, [model.TXFrequencies]);
 
   useEffect(() => {
     if (!stream) {
@@ -281,26 +311,26 @@ const SocketHandler = observer((props: Props) => {
       removeStream(user);
     });
 
-    io.on("tryConnectPeer", (user: string, freq: number) => {
+    io.on("tryConnectPeer", async (user: string, freq: number) => {
       const peerExists = model.peers.get(user);
 
       if (peerExists && !peerExists.destroyed) {
         console.log("peer exists already");
 
-        console.log("THE USER ID IS!!: " + user);
-        console.log("Add stream: " + streamPeers[streamPeers.length - 1]);
+        // console.log("THE USER ID IS!!: " + user);
+        // console.log("Add stream: " + streamPeers[streamPeers.length - 1]);
 
-        const peerStream = streamPeers.find(
-          (streamFind) => streamFind.userId === user
-        );
-        if (peerStream != undefined) {
-          let currentTracks = peerStream.stream.getAudioTracks();
-          const newTrack = currentTracks[0].clone();
-          peerExists.addTrack(newTrack, peerStream.stream);
-          console.log("NEW TRACK CREATED FOR THE EXISTING PEER ", newTrack);
-        } else {
-          console.log("Can't find existing stream");
-        }
+        // const peerStream = streamPeers.find(
+        //   (streamFind) => streamFind.userId === user
+        // );
+        // if (peerStream != undefined) {
+        //   let currentTracks = peerStream.stream.getAudioTracks();
+        //   const newTrack = currentTracks[0].clone();
+        //   peerExists.addTrack(newTrack, peerStream.stream);
+        //   console.log("NEW TRACK CREATED FOR THE EXISTING PEER ", newTrack);
+        // } else {
+        //   console.log("Can't find existing stream");
+        // }
         return;
       }
 
@@ -309,7 +339,16 @@ const SocketHandler = observer((props: Props) => {
         return;
       }
 
-      const newStream = stream.clone();
+      // const newStream = stream.clone();
+      // model.freqToMediaStream.set(freq, newStream);
+
+      let newStream = stream;
+      if (model.freqToMediaStream.get(freq) !== stream) {
+        console.log("cloning on initiator");
+        newStream = stream.clone();
+        model.freqToMediaStream.set(freq, newStream);
+      }
+
       const peer = new Peer({
         initiator: true,
         trickle: false,
@@ -336,7 +375,7 @@ const SocketHandler = observer((props: Props) => {
       console.log("Peer has connected");
       console.log("Peer has stream ", newStream);
 
-      peer.on("signal", (offerSignal) => {
+      await peer.on("signal", (offerSignal) => {
         console.log("initiator sending offer signal");
         io.emit("callUser", {
           userToCall: user,
@@ -405,16 +444,21 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
-    io.on("hey", (data: any) => {
+    io.on("hey", (data: any, freq: number) => {
       console.log("Stream in hey", stream);
       console.log("Creating a new stream for peer-to-peer connection...");
       console.log("Stream array size is: " + streamPeers.length);
 
-      const newStream = stream.clone();
+      let tempStream = stream;
+      if (model.freqToMediaStream.get(freq) !== stream) {
+        console.log("cloning on receiver");
+        tempStream = stream.clone();
+        model.freqToMediaStream.set(freq, tempStream);
+      }
       const peer = new Peer({
         initiator: false,
         trickle: false,
-        stream: stream ?? undefined,
+        stream: tempStream ?? undefined,
         sdpTransform(sdp) {
           return sdp.replace(
             "a=fmtp:111 minptime=10;useinbandfec=1",
@@ -435,7 +479,7 @@ const SocketHandler = observer((props: Props) => {
       });
 
       console.log("hey", data.from);
-      console.log("Peer has stream ", newStream);
+      console.log("Peer has stream ", tempStream);
 
       peer.on("signal", (answerSignal: any, freq: string) => {
         console.log("Acceptcall and will emit signal", answerSignal);
