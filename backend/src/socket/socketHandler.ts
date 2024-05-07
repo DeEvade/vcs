@@ -17,6 +17,10 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   // keys are frequencies and values are count of users on the frequency
   const countUsersOnFreq = new Map<number, number>();
 
+
+  // User tupple to freq
+  const usersAtFreq = new Map<string, number>();
+
   let currentConfigId: number = 0;
   try {
     const configs = await AppDataSource.getRepository(Configuration).find();
@@ -159,6 +163,8 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
           for (const frequency of frequencies) {
             if (newFrequencies.includes(frequency)) {
               usersToConnect.push(userId);
+              usersAtFreq.set(socket.id + userId, frequency);
+              console.log("TESTING EARLIER FREQ: " + usersAtFreq.get(socket.id + userId))
               return;
             }
             xcConnection.forEach((values, key) => {
@@ -185,16 +191,11 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       //remove dupliactes
       const uniqueUsersToConnect = Array.from(new Set(usersToConnect));
       uniqueUsersToConnect.forEach((userId) => {
-        users[userId].emit("tryConnectPeer", socket.id);
+        let freq = usersAtFreq.get(socket.id + userId);
+        console.log("TESTING FREQ: " + freq);
+        users[userId].emit("tryConnectPeer", socket.id, freq);
       });
     });
-
-    //Send all users to all users except the one that just connected
-    /* Object.keys(users).forEach((key) => {
-      if (key !== socket.id) {
-        users[key].emit('newUser', socket.id);
-      }
-    });*/
 
     socket.on("callUser", (data) => {
       console.log("calling user", data.userToCall, data.from);
