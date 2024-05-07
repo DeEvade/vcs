@@ -13,6 +13,7 @@ export const model = {
   micGain: 50 as number,
   PTTKey: "Space" as string,
   txState: false as boolean,
+  eggState: false as boolean,
 
   socket: {
     connected: false,
@@ -25,6 +26,11 @@ export const model = {
 
   // Regular map
   peers: new Map() as Map<string, Peer.Instance>,
+
+
+  // gud vet vad för kod
+  freqToMediaStream: new Map() as Map<number, MediaStream>,
+
 
   RXFrequencies: [] as number[],
   NORXFrequencies: [] as number[], // (before updating RX) RX frequencies that are not active anymore

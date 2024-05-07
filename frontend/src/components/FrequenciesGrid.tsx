@@ -52,6 +52,7 @@ const FrequenciesGrid: React.FC<Props> = observer(function (props) {
     model.handleFrequencyDisconnect();
     toast.success(JSON.stringify(model.RXFrequencies));
   }, [model.RXFrequencies]);
+
   const [unorderedFrequencies, setUnorderedFrequencies] = useState<Frequency[]>(
     []
   );
