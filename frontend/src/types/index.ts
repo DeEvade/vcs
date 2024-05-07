@@ -29,3 +29,12 @@ export interface XC {
   id: number;
   frequencyIds: number[];
 }
+
+export interface Call {
+  id: string;
+  initiator: string;
+  initiatorRole: string;
+  receiver: string;
+  receiverRole: string;
+  isEmergency: boolean;
+}

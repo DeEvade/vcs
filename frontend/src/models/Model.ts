@@ -1,4 +1,4 @@
-import { Configuration, Role, XC } from "@/types";
+import { Call, Configuration, Role, XC } from "@/types";
 import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
@@ -30,31 +30,32 @@ export const model = {
   TXFrequencies: [] as number[],
   XCFrequencies: [] as XC[],
 
-  pendingCalls: [] as { role: string; from: string; fromRole: string }[],
-
+  pendingCalls: [] as Call[],
+  acceptedCalls: [] as Call[],
   onMakeICCall: function (role: string, isEmergency: boolean) {
     if (!this.socket.io || !this.socket.connected) return;
 
     this.socket.io.emit("ICCall", {
-      role: role,
-      from: this.socket.io.id,
+      id: "",
+      initiator: this.socket.io.id,
+      initiatorRole: this.selectedRoles[0],
+      receiver: "",
+      receiverRole: role,
       isEmergency: isEmergency,
-      fromRole: this.selectedRoles[0],
-    });
+    } as Call);
   },
 
-  onMakeAcceptCall: function (role: string, isAccepted: boolean) {
-    console.log("before before accept call emit");
+  onMakeAcceptCall: function (call: Call, isAccepted: boolean) {
+    if (!this.socket.io || !this.socket.connected) return;
+    this.pendingCalls = this.pendingCalls.filter((c) => c.id !== call.id);
+
+    this.socket.io.emit("acceptICCall", { call: call, isAccepted: isAccepted });
+  },
+
+  onTurnOffCall: function (call: Call) {
     if (!this.socket.io || !this.socket.connected) return;
 
-    console.log("before accept call emit");
-    this.socket.io.emit("acceptICCall", {
-      role: role,
-      from: this.socket.io.id,
-      to: role,
-      isAccepted: isAccepted,
-    });
-    console.log("has emitted acceptcall");
+    this.socket.io.emit("endICCall", call);
   },
 
   onFrequencyChange: function (frequencies: number[]) {

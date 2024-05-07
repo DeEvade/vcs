@@ -25,6 +25,7 @@ import { observer } from "mobx-react-lite";
 import toast from "react-hot-toast";
 import { LegacyRef, useEffect, useRef, useState } from "react";
 import { log } from "console";
+import { Call } from "@/types";
 
 interface RoleCardProps {
   roleName: string;
@@ -111,26 +112,36 @@ interface CallButtonProps {
 const AcceptCallPopover = observer((props: CallButtonProps) => {
   const { model, anchorRef, isOpen, onClose, setOpen, roleName } = props;
 
-  const [call, setCall] = useState<
-    { role: string; from: string; fromRole: string } | undefined
-  >(undefined);
+  const [call, setCall] = useState<Call | undefined>(undefined);
 
   useEffect(() => {
-    console.log("Pending calls", model.pendingCalls);
+    console.log("Pending calls", model.pendingCalls, roleName);
     // toast.success(`Incoming call to ${roleName}`);
-    const call = model.pendingCalls.find((call) => call.fromRole == roleName);
+    const call = model.pendingCalls.find(
+      (call) => call.initiatorRole == roleName
+    );
 
     if (call) {
-      toast.success(`Incoming call from ${call.fromRole}`);
+      console.log("Call found", call);
+
+      if (call.isEmergency) {
+        model.onMakeAcceptCall(call, true);
+        model.pendingCalls = model.pendingCalls.filter((c) => c.id !== call.id);
+        toast.error(`Incoming emergency call from ${call.initiatorRole}`);
+        return;
+      }
+      toast.success(`Incoming call from ${call.initiatorRole}`);
       setCall(call);
       setOpen(true);
     } else {
       setOpen(false);
+      //model.onMakeTurnOffCall(roleName, true, call.from);
     }
   }, [model.pendingCalls]);
 
   const onSubmit = (isAccepted: boolean) => {
-    model.onMakeAcceptCall(roleName, isAccepted);
+    if (call === undefined) return;
+    model.onMakeAcceptCall(call, isAccepted);
     onClose();
   };
 
@@ -148,7 +159,9 @@ const AcceptCallPopover = observer((props: CallButtonProps) => {
       <Portal>
         <PopoverContent>
           <PopoverArrow />
-          <PopoverHeader>Incoming call from {call?.fromRole}</PopoverHeader>
+          <PopoverHeader>
+            Incoming call from {call?.initiatorRole}
+          </PopoverHeader>
           <PopoverBody>
             <Flex direction="row" gap="4">
               <Button

@@ -1,6 +1,13 @@
 // src/components/RolesGrid.tsx
 import React from "react";
-import { Box, Button, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  SimpleGrid,
+  Spacer,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import RoleCard from "./RoleCard";
 import { Role } from "@/types";
 import { observer } from "mobx-react-lite";
@@ -10,7 +17,6 @@ import AcceptICCallbutton from "./Callbutton";
 
 interface RolesGridProps {
   onSelectRole: (roleName: string) => void; // Adding a new prop for role selection
-  toSelectedRole: (roleName: string) => void;
   model: typeof basemModel;
   callable: boolean;
   acceptCall: boolean;
@@ -28,7 +34,6 @@ interface RolesGridProps {
 
 const RolesGrid: React.FC<RolesGridProps> = observer(function ({
   onSelectRole,
-  toSelectedRole,
   model,
   callable,
   acceptCall,
@@ -41,7 +46,7 @@ const RolesGrid: React.FC<RolesGridProps> = observer(function ({
     .filter((role) => !model.selectedRoles.includes(role.name));
 
   return (
-    <Box p={2}>
+    <Box>
       <SimpleGrid
         minChildWidth="4.4rem"
         spacing={4}

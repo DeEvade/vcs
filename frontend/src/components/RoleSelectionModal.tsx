@@ -114,7 +114,6 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
                 onSelectRole={handleRoleSelection}
                 callable={false}
                 acceptCall={false}
-                toSelectedRole={() => {}}
               />
             )}
           </ModalBody>

@@ -57,7 +57,6 @@ const PeerChannel = observer(
 
     return (
       <>
-        <script src="./SocketHandler.tsx"></script>
         <audio
           autoPlay
           playsInline

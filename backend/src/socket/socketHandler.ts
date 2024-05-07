@@ -8,8 +8,12 @@ import { RoleFrequency } from "../database/entities/RoleFrequency";
 import { XC } from "..//database/entities/XC";
 
 export interface Call {
-  from: string;
-  to: string;
+  id: string;
+  initiator: string;
+  initiatorRole: string;
+  receiver: string;
+  receiverRole: string;
+  isEmergency: boolean;
 }
 
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
@@ -64,58 +68,47 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
     socket.on("ICCall", (data) => {
       console.log("calling role", data.role, data.from);
+      data.id = uuidv4();
 
-      const isEmergency = data.isEmergency;
-      //TODO handle emergency calls
-
-      socket.broadcast.emit("IncomingCall", {
-        role: data.role,
-        from: data.from,
-        fromRole: data.fromRole,
-      });
+      for (const call of calls.values()) {
+        if (
+          (call.initiator === data.initiator &&
+            call.receiver === data.initiator) ||
+          (call.receiver === data.initiator && call.initiator === data.receiver)
+        ) {
+          console.log("User already in a call", data.from);
+          return;
+        }
+      }
+      socket.broadcast.emit("IncomingCall", data);
     });
 
     socket.on("acceptICCall", (data) => {
-      console.log("accepting role", data.to, data.from);
+      const call = data.call;
+      console.log("accepting role", data.initiator, data.receiver);
 
-      calls.set(uuidv4(), { from: data.from, to: data.to });
+      if (!data.isAccepted) {
+        return console.log("call not accepted");
+      }
 
-      io.to(data.to).emit("ICCallAccepted", {
-        role: data.role,
-        from: data.from,
-      });
+      calls.set(call.id, call);
+      console.log("calls", calls);
 
-      socket.emit("tryConnectPeer", data.from);
+      io.to(call.initiator).emit("ICCallAccepted", call);
+      io.to(call.receiver).emit("ICCallAccepted", call);
+
+      io.to(call.initiator).emit("tryConnectPeer", call.receiver);
     });
 
-    socket.on("rejectICCall", (data) => {
-      console.log("rejecting role", data.to, data.from);
+    socket.on("endICCall", (data) => {
+      const call = data;
+      console.log("endICCall", data.initiator, data.receiver);
+      calls.delete(call.id);
+      io.to(data.initiator).emit("endICCall", call);
+      io.to(data.receiver).emit("endICCall", call);
 
-      io.to(data.to).emit("ICCallRejected", {
-        role: data.role,
-        from: data.from,
-      });
-    });
-
-    socket.on("endCall", (data) => {
-      console.log("ending call", data.to, data.from);
-
-      calls.forEach((call, key) => {
-        if (
-          (call.from === data.from && call.to === data.to) ||
-          (call.from === data.to && call.to === data.from)
-        ) {
-          calls.delete(key);
-        }
-      });
-      io.to(data.to).emit("endCall", {
-        role: data.role,
-        from: data.from,
-      });
-
-      //TODO, check if peers are in same frequency, then they should stay connected
-
-      socket.emit("tryDisconnectPeer", data.from);
+      io.to(data.initiator).emit("tryDisconnectPeer", data.receiver);
+      io.to(data.receiver).emit("tryDisconnectPeer", data.initiator);
     });
 
     socket.on("createXC", async (data: any) => {
@@ -246,8 +239,8 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
           for (const call of calls.values()) {
             //Check if they have a call
             if (
-              (call.from === socket.id && call.to === userId) ||
-              (call.from === userId && call.to === socket.id)
+              (call.initiator === userId && call.receiver === socket.id) ||
+              (call.receiver === userId && call.initiator === socket.id)
             ) {
               usersToConnect.push(userId);
               return;

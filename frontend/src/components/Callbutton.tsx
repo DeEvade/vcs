@@ -26,6 +26,8 @@ import {
 } from "@chakra-ui/react";
 import { rolesToFrequencies } from "@/utils/tools";
 import toast from "react-hot-toast";
+import { IconButton } from "@chakra-ui/react";
+import { PhoneIcon } from "@chakra-ui/icons";
 
 interface Props {
   roleName: string;
@@ -71,7 +73,7 @@ const AcceptICCallbutton = observer((props: Props) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
 
   const onMakeAcceptCall = (isAccepted: boolean) => {
-    model.onMakeAcceptCall(roleName, isAccepted);
+    //model.onMakeAcceptCall(roleName, isAccepted, );
     onClose();
   };
 

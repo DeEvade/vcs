@@ -12,6 +12,7 @@ import micGain from "./ConfigMenu";
 import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
+import { Call } from "@/types";
 
 interface Props {
   model: typeof baseModel;
@@ -185,9 +186,35 @@ const SocketHandler = observer((props: Props) => {
     io.on("IncomingCall", (data: any) => {
       console.log("Incoming call", data);
 
-      if (model.selectedRoles.includes(data.role)) {
-        model.pendingCalls = model.pendingCalls.concat([data]);
+      if (
+        model.pendingCalls.find((call) => call.initiator === data.initiator)
+      ) {
+        console.log("Call already exists");
+
+        return;
       }
+
+      if (model.selectedRoles.includes(data.receiverRole)) {
+        data.receiver = io.id;
+        model.pendingCalls = model.pendingCalls.concat([data as Call]);
+      }
+    });
+
+    io.on("endICCall", (data) => {
+      console.log("Call ended", data);
+
+      model.acceptedCalls = model.acceptedCalls.filter((call) => {
+        if (call.id != data.id) {
+          return true;
+        }
+        return false;
+      });
+    });
+
+    io.on("ICCallAccepted", (call: Call) => {
+      console.log("IC call accepted", call);
+      toast.success("Call accepted from " + call.initiatorRole);
+      model.acceptedCalls = model.acceptedCalls.concat([call]);
     });
 
     io.on("tryDisconnectPeer", (user: string) => {
