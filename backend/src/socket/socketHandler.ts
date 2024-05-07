@@ -7,10 +7,17 @@ import { Frequency } from "../database/entities/Frequency";
 import { RoleFrequency } from "../database/entities/RoleFrequency";
 import { XC } from "..//database/entities/XC";
 
+export interface Call {
+  from: string;
+  to: string;
+}
+
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   const users = {} as { [key: string]: Socket };
 
   const xcConnection = new Map<number, number[]>();
+
+  const calls = new Map<string, Call>();
 
   //Hashmap to store the frequencies of each user
   const userToFrequencies = new Map<string, number[]>(); //vanliga hashmapen
@@ -53,6 +60,62 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       delete users[socket.id];
       userToFrequencies.delete(socket.id);
       socket.broadcast.emit("tryDisconnectPeer", socket.id);
+    });
+
+    socket.on("ICCall", (data) => {
+      console.log("calling role", data.role, data.from);
+
+      const isEmergency = data.isEmergency;
+      //TODO handle emergency calls
+
+      socket.broadcast.emit("IncomingCall", {
+        role: data.role,
+        from: data.from,
+        fromRole: data.fromRole,
+      });
+    });
+
+    socket.on("acceptICCall", (data) => {
+      console.log("accepting role", data.to, data.from);
+
+      calls.set(uuidv4(), { from: data.from, to: data.to });
+
+      io.to(data.to).emit("ICCallAccepted", {
+        role: data.role,
+        from: data.from,
+      });
+
+      socket.emit("tryConnectPeer", data.from);
+    });
+
+    socket.on("rejectICCall", (data) => {
+      console.log("rejecting role", data.to, data.from);
+
+      io.to(data.to).emit("ICCallRejected", {
+        role: data.role,
+        from: data.from,
+      });
+    });
+
+    socket.on("endCall", (data) => {
+      console.log("ending call", data.to, data.from);
+
+      calls.forEach((call, key) => {
+        if (
+          (call.from === data.from && call.to === data.to) ||
+          (call.from === data.to && call.to === data.from)
+        ) {
+          calls.delete(key);
+        }
+      });
+      io.to(data.to).emit("endCall", {
+        role: data.role,
+        from: data.from,
+      });
+
+      //TODO, check if peers are in same frequency, then they should stay connected
+
+      socket.emit("tryDisconnectPeer", data.from);
     });
 
     socket.on("createXC", async (data: any) => {
@@ -125,28 +188,36 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       userToFrequencies.set(socket.id, newFrequencies);
 
       previousfrequencies.forEach((frequency) => {
-        if(!newFrequencies.includes(frequency)){
-          if(countUsersOnFreq.has(frequency)){
-            countUsersOnFreq.set(frequency, countUsersOnFreq.get(frequency) - 1);
+        if (!newFrequencies.includes(frequency)) {
+          if (countUsersOnFreq.has(frequency)) {
+            countUsersOnFreq.set(
+              frequency,
+              countUsersOnFreq.get(frequency) - 1
+            );
             const amountdis = countUsersOnFreq.get(frequency);
-            console.log("amount of users in freq after disconnect:" + " " + amountdis);
+            console.log(
+              "amount of users in freq after disconnect:" + " " + amountdis
+            );
           } else {
             countUsersOnFreq.set(frequency, 0);
           }
         }
-      })
+      });
 
       newFrequencies.forEach((frequency) => {
-        if(!previousfrequencies.includes(frequency)){
-          if(countUsersOnFreq.has(frequency)){
-            countUsersOnFreq.set(frequency, countUsersOnFreq.get(frequency) + 1);
+        if (!previousfrequencies.includes(frequency)) {
+          if (countUsersOnFreq.has(frequency)) {
+            countUsersOnFreq.set(
+              frequency,
+              countUsersOnFreq.get(frequency) + 1
+            );
             const amount = countUsersOnFreq.get(frequency);
             console.log("amount of users in freq:" + frequency + " " + amount);
           } else {
             countUsersOnFreq.set(frequency, 1);
           }
         }
-      })
+      });
       const userObject = Object.fromEntries(countUsersOnFreq.entries());
       io.emit("countUsersOnFreq", userObject);
       const usersToConnect: string[] = [];
@@ -171,6 +242,18 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
               }
             });
           }
+
+          for (const call of calls.values()) {
+            //Check if they have a call
+            if (
+              (call.from === socket.id && call.to === userId) ||
+              (call.from === userId && call.to === socket.id)
+            ) {
+              usersToConnect.push(userId);
+              return;
+            }
+          }
+
           //User has no frequencies in common with the updated user
           console.log("no frequencies in common", userId, socket.id);
           users[userId].emit("tryDisconnectPeer", socket.id);
@@ -179,22 +262,12 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
         //users[key].emit('sending to', usersArray);
       });
-      console.log("action user: " + socket.id);
-
-      console.log("users to connect", usersToConnect);
       //remove dupliactes
       const uniqueUsersToConnect = Array.from(new Set(usersToConnect));
       uniqueUsersToConnect.forEach((userId) => {
         users[userId].emit("tryConnectPeer", socket.id);
       });
     });
-
-    //Send all users to all users except the one that just connected
-    /* Object.keys(users).forEach((key) => {
-      if (key !== socket.id) {
-        users[key].emit('newUser', socket.id);
-      }
-    });*/
 
     socket.on("callUser", (data) => {
       console.log("calling user", data.userToCall, data.from);
@@ -453,8 +526,8 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         socket.emit("addRoleFrequency", { error: error.message });
       }
     });
-  })
-}
+  });
+};
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };

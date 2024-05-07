@@ -88,6 +88,7 @@ const Header = observer(function (props: Props) {
         <Flex direction="row" gap="10px" alignItems="center">
           {selectedRoles.map((selectedRole) => (
             <Button
+              key={selectedRole}
               onClick={() => {
                 removeSelectedRole(selectedRole);
               }}

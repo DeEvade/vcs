@@ -3,7 +3,7 @@ import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
-  devMode: false as boolean,
+  devMode: true as boolean,
   configuration: null as Configuration | null,
   selectedRoles: [] as string[],
   openRoleModal: true as boolean,
@@ -29,6 +29,33 @@ export const model = {
   NORXFrequencies: [] as number[], // (before updating RX) RX frequencies that are not active anymore
   TXFrequencies: [] as number[],
   XCFrequencies: [] as XC[],
+
+  pendingCalls: [] as { role: string; from: string; fromRole: string }[],
+
+  onMakeICCall: function (role: string, isEmergency: boolean) {
+    if (!this.socket.io || !this.socket.connected) return;
+
+    this.socket.io.emit("ICCall", {
+      role: role,
+      from: this.socket.io.id,
+      isEmergency: isEmergency,
+      fromRole: this.selectedRoles[0],
+    });
+  },
+
+  onMakeAcceptCall: function (role: string, isAccepted: boolean) {
+    console.log("before before accept call emit");
+    if (!this.socket.io || !this.socket.connected) return;
+
+    console.log("before accept call emit");
+    this.socket.io.emit("acceptICCall", {
+      role: role,
+      from: this.socket.io.id,
+      to: role,
+      isAccepted: isAccepted,
+    });
+    console.log("has emitted acceptcall");
+  },
 
   onFrequencyChange: function (frequencies: number[]) {
     if (!this.socket.io || !this.socket.connected) return;
@@ -74,7 +101,6 @@ export const model = {
       return;
     }
     this.socket.io.emit("connectFreq", this.RXFrequencies);
-    console.log("it has emited changes to socket"); //printar det här
   },
 
   handleFrequencyDisconnect: function () {
@@ -86,10 +112,8 @@ export const model = {
     ) {
       return;
     }
-    // console.log("RX" + this.RXFrequencies);
     if (this.NORXFrequencies !== null) {
       this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
-      console.log("Emitted disconnect");
     }
   },
 

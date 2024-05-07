@@ -18,7 +18,13 @@ interface Props {
 const App = observer(function (props: Props) {
   const { model } = props;
   const onMakeCall = (role: string) => {
+    //model.onMakeICCall(role, true);
     //Make call to selected role
+  };
+
+  const onMakeAcceptCall = (role: string) => {
+    //model.onMakeAcceptCall(role, true);
+    //Accept call for selected role
   };
 
   const bgColor = useColorModeValue("gray.100", "gray.800");
@@ -53,7 +59,13 @@ const App = observer(function (props: Props) {
           )}
         </Box>
         <Box w={{ base: "100%", lg: "33%" }} p={2}>
-          <RolesGrid model={model} onSelectRole={onMakeCall} />
+          <RolesGrid
+            model={model}
+            onSelectRole={onMakeCall}
+            toSelectedRole={onMakeAcceptCall}
+            callable={true}
+            acceptCall={true}
+          />
         </Box>
       </Flex>
       <Footer />

@@ -182,6 +182,14 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
+    io.on("IncomingCall", (data: any) => {
+      console.log("Incoming call", data);
+
+      if (model.selectedRoles.includes(data.role)) {
+        model.pendingCalls = model.pendingCalls.concat([data]);
+      }
+    });
+
     io.on("tryDisconnectPeer", (user: string) => {
       console.log("try disconnect peer", user);
 
@@ -257,7 +265,6 @@ const SocketHandler = observer((props: Props) => {
       if (data.error) {
         return toast.error("error getting XC: " + data.error);
       }
-      toast.success("Got XC");
       console.log("got XC", data);
 
       model.XCFrequencies = data;
@@ -267,7 +274,6 @@ const SocketHandler = observer((props: Props) => {
       if (data.error) {
         return toast.error("error creating XC: " + data.error);
       }
-      toast.success("XC created");
       console.log("XC created", data);
 
       model.XCFrequencies = model.XCFrequencies.concat([data]);
@@ -277,7 +283,6 @@ const SocketHandler = observer((props: Props) => {
       if (data.error) {
         return toast.error("error deleting XC: " + data.error);
       }
-      toast.success("XC deleted");
       console.log("XC deleted", data);
 
       model.XCFrequencies = model.XCFrequencies.filter((xc) => {
@@ -292,7 +297,6 @@ const SocketHandler = observer((props: Props) => {
       if (data.error) {
         return toast.error("error updating XC: " + data.error);
       }
-      toast.success("XC updated");
       console.log("XC updated", data);
 
       model.XCFrequencies = model.XCFrequencies.map((xc) => {

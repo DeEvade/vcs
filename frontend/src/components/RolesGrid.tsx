@@ -1,14 +1,19 @@
 // src/components/RolesGrid.tsx
 import React from "react";
-import { Box, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
+import { Box, Button, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
 import RoleCard from "./RoleCard";
 import { Role } from "@/types";
 import { observer } from "mobx-react-lite";
 import { model as basemModel } from "@/models/Model";
+import Callbutton from "./Callbutton";
+import AcceptICCallbutton from "./Callbutton";
 
 interface RolesGridProps {
   onSelectRole: (roleName: string) => void; // Adding a new prop for role selection
+  toSelectedRole: (roleName: string) => void;
   model: typeof basemModel;
+  callable: boolean;
+  acceptCall: boolean;
 }
 
 // Some hardcoded roles
@@ -23,7 +28,10 @@ interface RolesGridProps {
 
 const RolesGrid: React.FC<RolesGridProps> = observer(function ({
   onSelectRole,
+  toSelectedRole,
   model,
+  callable,
+  acceptCall,
 }) {
   if (model.configuration === null) {
     return <>Awaiting configuration</>;
@@ -45,11 +53,17 @@ const RolesGrid: React.FC<RolesGridProps> = observer(function ({
         marginRight="2rem"
       >
         {roles.map((role) => (
-          <RoleCard
-            key={role.name}
-            roleName={role.name}
-            onClick={() => onSelectRole(role.name)}
-          />
+          <div key={role.id}>
+            <RoleCard
+              roleName={role.name}
+              onClick={() => {
+                onSelectRole(role.name);
+              }}
+              callable={callable}
+              model={model} //_focus={{ outline: "none", boxShadow: "none" }}
+              //_active={{ outline: "none" }}
+            />
+          </div>
         ))}
       </SimpleGrid>
     </Box>

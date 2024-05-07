@@ -38,6 +38,7 @@ const XCButton = observer((props: Props) => {
   const { frequencyId, onToggle, model, buttonElement } = props;
 
   const [checkedFrequencies, setCheckedFrequencies] = useState<number[]>([]);
+
   const getButtonColorScheme = (type: string) => {
     return "blue";
   };

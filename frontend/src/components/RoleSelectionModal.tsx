@@ -109,7 +109,13 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
               </HStack>
             </VStack>
             {atcoSelected && (
-              <RolesGrid model={model} onSelectRole={handleRoleSelection} />
+              <RolesGrid
+                model={model}
+                onSelectRole={handleRoleSelection}
+                callable={false}
+                acceptCall={false}
+                toSelectedRole={() => {}}
+              />
             )}
           </ModalBody>
         </ModalContent>

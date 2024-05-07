@@ -30,7 +30,7 @@ const DashboardFrequenceCard = observer(
   (props: { model: typeof DashboardModel; frequency: DashboardFrequency }) => {
     const { model, frequency } = props;
 
-    const [userCounts, setUserCounts] = useState<{ [key: number]: number}>({});
+    const [userCounts, setUserCounts] = useState<{ [key: number]: number }>({});
 
     const initialState = {
       frequency: frequency.frequency,
@@ -68,20 +68,22 @@ const DashboardFrequenceCard = observer(
     });
 
     useEffect(() => {
-      if(!model.socket.io){
+      if (!model.socket.io) {
         return;
       }
 
-      model.socket.io.on("countUsersOnFreq", (countUsersOnFreq: { [key: number]: number}) => {
-        console.log("before set");
-        setUserCounts(countUsersOnFreq);
-      }) 
+      model.socket.io.on(
+        "countUsersOnFreq",
+        (countUsersOnFreq: { [key: number]: number }) => {
+          setUserCounts(countUsersOnFreq);
+        }
+      );
 
       return () => {
-        if(!model.socket.io) return
-        model.socket.io.off("countUsersOnFreq")
-      } 
-    }, [])
+        if (!model.socket.io) return;
+        model.socket.io.off("countUsersOnFreq");
+      };
+    }, []);
 
     return (
       <Accordion allowToggle>
@@ -93,7 +95,7 @@ const DashboardFrequenceCard = observer(
               </Box>
               <Flex dir="row" pr="10px">
                 <Center gap="5px" color="turquoise">
-                {userCounts[frequency.id] ? userCounts[frequency.id] : 0}
+                  {userCounts[frequency.id] ? userCounts[frequency.id] : 0}
                   <Icon as={MdHeadsetMic} />
                 </Center>
               </Flex>
@@ -154,11 +156,6 @@ const DashboardFrequenceCard = observer(
                 id={frequency.id}
                 cardType="Frequency"
               />
-              {/*<DashboardDeleteCard
-                model={model}
-                name={frequency.frequency + "MHz"}
-                cardType="Frequency"
-              />*/}
             </Flex>
           </AccordionPanel>
         </AccordionItem>
