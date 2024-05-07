@@ -63,20 +63,27 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     socket.on("disconnect", () => {
       delete users[socket.id];
       userToFrequencies.delete(socket.id);
+      for (const call of calls.values()) {
+        if (call.initiator === socket.id || call.receiver === socket.id) {
+          calls.delete(call.id);
+          io.to(call.initiator).emit("endICCall", call);
+          io.to(call.receiver).emit("endICCall", call);
+        }
+      }
       socket.broadcast.emit("tryDisconnectPeer", socket.id);
     });
 
     socket.on("ICCall", (data) => {
-      console.log("calling role", data.role, data.from);
       data.id = uuidv4();
 
       for (const call of calls.values()) {
         if (
-          (call.initiator === data.initiator &&
-            call.receiver === data.initiator) ||
-          (call.receiver === data.initiator && call.initiator === data.receiver)
+          (call.initiatorRole === data.initiatorRole &&
+            call.receiverRole === data.receiverRole) ||
+          (call.receiverRole === data.initiatorRole &&
+            call.initiatorRole === data.receiverRole)
         ) {
-          console.log("User already in a call", data.from);
+          socket.emit("IncomingCall", { error: "Call already exists" });
           return;
         }
       }

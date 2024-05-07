@@ -147,7 +147,7 @@ const AcceptCallPopover = observer((props: CallButtonProps) => {
 
   return (
     <Popover
-      placement="right-end" // Specify the popover's placement relative to the button
+      placement="bottom" // Specify the popover's placement relative to the button
       isOpen={isOpen}
       onOpen={() => {}}
       onClose={() => {}}

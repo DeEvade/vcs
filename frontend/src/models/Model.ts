@@ -32,6 +32,17 @@ export const model = {
 
   pendingCalls: [] as Call[],
   acceptedCalls: [] as Call[],
+
+  isPilot: function () {
+    for (const role of this.selectedRoles) {
+      const roleObj = this.getRoleFromName(role);
+      if (roleObj?.type === "pilot") {
+        return true;
+      }
+    }
+    return false;
+  },
+
   onMakeICCall: function (role: string, isEmergency: boolean) {
     if (!this.socket.io || !this.socket.connected) return;
 

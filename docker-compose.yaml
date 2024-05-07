@@ -24,6 +24,7 @@ services:
   vcs-db:
     image: postgres
     container_name: vcs-db
+    restart: always
     environment:
       PGPORT: 5432
       POSTGRES_USER: postgres
@@ -34,8 +35,8 @@ services:
       interval: 1s
       timeout: 10s
       retries: 5
-    volumes:
-      - ./data:/var/lib/postgresql/data:rw
+    #volumes:
+    # - ./data:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
 

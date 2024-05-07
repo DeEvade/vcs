@@ -8,6 +8,7 @@ export default {
     }
     this.socket.io?.emit("getAllData");
   },
+
   selectedConfigurationId: null as number | null,
   activeConfigId: null as number | null,
 

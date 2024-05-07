@@ -184,6 +184,9 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("IncomingCall", (data: any) => {
+      if (data.error) {
+        return toast.error("Error: " + data.error);
+      }
       console.log("Incoming call", data);
 
       if (
