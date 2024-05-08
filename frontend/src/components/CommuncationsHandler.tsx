@@ -75,7 +75,6 @@ const PeerChannel = observer(
     }, [peer]);
 
     useEffect(() => {
-      console.log("TEST###################################################");
       console.log(defaultModel.delayTime);
     }, [stream, defaultModel.delayTime]);
 

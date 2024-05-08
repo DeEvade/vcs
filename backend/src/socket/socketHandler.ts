@@ -197,12 +197,12 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
-    socket.on("callUser", (data, freq) => {
-      console.log("calling user", data.userToCall, data.from);
-
+    socket.on("callUser", (data) => {
+      console.log("calling user with info: ", data.freq, data.userToCall, data.from);
       io.to(data.userToCall).emit("hey", {
         signal: data.signalData,
         from: data.from,
+        freq: data.freq,
       });
     });
 
