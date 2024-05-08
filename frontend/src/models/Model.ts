@@ -3,7 +3,7 @@ import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
-  devMode: true as boolean,
+  devMode: false as boolean,
   configuration: null as Configuration | null,
   selectedRoles: [] as string[],
   openRoleModal: true as boolean,
@@ -12,7 +12,6 @@ export const model = {
   radioGain: 50 as number,
   micGain: 50 as number,
   PTTKey: "Space" as string,
-  txState: false as boolean,
 
   socket: {
     connected: false,

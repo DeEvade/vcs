@@ -19,7 +19,6 @@ import {
   Text,
   useDisclosure,
   FormErrorMessage,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { MdHeadsetMic } from "react-icons/md";
 import { observer } from "mobx-react-lite";
@@ -95,7 +94,7 @@ const DashboardFrequenceCard = observer(
                 {parseFloat(frequency.frequency).toFixed(3)} MHz
               </Box>
               <Flex dir="row" pr="10px">
-                <Center gap="5px" color={useColorModeValue("red", "turquoise")}>
+                <Center gap="5px" color="turquoise">
                   {userCounts[frequency.id] ? userCounts[frequency.id] : 0}
                   <Icon as={MdHeadsetMic} />
                 </Center>

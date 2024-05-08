@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import { ChakraProvider } from "@chakra-ui/react";
 //import theme from '../theme'; // Adjust the import path to your theme configuration
 import { PTTProvider } from "../contexts/PTTContext";
-import { model } from "@/models/Model";
 import theme from "./theme";
 
 interface LayoutProps {
