@@ -74,32 +74,40 @@ const PeerChannel = observer(
       };
     }, [peer]);
 
-    useEffect(() => {
-      console.log(defaultModel.delayTime);
-    }, [stream, defaultModel.delayTime]);
+    // Delay function frame
+    // should be connected to roles with delay enabled
 
-    useEffect(() => {
-      if (stream) {
-        console.log("applies delay");
-        console.log(defaultModel.delayTime);
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        const dest = audioContext.createMediaStreamDestination();
-        let delayNode = audioContext.createDelay(defaultModel.delayTime); // 1 second delay
-        delayNode.delayTime.value = defaultModel.delayTime; // set delay time to 1 second
-        source.connect(delayNode);
-        delayNode.connect(dest);
-        setStream(dest.stream);
-      }
-    }, [stream != null, defaultModel.delayTime]);
+    // useEffect(() => {
+    //   if (stream) {
+    //     console.log("applies delay");
+    //     console.log(defaultModel.delayTime);
+    //     const audioContext = new AudioContext();
+    //     const source = audioContext.createMediaStreamSource(stream);
+    //     const dest = audioContext.createMediaStreamDestination();
+    //     let delayNode = audioContext.createDelay(defaultModel.delayTime); // 1 second delay
+    //     delayNode.delayTime.value = defaultModel.delayTime; // set delay time to 1 second
+    //     source.connect(delayNode);
+    //     delayNode.connect(dest);
+    //     setStream(dest.stream);
+    //   }
+    // }, [stream != null, defaultModel.delayTime]);
 
+    // Function for master volume control
+    useEffect(() => {
+      console.log("RadioGain at: " + model.radioGain);
+      let audio = document.getElementById("MasterVolume") as HTMLAudioElement;
+      if (audio == null) return;
+      audio.volume = model.radioGain / 100;
+    }, [model.radioGain]);
+
+    // Audio element, used for master volume control
     return (
       <>
         <script src="./SocketHandler.tsx"></script>
         <audio
           autoPlay
           playsInline
-          id={peerId}
+          id={"MasterVolume"}
           ref={(audio) => {
             if (audio && stream) {
               audio.srcObject = stream;
@@ -108,7 +116,7 @@ const PeerChannel = observer(
           }}
         />
       </>
-    ); // Show something meaningful
+    );
   }
 );
 

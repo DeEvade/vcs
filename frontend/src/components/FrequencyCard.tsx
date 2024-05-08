@@ -49,7 +49,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     } else {
       model.txState = false;
     }
-  },[model.TXFrequencies])
+  }, [model.TXFrequencies]);
 
   //kolla varje rolls första order och visa den
 
@@ -58,7 +58,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     model.configuration?.roles.forEach((role) => {
       role.frequencies.forEach((frequency) => {
         if (frequency.id === id && frequency.order === 1) {
-          console.log("role name: ", role.name);
+          //console.log("role name: ", role.name);
           return (name = role.name);
         }
       });

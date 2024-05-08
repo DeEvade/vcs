@@ -12,6 +12,7 @@ import micGain from "./ConfigMenu";
 import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
+import CommunicationsHandler from "./CommuncationsHandler";
 
 interface Props {
   model: typeof baseModel;
@@ -147,14 +148,7 @@ const SocketHandler = observer((props: Props) => {
     if (!pttGainNode) return;
 
     try {
-      console.log(model.txState);
-
-      // gud vet vad för console log
       const entries = Array.from(model.freqToMediaStream.entries());
-      for (const [key, mediaStream] of entries) {
-        console.log("State of " + key);
-        console.log("is: " + mediaStream.getTracks()[0].enabled);
-      }
 
       pttGainNode.gain.value = pttActive && model.txState ? 1 : 0;
     } catch (error) {
@@ -174,7 +168,8 @@ const SocketHandler = observer((props: Props) => {
     }
   }, [model.micGain, gainNode]);
 
-  // Gud vet vad för logic
+  // TX handling
+  // Enables or disables mediastream according to TX states
   useEffect(() => {
     const entries = Array.from(model.freqToMediaStream.entries());
     console.log("Currently turned on TX: " + model.TXFrequencies);
@@ -207,7 +202,7 @@ const SocketHandler = observer((props: Props) => {
     });
 
     io.on("tryDisconnectPeer", (user: string) => {
-      console.log("try disconnect peer", user);
+      //console.log("try disconnect peer", user);
 
       const peer = model.peers.get(user);
       if (!peer) {
@@ -548,6 +543,10 @@ const SocketHandler = observer((props: Props) => {
       io.disconnect();
     };
   }, [stream]);
+
+  useEffect(() => {
+    console.log(model.eggState);
+  }, [model.radioGain]);
 
   return <></>;
 });

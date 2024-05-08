@@ -104,6 +104,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             max={100}
             value={model.radioGain}
             onChange={(val) => onRadioValueChanged(val)}
+            step={5}
           >
             <SliderTrack>
               <SliderFilledTrack />
@@ -120,6 +121,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             max={100}
             value={model.micGain}
             onChange={(val) => onMicValueChanged(val)}
+            step={5}
           >
             <SliderTrack>
               <SliderFilledTrack />

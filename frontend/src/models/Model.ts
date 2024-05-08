@@ -62,7 +62,7 @@ export const model = {
       return null;
     }
 
-    console.log(this.configuration.roles);
+    // console.log(this.configuration.roles);
 
     return (
       this.configuration.roles.filter((role) =>

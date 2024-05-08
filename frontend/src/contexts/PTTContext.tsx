@@ -8,6 +8,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { model as baseModel } from "@/models/Model";
 
 interface PTTContextType {
   pttKey: string;
@@ -34,6 +35,7 @@ export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
   const [pttActive, setPttActive] = useState(false);
   const requiredSequence = "FISKGJUSE"; //EGG
   const [lastNineChars, setLastNineChars] = useState(""); //EGG
+  const [eggState, setEggState] = useState(false); //EGG
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -66,11 +68,33 @@ export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
       const { key } = event;
       setLastNineChars((prevChars) => (prevChars + key).slice(-9));
     };
-    console.log("sequence is: " + lastNineChars);
+    //console.log("sequence is: " + lastNineChars);
 
     const checkSequence = () => {
       if (lastNineChars.toUpperCase() === requiredSequence.toUpperCase()) {
-        console.log("Sequence matched!");
+        console.log("Created by:");
+        console.log(
+          ".------..------..------..------..------..------..------..------..------."
+        );
+        console.log(
+          "|F.--. ||I.--. ||S.--. ||K.--. ||G.--. ||J.--. ||U.--. ||S.--. ||E.--. |"
+        );
+        console.log(
+          "| :(): || (\\/) || :/\\: || :/\\: || :/\\: || :(): || (\\/) || :/\\: || (\\/) |"
+        );
+        console.log(
+          "| ()() || :\\/: || :\\/: || :\\/: || :\\/: || ()() || :\\/: || :\\/: || :\\/: |"
+        );
+        console.log(
+          "| '--'F|| '--'I|| '--'S|| '--'K|| '--'G|| '--'J|| '--'U|| '--'S|| '--'E|"
+        );
+        console.log(
+          "`------'`------'`------'`------'`------'`------'`------'`------'`------'"
+        );
+        console.log(
+          '"99% of gambling addicts quit right before they are about to hit it big."'
+        );
+        setEggState(true);
       }
     };
 
