@@ -18,6 +18,8 @@ interface Props {
   model: typeof baseModel;
 }
 
+//TODO Stängav mic check när configmeny stängs!
+
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
   const [analyserStream, setAnalyserStream] = useState<MediaStream | null>(
