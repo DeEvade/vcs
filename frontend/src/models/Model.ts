@@ -28,7 +28,8 @@ export const model = {
   peers: new Map() as Map<string, Peer.Instance>,
 
 
-  // gud vet vad för kod
+  // Frequency to MediaStream map
+  // Keeps track for each user which of their streams is connected to what frequency
   freqToMediaStream: new Map() as Map<number, MediaStream>,
 
 
@@ -62,7 +63,6 @@ export const model = {
       return null;
     }
 
-    // console.log(this.configuration.roles);
 
     return (
       this.configuration.roles.filter((role) =>
@@ -93,7 +93,6 @@ export const model = {
     ) {
       return;
     }
-    // console.log("RX" + this.RXFrequencies);
     if (this.NORXFrequencies !== null) {
       this.socket.io.emit("disconnectFreq", this.NORXFrequencies);
       console.log("Emitted disconnect");
