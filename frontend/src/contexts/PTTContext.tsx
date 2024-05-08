@@ -103,6 +103,9 @@ export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
         console.log(
           '"Omsätt och få 100 % bonus upp till 4 000 kr + 100 gratisspins på MGM Grand Gamble."'
         );
+        console.log(
+          '"https://www.leovegas.com"'
+        );
         setEggState(true);
       }
     };

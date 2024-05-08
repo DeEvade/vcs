@@ -46,7 +46,7 @@ const SocketHandler = observer((props: Props) => {
         },
       })
       .then((stream) => {
-        console.log("Got stream", stream); //kommer hit
+        console.log("Got stream", stream);
 
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
@@ -149,7 +149,6 @@ const SocketHandler = observer((props: Props) => {
 
     try {
       const entries = Array.from(model.freqToMediaStream.entries());
-
       pttGainNode.gain.value = pttActive && model.txState ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
