@@ -20,6 +20,7 @@ import {
   DrawerCloseButton,
 } from "@chakra-ui/react";
 
+//Footer for Voice communication System 2024 title and tutorial page 
 const Footer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = React.useRef();
@@ -28,6 +29,7 @@ const Footer = () => {
   const bgColorTitle = useColorModeValue("black", "white");
 
   return (
+    //This component renderes a footer containing the system title and a button to open a tutorial drawer
     <Box p={4} mt={4}>
       <Flex alignItems="center" justifyContent="center">
         <Text textAlign="center">Voice Communication System 2024</Text>

@@ -17,18 +17,23 @@ export interface Call {
 }
 
 const socketHandler = async (io: Server, AppDataSource: DataSource) => {
+  //Array to store all users connected to the socket
   const users = {} as { [key: string]: Socket };
 
+  //Map to store all cross couplings and the users involved
   const xcConnection = new Map<number, number[]>();
 
+  //Map to store ongoing calls 
   const calls = new Map<string, Call>();
 
-  //Hashmap to store the frequencies of each user
+  //Map to store the frequencies of each user
   const userToFrequencies = new Map<string, number[]>(); //vanliga hashmapen
-  // keys are frequencies and values are count of users on the frequency
+
+  //Map to store amount of users on each frequency
   const countUsersOnFreq = new Map<number, number>();
 
   let currentConfigId: number = 0;
+  //Attempt to retrieve configuration from database
   try {
     const configs = await AppDataSource.getRepository(Configuration).find();
     if (configs.length > 0) {
@@ -38,6 +43,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error during default configuration creation", error);
   }
 
+  //Attempt to retrieve cross couplings from database
   try {
     const XCRepo = AppDataSource.getRepository(XC);
     const xcs = await XCRepo.find();
@@ -50,16 +56,18 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     console.log("Error getting XC", error);
   }
 
+  //Main event listener for socket connection
   io.on("connection", (socket: Socket) => {
+    //Ensure socket exits
     if (!socket) {
       return "there is no socket";
     }
-    console.log("a user connected");
     // save all user ids with same frequencies as socket.id in retMap
-
     if (!users[socket.id]) {
       users[socket.id] = socket;
     }
+
+    //Event listener for disconnect that deletes the userId and updates users array
     socket.on("disconnect", () => {
       delete users[socket.id];
       userToFrequencies.delete(socket.id);
@@ -73,6 +81,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       socket.broadcast.emit("tryDisconnectPeer", socket.id);
     });
 
+    //Event listener to create a call and send an incoming call
     socket.on("ICCall", (data) => {
       data.id = uuidv4();
 
@@ -90,6 +99,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       socket.broadcast.emit("IncomingCall", data);
     });
 
+    //Event listener to accept an incoming call and emit to connect the two peers
     socket.on("acceptICCall", (data) => {
       const call = data.call;
       console.log("accepting role", data.initiator, data.receiver);
@@ -107,6 +117,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       io.to(call.initiator).emit("tryConnectPeer", call.receiver);
     });
 
+    //Event listener to end a call and emit to disconnect the two peers 
     socket.on("endICCall", (data) => {
       const call = data;
       console.log("endICCall", data.initiator, data.receiver);
@@ -118,6 +129,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       io.to(data.receiver).emit("tryDisconnectPeer", data.initiator);
     });
 
+    //Event listener to create and store in database the new cross coupling 
     socket.on("createXC", async (data: any) => {
       console.log("creating XC", data);
       try {
@@ -138,6 +150,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener to retreive from database the current cross couplings
     socket.on("getCurrentXC", async () => {
       try {
         socket.emit(
@@ -153,6 +166,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener to update database with current information of cross couplings
     socket.on("updateXC", async (data: any) => {
       console.log("updating XC", data);
 
@@ -181,12 +195,14 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that manages all changes regarding frequencies 
     socket.on("updatedFrequencies", (newFrequencies: number[]) => {
       console.log("updatedFrequencies", userToFrequencies);
       const previousfrequencies = userToFrequencies.get(socket.id) || [];
 
       userToFrequencies.set(socket.id, newFrequencies);
 
+      //Checks if user has disconnected from a frequency and decrements array by one
       previousfrequencies.forEach((frequency) => {
         if (!newFrequencies.includes(frequency)) {
           if (countUsersOnFreq.has(frequency)) {
@@ -204,6 +220,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         }
       });
 
+      //Checks if the user connected to a new frequency and increments array by one
       newFrequencies.forEach((frequency) => {
         if (!previousfrequencies.includes(frequency)) {
           if (countUsersOnFreq.has(frequency)) {
@@ -222,8 +239,8 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       io.emit("countUsersOnFreq", userObject);
       const usersToConnect: string[] = [];
 
+
       Object.keys(users).forEach((key) => {
-        //Går igenom hashmapen
         if (key === socket.id) return;
         userToFrequencies.forEach((frequencies, userId) => {
           if (userId === socket.id) return;
@@ -269,6 +286,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
+    //Listens for intialising a call and sends the necessary signaling data to the specified user
     socket.on("callUser", (data) => {
       console.log("calling user", data.userToCall, data.from);
 
@@ -278,6 +296,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
+    //Listens for accepting an incoming call and emits the signal data to establish the connection
     socket.on("acceptCall", (data) => {
       console.log("accepting user", data.to, data.from);
 
@@ -287,6 +306,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
+    //Listens for the event when a client sets an active configuration 
     socket.on("setActiveConfig", async (data) => {
       try {
         const config = await AppDataSource.getRepository(
@@ -294,18 +314,19 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         ).findOneBy({
           id: data.configId,
         });
+        //Updates the current configID and emits the retrived configuration to the client that triggered the event
         if (!config) throw new Error("No configuration found");
         currentConfigId = config.id;
         socket.emit("setActiveConfig", config);
+        //Broadcast the retrieved configuration to all connected users
         socket.broadcast.emit("setActiveConfig", config);
       } catch (error) {
         socket.emit("setActiveConfig", { error: error.message });
       }
     });
 
+    //Listens for when a client gets all data and retrieves from the database and emits to the client that triggered the event
     socket.on("getAllData", async () => {
-      console.log("asking for all data");
-
       try {
         const configRepo = AppDataSource.getRepository(Configuration);
         const roleRepo = AppDataSource.getRepository(Role);
@@ -335,6 +356,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for when a client adds configuration and updates the database and emits to the client that triggered the event
     socket.on("addConfig", async (data) => {
       try {
         const configRepo = AppDataSource.getRepository(Configuration);
@@ -348,6 +370,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for when a client editConfig and updates the database and emit to the client that triggered the event
     socket.on("editConfig", async (data) => {
       try {
         const configRepo = AppDataSource.getRepository(Configuration);
@@ -362,6 +385,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for when a client deleteConfig and updates the database and emit to the client that triggered the event
     socket.on("deleteConfig", async (data) => {
       try {
         const configRepo = AppDataSource.getRepository(Configuration);
@@ -375,6 +399,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrives roles, adds a new role and updates the database. Emits back to the client and to all other connected users.
     socket.on("addRole", async (data) => {
       try {
         const roleRepo = AppDataSource.getRepository(Role);
@@ -388,6 +413,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrives frequency, adds a new frequency and updates the database. Emits back to the client and to all other connected users.
     socket.on("addFrequency", async (data) => {
       try {
         const frequencyRepo = AppDataSource.getRepository(Frequency);
@@ -401,6 +427,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrieves frequencies, edits and updates the database. Emits back to the client and to all other users
     socket.on("editFrequency", async (data) => {
       try {
         const frequencyRepo = AppDataSource.getRepository(Frequency);
@@ -417,6 +444,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrieves frequencies, deletes and updates the database. Emits back to the client and to all other users
     socket.on("deleteFrequency", async (data) => {
       try {
         const frequencyRepo = AppDataSource.getRepository(Frequency);
@@ -432,6 +460,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrieves roles, deletes and updates the database. Emits back to the client and to all other users
     socket.on("deleteRole", async (data) => {
       try {
         const roleRepo = AppDataSource.getRepository(Role);
@@ -445,6 +474,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Event listener that retrieves roles, edits and updates the database. Emits back to the client and to all other users
     socket.on("editRole", async (data) => {
       try {
         const roleRepo = AppDataSource.getRepository(Role);
@@ -462,6 +492,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for the "getCurrentConfig" event triggered by a client to retrieve the current configuration and associated roles from the database.
     socket.on("getCurrentConfig", async () => {
       console.log("asking for config");
       try {
@@ -488,10 +519,9 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for the "deleteRoleFrequency" event triggered by a client to delete a role-frequency relationship from the database.
     socket.on("deleteRoleFrequency", async (data) => {
       try {
-        console.log("deleting role frequency", data);
-
         const roleFrequencyRepo = AppDataSource.getRepository(RoleFrequency);
         const roleFrequency = await roleFrequencyRepo.findOneBy({
           roleId: data.roleId,
@@ -506,6 +536,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
+    //Listens for the "addRoleFrequency" event triggered by a client to add a new role-frequency relationship to the database
     socket.on("addRoleFrequency", async (data) => {
       try {
         const roleFrequencyRepo = AppDataSource.getRepository(RoleFrequency);
@@ -528,6 +559,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     });
   });
 };
+//Converts an object of users to an array of their corresponding user IDs.
 const usersToUserIds = (users: { [key: string]: Socket }) => {
   return Object.keys(users).map((key) => users[key].id);
 };

@@ -30,8 +30,8 @@ interface Props {
   model: typeof baseModel;
 }
 
+//Function that handles the configuration menu with settings for audio and sliders for realistic colors.
 const ConfigMenu: React.FC<Props> = observer(function (props) {
-  //const [radioGain, setRadioGain] = useState(50);
   const [listeningForKey, setListeningForKey] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
@@ -39,21 +39,24 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
 
   const { model } = props;
 
-  // Pulsate animation keyframes for the psuh to talk selection button
+  //Pulsate animation keyframes for the psuh to talk selection button
   const pulsate = keyframes`
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
    `;
 
+  //Handles changes in microphone gain value
   const onMicValueChanged = (val: any) => {
     model.micGain = val;
   };
-
+  
+  //Handles changes in radio gain value
   const onRadioValueChanged = (val: any) => {
     model.radioGain = val;
   };
 
+  //Effect hook that listens for key down events
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (listeningForKey) {
@@ -81,10 +84,12 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     ? undefined
     : `${pulsate} infinite 1.5s ease`;
 
+  //Handles easy mode in configuration menu
   const handleEasyMode = () => {
     model.setEasyMode(!model.easyMode);
   };
 
+  //Renderes a menu with radio and microphone gain slider, a switch that changes to realistic colors and push to talk key
   return (
     <Menu>
       <MenuButton

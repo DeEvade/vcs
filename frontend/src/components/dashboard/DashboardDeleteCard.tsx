@@ -16,6 +16,7 @@ import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
+//Defines a dashboarddelete component 
 const DashboardDeleteCard = observer(
   (props: {
     model: typeof DashboardModel;
@@ -28,7 +29,9 @@ const DashboardDeleteCard = observer(
     const [value, setValue] = useState<"ATC" | "pilot">("ATC");
     const { model } = props;
 
+    //Function to handle item deletion
     const handleDelete = () => {
+      //Determine type of item and call corresponding delete method
       switch (props.cardType.toLowerCase()) {
         case "role":
           model.deleteRole(props.id);
@@ -46,6 +49,7 @@ const DashboardDeleteCard = observer(
       onClose();
     };
 
+    //Render component for deleting items on the dashboard
     return (
       <>
         <Center cursor="pointer" onClick={onOpen}>

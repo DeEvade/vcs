@@ -109,21 +109,21 @@ interface CallButtonProps {
   roleName: string;
 }
 
+//Function that handles incoming calls and allow users to accept or decline calls
 const AcceptCallPopover = observer((props: CallButtonProps) => {
   const { model, anchorRef, isOpen, onClose, setOpen, roleName } = props;
 
   const [call, setCall] = useState<Call | undefined>(undefined);
 
+  //An effect hook that is triggered when the pendingcalls array is changed to handle incoming call notifications
   useEffect(() => {
     console.log("Pending calls", model.pendingCalls, roleName);
-    // toast.success(`Incoming call to ${roleName}`);
     const call = model.pendingCalls.find(
       (call) => call.initiatorRole == roleName
     );
 
     if (call) {
       console.log("Call found", call);
-
       if (call.isEmergency) {
         model.onMakeAcceptCall(call, true);
         model.pendingCalls = model.pendingCalls.filter((c) => c.id !== call.id);
@@ -135,7 +135,6 @@ const AcceptCallPopover = observer((props: CallButtonProps) => {
       setOpen(true);
     } else {
       setOpen(false);
-      //model.onMakeTurnOffCall(roleName, true, call.from);
     }
   }, [model.pendingCalls]);
 
@@ -145,9 +144,10 @@ const AcceptCallPopover = observer((props: CallButtonProps) => {
     onClose();
   };
 
+  //Renderes a popover that comes up when another role calls the user, with the option to accept or decline
   return (
     <Popover
-      placement="bottom" // Specify the popover's placement relative to the button
+      placement="bottom"
       isOpen={isOpen}
       onOpen={() => {}}
       onClose={() => {}}
@@ -190,6 +190,7 @@ const AcceptCallPopover = observer((props: CallButtonProps) => {
   );
 });
 
+//Function that allow users to call normally or emergency
 const CallPopover = observer((props: CallButtonProps) => {
   const { model, anchorRef, isOpen, onClose, roleName } = props;
 
@@ -198,9 +199,10 @@ const CallPopover = observer((props: CallButtonProps) => {
     onClose();
   };
 
+  //Renderes a popover with a title and two buttons, normal or emergency, that when pressed calls another role
   return (
     <Popover
-      placement="bottom" // Specify the popover's placement relative to the button
+      placement="bottom"
       isOpen={isOpen}
       onOpen={() => {}}
       onClose={onClose}

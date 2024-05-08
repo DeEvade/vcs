@@ -25,6 +25,7 @@ const SocketHandler = observer((props: Props) => {
   const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
   const { pttActive } = usePTT();
 
+  //useEffect that handles all instances of audio and media streams
   useEffect(() => {
     if (stream !== null) return;
 
@@ -33,6 +34,7 @@ const SocketHandler = observer((props: Props) => {
       return;
     }
 
+    //Request access to users microphone
     navigator.mediaDevices
       .getUserMedia({
         video: false,
@@ -46,7 +48,6 @@ const SocketHandler = observer((props: Props) => {
         },
       })
       .then((stream) => {
-        console.log("Got stream", stream); //kommer hit
         //setStream(stream);
 
         const audioContext = new AudioContext();
@@ -231,6 +232,7 @@ const SocketHandler = observer((props: Props) => {
       model.peers.delete(user);
     });
 
+    //Event handler that attempts to connect to a peer, creates a new Peer object and emits a signal to initiate the connection.
     io.on("tryConnectPeer", (user: string) => {
       const peerExists = model.peers.get(user);
 
@@ -244,6 +246,7 @@ const SocketHandler = observer((props: Props) => {
         return;
       }
 
+      //Create a new Peer object
       const peer = new Peer({
         initiator: true,
         trickle: false,
@@ -254,7 +257,7 @@ const SocketHandler = observer((props: Props) => {
             "a=fmtp:111 ptime=5;useinbandfec=1;stereo=1;maxplaybackrate=48000;maxaveragebitrat=128000;sprop-stereo=1"
           );
         },
-
+        //Configure ICE servers and candidate pool size
         config: {
           iceServers: [
             {
@@ -269,8 +272,8 @@ const SocketHandler = observer((props: Props) => {
       });
       console.log("Peer has connected");
 
+      //Event handler for when peer sends signal and emits offer signal data to the server
       peer.on("signal", (offerSignal) => {
-        console.log("initiator sending offer signal");
         io.emit("callUser", {
           userToCall: user,
           signalData: offerSignal,
@@ -280,6 +283,7 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
+    //Listens for call acceptence signals and signals the peer connection accordinaly
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
 
@@ -291,24 +295,24 @@ const SocketHandler = observer((props: Props) => {
       peer.signal(signal.signal);
     });
 
+    //Updates the cross couplings in the database with the received data
     io.on("getCurrentXC", (data: any) => {
       if (data.error) {
         return toast.error("error getting XC: " + data.error);
       }
-      console.log("got XC", data);
-
       model.XCFrequencies = data;
     });
 
+    //Adds a new cross coupling in the database with the received data
     io.on("createXC", (data: any) => {
       if (data.error) {
         return toast.error("error creating XC: " + data.error);
       }
-      console.log("XC created", data);
 
       model.XCFrequencies = model.XCFrequencies.concat([data]);
     });
 
+    //Deletes a cross coupling in the database with the information from the received data
     io.on("deleteXC", (data: any) => {
       if (data.error) {
         return toast.error("error deleting XC: " + data.error);
@@ -323,6 +327,7 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
+    //Updates an existing cross coupling in the database with the received data
     io.on("updateXC", (data: any) => {
       if (data.error) {
         return toast.error("error updating XC: " + data.error);
@@ -337,6 +342,7 @@ const SocketHandler = observer((props: Props) => {
       });
     });
 
+    //Listens for incoming call signals and initializes a Peer object to handle the connection
     io.on("hey", (data: any) => {
       console.log("Stream in hey", stream);
 
@@ -379,6 +385,7 @@ const SocketHandler = observer((props: Props) => {
       model.peers.set(data.from, peer);
     });
 
+    
     io.on("addRole", (data: any) => {
       if (data.error) {
         return toast.error("error getting new role: " + data.error);

@@ -26,6 +26,7 @@ import {
   FormErrorMessage,
 } from "@chakra-ui/react";
 
+// Component for adding a new frequency, providing a modal form for input and submission
 const DashboardAddFrequency = observer(
   (props: { model: typeof DashboardModel }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -42,6 +43,7 @@ const DashboardAddFrequency = observer(
       onClose();
     };
 
+    // Renders a modal form with input fields for frequency value and unit, along with cancel and save buttons
     return (
       <>
         <Center marginRight={"5px"}>

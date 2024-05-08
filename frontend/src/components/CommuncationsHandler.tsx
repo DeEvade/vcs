@@ -9,13 +9,12 @@ interface Props {
 }
 console.log("communications handler file");
 
+//Functional component that renderes a list of peer channels 
 const CommunicationsHandler = observer(({ model }: Props) => {
   if (!model.socket?.io) {
     console.log("Com. Handler no socket found");
-    return null; // Return null instead of <></> for clarity
+    return null;
   }
-
-  console.log("Com. Handler got socket");
 
   return (
     <>
@@ -28,6 +27,7 @@ const CommunicationsHandler = observer(({ model }: Props) => {
   );
 });
 
+//Handles streaming audio from a peer and renderes an audio element
 const PeerChannel = observer(
   ({
     peer,
@@ -40,13 +40,13 @@ const PeerChannel = observer(
   }) => {
     const [stream, setStream] = useState<MediaStream | null>(null);
     useEffect(() => {
-      // Do something with the peer
+      //When a stream event occurs, update the stream with the new stream
       peer.on("stream", (stream) => {
         setStream(stream);
       });
 
+      //Clean up function that stops all tracks of the current stream if it exists
       return () => {
-        // Clean up
         if (stream) {
           stream.getTracks().forEach((track) => {
             track.stop();
@@ -55,6 +55,7 @@ const PeerChannel = observer(
       };
     }, [peer]);
 
+    //Renderes an audio element with different attributes 
     return (
       <>
         <audio
@@ -69,7 +70,7 @@ const PeerChannel = observer(
           }}
         />
       </>
-    ); // Show something meaningful
+    );
   }
 );
 

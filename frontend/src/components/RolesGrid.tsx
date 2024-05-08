@@ -22,16 +22,7 @@ interface RolesGridProps {
   acceptCall: boolean;
 }
 
-// Some hardcoded roles
-/*const initialRoles: Role[] = [
-  { name: "OS DIR-E", primaryFrequency: "120.505" },
-  { name: "OS ARR-E", primaryFrequency: "126.655" },
-  { name: "OS APP-C", primaryFrequency: "" },
-  { name: "OS P3", primaryFrequency: "131.130" },
-  { name: "SA TWR W", primaryFrequency: "118.505" },
-  // Add more as needed
-];*/
-
+//Function that renderes a rolegrid configuration that allows users to select roles upon entering 
 const RolesGrid: React.FC<RolesGridProps> = observer(function ({
   onSelectRole,
   model,
@@ -45,6 +36,7 @@ const RolesGrid: React.FC<RolesGridProps> = observer(function ({
     .filter((role) => role.type === "ATC")
     .filter((role) => !model.selectedRoles.includes(role.name));
 
+  //Renderes a rolecard with all possible roles, when a role is pressed it is selected by the user
   return (
     <Box>
       <SimpleGrid

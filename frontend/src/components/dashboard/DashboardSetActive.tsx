@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import { Button, ButtonGroup, Switch, Stack, Box } from "@chakra-ui/react";
 
+// Component for setting a configuration as active or inactive, toggling its status
 const DashboardSetActive = observer(
   (props: { model: typeof DashboardModel }) => {
     const { model } = props;

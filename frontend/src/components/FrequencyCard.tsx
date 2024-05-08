@@ -32,6 +32,7 @@ interface Props {
   model: typeof baseModel;
 }
 
+//Function that retrieves all frequencies belonging to a specific role and handles button toggle and associated logic
 const FrequencyCard: React.FC<Props> = observer(function ({
   frequency,
   onToggle,
@@ -44,8 +45,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   const frequencyState = model.getFrequencyState(frequency.id);
 
-  //kolla varje rolls första order och visa den
-
+  //Retrieves frequency based on frequency id
   const getFrequencyLabel = (id: number): string => {
     let name = "empty";
     model.configuration?.roles.forEach((role) => {
@@ -61,6 +61,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   const frequencyLabel = getFrequencyLabel(frequency.id);
 
+  //Handle toggle logic for RX, TX and XC buttons
   const handleToggle = (type: "RX" | "TX" | "XC") => {
     if (type === "RX") {
       // If RX is active and TX is also active, deactivate both.
@@ -86,8 +87,6 @@ const FrequencyCard: React.FC<Props> = observer(function ({
 
   };
 
-
-
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {
     const buttonActive = frequencyState[buttonType];
@@ -104,6 +103,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     return isPTTActive ? "yellow" : buttonActive ? "green" : "gray";
   };
 
+  //Renderes frequency cards with the specific frequency and buttons RX, TX and XC
   return (
     <Box
       p={4}

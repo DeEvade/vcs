@@ -27,6 +27,7 @@ import {
 import { rolesToFrequencies } from "@/utils/tools";
 import toast from "react-hot-toast";
 
+//Defines the interface for the props expected by the XC button component
 interface Props {
   frequencyId: number;
   onToggle: (id: number, type: "RX" | "TX" | "XC") => void;
@@ -34,6 +35,7 @@ interface Props {
   buttonElement: JSX.Element;
 }
 
+//Creates a button that when pressed renderes a popover with checkbox for selecting frequencies to be cross coupled 
 const XCButton = observer((props: Props) => {
   const { frequencyId, onToggle, model, buttonElement } = props;
 
@@ -42,6 +44,7 @@ const XCButton = observer((props: Props) => {
   const getButtonColorScheme = (type: string) => {
     return "blue";
   };
+  //Updates checked frequencies when the array XCfrequencies changes
   useEffect(() => {
     const potential = model.XCFrequencies.find((xc: XC) =>
       xc.frequencyIds.includes(frequencyId)
@@ -50,7 +53,6 @@ const XCButton = observer((props: Props) => {
 
     if (!potential) {
       setCheckedFrequencies([]);
-      //toast.error("XC not found");
       return;
     }
     setCheckedFrequencies(potential.frequencyIds);
@@ -71,6 +73,7 @@ const XCButton = observer((props: Props) => {
   */
   const { onOpen, onClose, isOpen } = useDisclosure();
 
+  //Handles submit of popover
   const handleSubmit = () => {
     const potential = model.XCFrequencies.find((xc: XC) =>
       xc.frequencyIds.includes(frequencyId)
@@ -84,14 +87,15 @@ const XCButton = observer((props: Props) => {
     onClose();
   };
 
-  /*
-  <Flex direction={"column"} gap={4}>
-  {otherFrequencies.map((frequency: Frequency) => (
-    <Checkbox value={frequency.id}>{frequency.frequency}</Checkbox>
-  ))}
-</Flex>
-*/
+    /*
+    <Flex direction={"column"} gap={4}>
+    {otherFrequencies.map((frequency: Frequency) => (
+      <Checkbox value={frequency.id}>{frequency.frequency}</Checkbox>
+    ))}
+  </Flex>
+  */
 
+  //Creates a popover with checkboxs that enables choosing of frequencies to be cross coupled 
   return (
     <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
       <PopoverTrigger>{buttonElement}</PopoverTrigger>

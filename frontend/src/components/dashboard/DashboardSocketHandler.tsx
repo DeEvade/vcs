@@ -9,6 +9,7 @@ import DashboardModel from "@/models/DashboardModel";
 interface Props {
   model: typeof DashboardModel;
 }
+// Establishes socket connection and sets up event listeners
 const DashboardSocketHandler = observer((props: Props) => {
   const { model } = props;
 
@@ -16,23 +17,25 @@ const DashboardSocketHandler = observer((props: Props) => {
     const io = socket(
       window.location.hostname + (model.devmode === true ? ":8080" : "")
     );
+
+    // Listens for successful socket connections
     io.on("connect", () => {
       toast("Connected to socket server", { icon: "🚀" });
       model.socket.io = io;
       model.socket.connected = true;
     });
 
+    // Removes a specific frequency from the roleFrequencies array based on the data provided
     io.on("deleteRoleFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error deleting role frequency: " + data.error);
       }
-      toast.success("role frequency deleted successfully");
-      console.log("role frequency deleted", data);
       model.roleFrequencies = model.roleFrequencies.filter(
         (RF) => RF.id !== data.id
       );
     });
 
+    // Adds a specific frequency to the roleFrequencies array with the data provided
     io.on("addRoleFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error setting secondary frequency: " + data.error);
@@ -42,15 +45,15 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.roleFrequencies = model.roleFrequencies.concat([data]);
     });
 
+    // Sets a frequency as the second frequency in the roleFrequencies array
     io.on("setSecondaryFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error setting secondary frequency: " + data.error);
       }
-      toast.success("secondary frequency set successfully");
-
       model.roleFrequencies = model.roleFrequencies.concat([data]);
     });
 
+    // Adds a new role in the roles array with the data provided
     io.on("addRole", (data: any) => {
       if (data.error) {
         return toast.error("error adding role: " + data.error);
@@ -59,6 +62,8 @@ const DashboardSocketHandler = observer((props: Props) => {
       console.log("role added", data);
       model.roles = model.roles.concat(data);
     });
+
+    // Adds a new frequency to the frequencies array with the data provided
     io.on("addFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error adding frequency: " + data.error);
@@ -68,6 +73,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.frequencies = model.frequencies.concat(data);
     });
 
+    // Removes a specific frequency from the frequencies array
     io.on("deleteFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error deleting frequency: " + data.error);
@@ -79,6 +85,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       );
     });
 
+    // Handles editing of a frequency and updates the array frequencies
     io.on("editFrequency", (data: any) => {
       if (data.error) {
         return toast.error("error editing frequency: " + data.error);
@@ -94,6 +101,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.frequencies = newFrequencies.filter((f) => true);
     });
 
+    // Adds a new config of the data provided and updates selected configuration with its config id 
     io.on("addConfig", (data: any) => {
       if (data.error) {
         return toast.error("error adding config: " + data.error);
@@ -104,6 +112,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.selectedConfigurationId = data.id;
     });
 
+    // Handles editing of a configuration and updates the array configs
     io.on("editConfig", (data: any) => {
       if (data.error) {
         return toast.error("error editing config: " + data.error);
@@ -119,6 +128,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.configs = newConfigs?.filter((c) => true);
     });
 
+    // Removes a specific configuration from the config array
     io.on("deleteConfig", (data: any) => {
       if (data.error) {
         return toast.error("error deleting config: " + data.error);
@@ -129,6 +139,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.configs = model.configs?.filter((config) => config.id !== data.id);
     });
 
+    // Removes a specific role from the roles array
     io.on("deleteRole", (data: any) => {
       if (data.error) {
         return toast.error("error deleting role: " + data.error);
@@ -137,6 +148,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.roles = model.roles.filter((role) => role.id !== data.id);
     });
 
+    // Handles editing of a role and updates the array roles
     io.on("editRole", (data: any) => {
       if (data.error) {
         return toast.error("error changing role: " + data.error);
@@ -152,6 +164,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.roles = x.filter((r) => true);
     });
 
+    // Listens for setting an active configuration and updates the activeConfigId
     io.on("setActiveConfig", (data: any) => {
       if (data.error) {
         return toast.error("error setting active config: " + data.error);
@@ -161,6 +174,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.activeConfigId = data.id;
     });
 
+    // Listens for receiving all data from the server and updates all data
     io.on("getAllData", (data: any) => {
       if (data.error) {
         return toast.error("data fetch error: " + data.error);
@@ -174,6 +188,7 @@ const DashboardSocketHandler = observer((props: Props) => {
       model.activeConfigId = data.activeConfigId;
     });
 
+    // Listens for disconnection from the socket server and handles the cleanup
     io.on("disconnect", () => {
       console.log("disconnected from socket server");
     });

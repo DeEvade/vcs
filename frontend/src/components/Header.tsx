@@ -15,6 +15,7 @@ import { observer } from "mobx-react-lite";
 import Peer from "simple-peer";
 import { AddIcon } from "@chakra-ui/icons";
 
+//Function that keeps track of and renderes the current time and online/offline status of the user
 const UtcClock = () => {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isClient, setIsClient] = useState(false);
@@ -36,6 +37,7 @@ const UtcClock = () => {
   const minutes = currentTime.getUTCMinutes().toString().padStart(2, "0");
   const seconds = currentTime.getUTCSeconds().toString().padStart(2, "0");
 
+  //Renderes a box that displays seconds you have entered the application
   return (
     <Flex align="center">
       <Box textAlign="right">
@@ -58,6 +60,7 @@ interface Props {
   model: typeof baseModel;
 }
 
+//Function that creates a header that handles selected role and allows users to add and remove roles
 const Header = observer(function (props: Props) {
   const { model } = props;
   const selectedRoles = model.selectedRoles;
@@ -69,6 +72,7 @@ const Header = observer(function (props: Props) {
   };
 
   const connected = model.socket.connected;
+  //Renderes the current time and selected role, with a button that when clicked allows the user to add roles
   return (
     <Box bg={bgColor} px={4}>
       <Flex h={16} alignItems="center" justifyContent="space-between">

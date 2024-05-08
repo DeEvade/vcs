@@ -20,6 +20,8 @@ import {
 } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
+
+// Component for editing an existing configuration, providing a modal form for input and submission
 const DashboardEditConfig = observer(
   (props: { model: typeof DashboardModel }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -50,6 +52,7 @@ const DashboardEditConfig = observer(
       onClose();
     };
 
+    // Renders a button with an edit icon that triggers a modal form for editing an existing configuration
     return (
       <>
         <Center marginRight={"5px"}>

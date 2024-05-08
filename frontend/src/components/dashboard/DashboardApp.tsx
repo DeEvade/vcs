@@ -24,9 +24,11 @@ import DashboardEditConfig from "./config/DashboardEditConfig";
 import DashboardDeleteCard from "./DashboardDeleteCard";
 import Footer from "../Footer";
 
+// Component for managing configurations, roles and frequencies, displaying them with options for editing, adding and deleting.
 const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
   const { model } = props;
 
+  // Fetches configuration when socket status or configuration status changes
   useEffect(() => {
     if (!model.socket.connected || model.configs) return;
     model.fetchConfigs();
@@ -36,6 +38,7 @@ const DashboardApp = observer((props: { model: typeof DashboardModel }) => {
     return <div>Loading...</div>;
   }
 
+  //Renders multiple components to display roles and frequencies with the option to edit, add and delete
   return (
     <Flex
       direction="column"
