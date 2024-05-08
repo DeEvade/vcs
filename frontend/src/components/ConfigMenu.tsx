@@ -19,6 +19,9 @@ import {
   Switch,
   FormControl,
   FormLabel,
+  Progress,
+  Flex,
+  Center,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { MdGraphicEq } from "react-icons/md";
@@ -31,11 +34,12 @@ interface Props {
 }
 
 const ConfigMenu: React.FC<Props> = observer(function (props) {
-  //const [radioGain, setRadioGain] = useState(50);
   const [listeningForKey, setListeningForKey] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
   const { colorMode, toggleColorMode } = useColorMode();
+  const [buttonText, setButtonText] = useState("Check Mic.");
+  const [buttonColor, setButtonColor] = useState("blue");
 
   const { model } = props;
 
@@ -85,6 +89,29 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     model.setEasyMode(!model.easyMode);
   };
 
+  const handleMicCheck = () => {
+    if (model.analyserActive) {
+      model.analyserActive = false;
+      setButtonText("Check Mic.");
+      setButtonColor("blue");
+      model.analyserVolume = 0;
+    } else {
+      model.analyserActive = true;
+      setButtonText("Stop Test");
+      setButtonColor("red");
+    }
+  };
+
+  let micVolumeColor: string;
+
+  if (model.analyserVolume <= 30) {
+    micVolumeColor = "yellow";
+  } else if (model.analyserVolume > 30 && model.analyserVolume < 70) {
+    micVolumeColor = "green";
+  } else {
+    micVolumeColor = "red";
+  }
+
   return (
     <Menu>
       <MenuButton
@@ -130,6 +157,27 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
               <Box color="gray.600" as={MdGraphicEq} />
             </SliderThumb>
           </Slider>
+          <Flex align="center" alignItems="center">
+            <Center>
+              <Text mb={2} mr={2}>
+                Mic. Volume Level
+              </Text>
+              <Button
+                size="xs"
+                mb={2}
+                width="75px"
+                onClick={handleMicCheck}
+                colorScheme={buttonColor}
+              >
+                {buttonText}
+              </Button>
+            </Center>
+          </Flex>
+          <Progress
+            value={model.analyserVolume}
+            colorScheme={micVolumeColor}
+            mb={2}
+          ></Progress>
 
           <FormControl display="flex" alignItems="center">
             <FormLabel mb="0">Realistic colors</FormLabel>
@@ -138,9 +186,9 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
               onChange={toggleColorMode}
             />
           </FormControl>
-        </Box>
-        <Box p={4}>
-          <Text mb={2}>Push to Talk Key: {pttKey}</Text>
+          <Text mb={2} mt={2}>
+            Push to Talk Key: {pttKey}
+          </Text>
           <Button
             size="sm"
             onClick={() => setListeningForKey(!listeningForKey)}

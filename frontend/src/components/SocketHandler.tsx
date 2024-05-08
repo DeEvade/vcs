@@ -20,10 +20,14 @@ interface Props {
 
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
+  const [analyserStream, setAnalyserStream] = useState<MediaStream | null>(
+    null
+  );
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
   const [pttGainNode, setPttGainNode] = useState<GainNode | null>(null);
   const { pttActive } = usePTT();
+  const [micLevel, setMicLevel] = useState<number>(0);
 
   useEffect(() => {
     if (stream !== null) return;
@@ -50,14 +54,23 @@ const SocketHandler = observer((props: Props) => {
 
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        const mediaStreamDestination =
+        const mediaStreamDestinationMic =
+          audioContext.createMediaStreamDestination();
+        const mediaStreamDestinationNoise =
+          audioContext.createMediaStreamDestination();
+        const mediaStreamDestinationAnalyser =
           audioContext.createMediaStreamDestination();
 
         let tuna = new Tuna(audioContext);
 
-        const masterGainNode = audioContext.createGain();
-        masterGainNode.gain.value = model.micGain / 50;
+        const masterGainNodeMic = audioContext.createGain();
+        masterGainNodeMic.gain.value = model.micGain / 50;
+        const masterGainNodeNoise = audioContext.createGain();
+        masterGainNodeMic.gain.value = model.micGain / 50;
+
         //gainNode.gain.value = model.micGain/50;
+        const preNoiseMaster = audioContext.createGain();
+        preNoiseMaster.gain.value = model.micGain / 50;
 
         // low pass filter for radio effect
         const lowpassFilter = new tuna.Filter({
@@ -119,29 +132,76 @@ const SocketHandler = observer((props: Props) => {
         noiseGain.gain.value = 0.05;
 
         // push to talk gain
-        const pttGain = audioContext.createGain();
-        pttGain.gain.value = 0;
+        const pttGainMic = audioContext.createGain();
+        pttGainMic.gain.value = 0;
+
+        const pttGainNoise = audioContext.createGain();
+        pttGainNoise.gain.value = 0;
 
         // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);
-        noiseGain.connect(masterGainNode);
+        noiseGain.connect(masterGainNodeNoise);
 
         // connect chain for radio effect
         mediaStreamSource.connect(lowpassFilter);
         lowpassFilter.connect(highpassFilter);
         highpassFilter.connect(compressor);
         compressor.connect(overdrive);
-        overdrive.connect(masterGainNode);
+        overdrive.connect(preNoiseMaster);
+        preNoiseMaster.connect(masterGainNodeMic);
 
         // Gain for push to talk
-        masterGainNode.connect(pttGain);
-        pttGain.connect(mediaStreamDestination);
+        masterGainNodeMic.connect(pttGainMic);
+        masterGainNodeMic.connect(mediaStreamDestinationAnalyser);
+        setAnalyserStream(mediaStreamDestinationAnalyser.stream);
+        pttGainMic.connect(mediaStreamDestinationMic);
 
-        setStream(mediaStreamDestination.stream);
-        setGainNode(masterGainNode);
-        setPttGainNode(pttGain);
+        masterGainNodeNoise.connect(pttGainNoise);
+        pttGainNoise.connect(mediaStreamDestinationNoise);
+
+        stream.addTrack(mediaStreamDestinationMic.stream.getTracks()[0]);
+        stream.addTrack(mediaStreamDestinationNoise.stream.getTracks()[0]);
+        stream.removeTrack(stream.getTracks()[0]);
+
+        setStream(stream);
+        setGainNode(masterGainNodeMic);
+        setPttGainNode(pttGainMic);
       });
   }, []);
+
+  // Audio Analyser
+  useEffect(() => {
+    const audioLevel = () => {
+      if (!analyserStream || !stream) return;
+
+      const micStream = new MediaStream();
+      micStream.addTrack(analyserStream.getTracks()[0]);
+      const audioContext = new AudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(micStream);
+
+      const analyser = audioContext.createAnalyser();
+      mediaStreamSource.connect(analyser);
+
+      analyser.fftSize = 1024;
+
+      const bufferLength = analyser.fftSize;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const updateAudioLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+        if (!model.analyserActive) return;
+        model.analyserVolume = average * 1.5;
+      };
+
+      const interval = setInterval(updateAudioLevel, 50);
+
+      return () => clearInterval(interval);
+    };
+    if (model.analyserActive) {
+      audioLevel();
+    }
+  }, [model.analyserActive]);
 
   //Push to talk logic
   useEffect(() => {
@@ -149,7 +209,8 @@ const SocketHandler = observer((props: Props) => {
 
     try {
       const entries = Array.from(model.freqToMediaStream.entries());
-      pttGainNode.gain.value = pttActive && model.txState ? 1 : 0;
+      pttGainNode.gain.value =
+        pttActive && model.txState && !model.analyserActive ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
     }
@@ -175,10 +236,16 @@ const SocketHandler = observer((props: Props) => {
     for (const [key, mediaStream] of entries) {
       if (!model.TXFrequencies.includes(key)) {
         console.log("Disabling: " + key);
-        mediaStream.getTracks()[0].enabled = false;
+        mediaStream.getTracks().forEach((track) => {
+          track.enabled = false;
+        });
+        // mediaStream.getTracks()[0].enabled = false;
       } else {
         console.log("Enabling: " + key);
-        mediaStream.getTracks()[0].enabled = true;
+        mediaStream.getTracks().forEach((track) => {
+          track.enabled = true;
+        });
+        // mediaStream.getTracks()[0].enabled = true;
       }
     }
   }, [model.TXFrequencies]);

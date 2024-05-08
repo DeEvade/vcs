@@ -13,6 +13,8 @@ export const model = {
   micGain: 50 as number,
   PTTKey: "Space" as string,
   txState: false as boolean,
+  analyserActive: false as boolean,
+  analyserVolume: 0 as number,
   eggState: false as boolean,
 
   socket: {

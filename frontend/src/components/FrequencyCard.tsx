@@ -96,7 +96,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {
     const buttonActive = frequencyState[buttonType];
-    const isPTTActive = pttActive && buttonActive;
+    const isPTTActive = pttActive && buttonActive && !model.analyserActive;
     if (buttonType == "XC") {
       return buttonActive ? "green" : "gray";
     } else if (
