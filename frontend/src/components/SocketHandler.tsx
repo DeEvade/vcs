@@ -24,8 +24,12 @@ const SocketHandler = observer((props: Props) => {
     null
   );
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [gainNode, setGainNode] = useState<GainNode | null>(null);
-  const [pttGainNode, setPttGainNode] = useState<GainNode | null>(null);
+  const [gainNodeMic, setGainNodeMic] = useState<GainNode | null>(null);
+  const [gainNodeNoise, setGainNodeNoise] = useState<GainNode | null>(null);
+  const [pttGainNodeMic, setPttGainNodeMic] = useState<GainNode | null>(null);
+  const [pttGainNodeNoise, setPttGainNodeNoise] = useState<GainNode | null>(
+    null
+  );
   const { pttActive } = usePTT();
   const [micLevel, setMicLevel] = useState<number>(0);
 
@@ -41,7 +45,7 @@ const SocketHandler = observer((props: Props) => {
       .getUserMedia({
         video: false,
         audio: {
-          autoGainControl: false,
+          autoGainControl: true,
           channelCount: 1,
           echoCancellation: false,
           noiseSuppression: false,
@@ -159,13 +163,16 @@ const SocketHandler = observer((props: Props) => {
         masterGainNodeNoise.connect(pttGainNoise);
         pttGainNoise.connect(mediaStreamDestinationNoise);
 
-        stream.addTrack(mediaStreamDestinationMic.stream.getTracks()[0]);
         stream.addTrack(mediaStreamDestinationNoise.stream.getTracks()[0]);
+        stream.addTrack(mediaStreamDestinationMic.stream.getTracks()[0]);
+
         stream.removeTrack(stream.getTracks()[0]);
 
         setStream(stream);
-        setGainNode(masterGainNodeMic);
-        setPttGainNode(pttGainMic);
+        setGainNodeMic(masterGainNodeMic);
+        setGainNodeNoise(masterGainNodeNoise);
+        setPttGainNodeMic(pttGainMic);
+        setPttGainNodeNoise(pttGainNoise);
       });
   }, []);
 
@@ -178,6 +185,13 @@ const SocketHandler = observer((props: Props) => {
       micStream.addTrack(analyserStream.getTracks()[0]);
       const audioContext = new AudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(micStream);
+
+      const outputDestination = audioContext.createMediaStreamDestination();
+      mediaStreamSource.connect(outputDestination);
+
+      outputDestination.stream.getAudioTracks().forEach((track) => {
+        track.enabled = true; // Enable the track to hear the microphone input
+      });
 
       const analyser = audioContext.createAnalyser();
       mediaStreamSource.connect(analyser);
@@ -205,28 +219,31 @@ const SocketHandler = observer((props: Props) => {
 
   //Push to talk logic
   useEffect(() => {
-    if (!pttGainNode) return;
+    if (!pttGainNodeMic || !pttGainNodeNoise) return;
 
     try {
       const entries = Array.from(model.freqToMediaStream.entries());
-      pttGainNode.gain.value =
+      pttGainNodeMic.gain.value =
+        pttActive && model.txState && !model.analyserActive ? 1 : 0;
+      pttGainNodeNoise.gain.value =
         pttActive && model.txState && !model.analyserActive ? 1 : 0;
     } catch (error) {
       console.log("Push to talk error: " + error);
     }
-  }, [pttActive, pttGainNode, model.txState]);
+  }, [pttActive, pttGainNodeMic, pttGainNodeNoise, model.txState]);
 
   //Microphone gain logic
   useEffect(() => {
-    if (!gainNode) return;
+    if (!gainNodeMic || !gainNodeNoise) return;
 
     try {
-      gainNode.gain.value = model.micGain / 50;
+      gainNodeMic.gain.value = model.micGain / 50;
+      gainNodeNoise.gain.value = model.micGain / 50;
       console.log("Mic gain: " + model.micGain);
     } catch (error) {
       console.log("Mic gain error: " + error);
     }
-  }, [model.micGain, gainNode]);
+  }, [model.micGain, gainNodeMic, gainNodeNoise]);
 
   // TX handling
   // Enables or disables mediastream according to TX states
@@ -298,6 +315,10 @@ const SocketHandler = observer((props: Props) => {
       if (model.freqToMediaStream.get(freq) !== stream) {
         console.log("cloning on initiator");
         newStream = stream.clone();
+        newStream.getAudioTracks().forEach((track) => {
+          track.enabled = true; // Ensure the track is enabled
+        });
+        console.log("New stream tracks: " + newStream.getTracks().length);
         model.freqToMediaStream.set(freq, newStream);
       }
 
@@ -411,11 +432,15 @@ const SocketHandler = observer((props: Props) => {
       console.log("Creating a new stream for peer-to-peer connection...");
 
       let tempStream = stream;
+      console.log("Temp stream tracks: " + tempStream.getTracks().length);
       if (model.freqToMediaStream.get(data.freq) !== stream) {
         console.log("cloning on receiver");
         tempStream = stream.clone();
         model.freqToMediaStream.set(data.freq, tempStream);
       }
+      tempStream.getAudioTracks().forEach((track) => {
+        track.enabled = true; // Ensure the track is enabled
+      });
       const peer = new Peer({
         initiator: false,
         trickle: false,

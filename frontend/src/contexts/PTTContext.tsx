@@ -72,40 +72,6 @@ export const PTTProvider: React.FC<PTTProviderProps> = ({ children }) => {
 
     const checkSequence = () => {
       if (lastNineChars.toUpperCase() === requiredSequence.toUpperCase()) {
-        console.log("Created by:");
-        console.log(" _____                              _____");
-        console.log("|F    | _____                _____ |J    |");
-        console.log("|     ||I    | _____        |G    || & & | ");
-        console.log("|  &  ||  &  ||S    | _____ | & & || & & | _____");
-        console.log("|     ||     || & & ||K    ||  &  || & & ||U    |");
-        console.log("|____F||  &  ||     || & & || & & ||____J|| & & | _____");
-        console.log(
-          "       |____I||  &  ||     ||____G|       |& & &||S    | _____"
-        );
-        console.log(
-          "              |____S|| & & |              | & & ||& & &||E    |"
-        );
-        console.log(
-          "                     |____K|              |____U|| & & ||& & &|"
-        );
-        console.log(
-          "                                                 |& & &||& & &|"
-        );
-        console.log(
-          "                                                 |____S||& & &|"
-        );
-        console.log(
-          "                                                        |____E|"
-        );
-        console.log(
-          '"99% of gambling addicts quit right before they are about to hit it big."'
-        );
-        console.log(
-          '"Omsätt och få 100 % bonus upp till 4 000 kr + 100 gratisspins på MGM Grand Gamble."'
-        );
-        console.log(
-          '"https://www.leovegas.com"'
-        );
         setEggState(true);
       }
     };
