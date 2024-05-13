@@ -25,7 +25,6 @@ import { Frequency } from "@/types";
 import toast from "react-hot-toast";
 import XCButton from "./XCButton";
 
-
 interface Props {
   frequency: Frequency;
   onToggle: (id: number, type: "RX" | "TX" | "XC") => void;
@@ -84,13 +83,12 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     } else if (type === "XC") {
       onToggle(frequency.id, "XC");
     }
-
   };
 
   // Determine button color based on PTTActive state and button state
   const getButtonColorScheme = (buttonType: "RX" | "TX" | "XC") => {
     const buttonActive = frequencyState[buttonType];
-    const isPTTActive = pttActive && buttonActive;
+    const isPTTActive = pttActive && buttonActive && !model.analyserActive;
     if (buttonType == "XC") {
       return buttonActive ? "green" : "gray";
     } else if (

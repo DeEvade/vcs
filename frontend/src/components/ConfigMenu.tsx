@@ -19,6 +19,9 @@ import {
   Switch,
   FormControl,
   FormLabel,
+  Progress,
+  Flex,
+  Center,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { MdGraphicEq } from "react-icons/md";
@@ -36,6 +39,8 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const { pttKey, setPttKey } = usePTT();
   const { colorMode, toggleColorMode } = useColorMode();
+  const [buttonText, setButtonText] = useState("Check Mic.");
+  const [buttonColor, setButtonColor] = useState("blue");
 
   const { model } = props;
 
@@ -50,7 +55,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
   const onMicValueChanged = (val: any) => {
     model.micGain = val;
   };
-  
+
   //Handles changes in radio gain value
   const onRadioValueChanged = (val: any) => {
     model.radioGain = val;
@@ -89,9 +94,41 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     model.setEasyMode(!model.easyMode);
   };
 
+  const handleMenuClose = () => {
+    if (model.analyserActive == true) {
+      handleMicCheck();
+    }
+    if (listeningForKey == true) {
+      setListeningForKey(false);
+    }
+  };
+
+  const handleMicCheck = () => {
+    if (model.analyserActive) {
+      model.analyserActive = false;
+      setButtonText("Check Mic.");
+      setButtonColor("blue");
+      model.analyserVolume = 0;
+    } else {
+      model.analyserActive = true;
+      setButtonText("Stop Test");
+      setButtonColor("red");
+    }
+  };
+
+  let micVolumeColor: string;
+
+  if (model.analyserVolume <= 30) {
+    micVolumeColor = "yellow";
+  } else if (model.analyserVolume > 30 && model.analyserVolume < 70) {
+    micVolumeColor = "green";
+  } else {
+    micVolumeColor = "red";
+  }
+
   //Renderes a menu with radio and microphone gain slider, a switch that changes to realistic colors and push to talk key
   return (
-    <Menu>
+    <Menu onClose={handleMenuClose}>
       <MenuButton
         as={IconButton}
         aria-label="Options"
@@ -109,6 +146,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             max={100}
             value={model.radioGain}
             onChange={(val) => onRadioValueChanged(val)}
+            step={5}
           >
             <SliderTrack>
               <SliderFilledTrack />
@@ -125,6 +163,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             max={100}
             value={model.micGain}
             onChange={(val) => onMicValueChanged(val)}
+            step={5}
           >
             <SliderTrack>
               <SliderFilledTrack />
@@ -134,6 +173,29 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
             </SliderThumb>
           </Slider>
 
+          <Flex align="center" alignItems="center">
+            <Center>
+              <Text mb={2} mr={2}>
+                Mic. Volume Level
+              </Text>
+              <Button
+                size="xs"
+                mb={2}
+                width="75px"
+                onClick={handleMicCheck}
+                colorScheme={buttonColor}
+              >
+                {buttonText}
+              </Button>
+            </Center>
+          </Flex>
+
+          <Progress
+            value={model.analyserVolume}
+            colorScheme={micVolumeColor}
+            mb={2}
+          ></Progress>
+
           <FormControl display="flex" alignItems="center">
             <FormLabel mb="0">Realistic colors</FormLabel>
             <Switch
@@ -141,9 +203,10 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
               onChange={toggleColorMode}
             />
           </FormControl>
-        </Box>
-        <Box p={4}>
-          <Text mb={2}>Push to Talk Key: {pttKey}</Text>
+
+          <Text mb={2} mt={2}>
+            Push to Talk Key: {pttKey}
+          </Text>
           <Button
             size="sm"
             onClick={() => setListeningForKey(!listeningForKey)}

@@ -13,7 +13,7 @@ import ConfigMenu from "./ConfigMenu"; // Ensure the path is correct
 import { model as baseModel } from "@/models/Model";
 import { observer } from "mobx-react-lite";
 import Peer from "simple-peer";
-import { AddIcon } from "@chakra-ui/icons";
+import { AddIcon, SmallCloseIcon } from "@chakra-ui/icons";
 
 //Function that keeps track of and renderes the current time and online/offline status of the user
 const UtcClock = () => {
@@ -92,6 +92,7 @@ const Header = observer(function (props: Props) {
         <Flex direction="row" gap="10px" alignItems="center">
           {selectedRoles.map((selectedRole) => (
             <Button
+              rightIcon={<SmallCloseIcon color="red" boxSize={6} mr="-10px" />}
               key={selectedRole}
               onClick={() => {
                 removeSelectedRole(selectedRole);

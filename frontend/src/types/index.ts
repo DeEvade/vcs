@@ -43,4 +43,5 @@ export interface Call {
 export interface peerObject {
   reasons: number[];
   peer: Peer.Instance;
+  stream: MediaStream;
 }

@@ -3,7 +3,7 @@ import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
-  devMode: false as boolean,
+  devMode: true as boolean,
   configuration: null as Configuration | null,
   selectedRoles: [] as string[],
   openRoleModal: true as boolean,
@@ -12,6 +12,10 @@ export const model = {
   radioGain: 50 as number,
   micGain: 50 as number,
   PTTKey: "Space" as string,
+  txState: false as boolean,
+  analyserActive: false as boolean,
+  analyserVolume: 0 as number,
+  eggState: false as boolean,
 
   socket: {
     connected: false,
@@ -23,7 +27,10 @@ export const model = {
   //peersToFreq: new Map() as Map<[string, string], Peer.Instance>,
 
   // Regular map
-  peers: new Map() as Map<string, { reasons: number[]; peer: Peer.Instance }>,
+  peers: new Map() as Map<
+    string,
+    { reasons: number[]; peer: Peer.Instance; stream: MediaStream }
+  >,
 
   //Array to keep track of pressed frequencies
   RXFrequencies: [] as number[], //Array of which RX are pressed

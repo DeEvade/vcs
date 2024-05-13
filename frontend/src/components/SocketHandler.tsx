@@ -13,6 +13,7 @@ import setMicGain from "./ConfigMenu";
 import ConfigMenu from "./ConfigMenu";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
 import { Call } from "@/types";
+import CommunicationsHandler from "./CommuncationsHandler";
 
 interface Props {
   model: typeof baseModel;
@@ -20,10 +21,19 @@ interface Props {
 
 const SocketHandler = observer((props: Props) => {
   const { model } = props;
+  const [analyserStream, setAnalyserStream] = useState<MediaStream | null>(
+    null
+  );
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [gainNode, setGainNode] = useState<GainNode | null>(null);
-  const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
+  const [gainNodeMic, setGainNodeMic] = useState<GainNode | null>(null);
+  const [gainNodeNoise, setGainNodeNoise] = useState<GainNode | null>(null);
+  const [pttGainNodeMic, setPttGainNodeMic] = useState<GainNode | null>(null);
+  const [pttGainNodeNoise, setPttGainNodeNoise] = useState<GainNode | null>(
+    null
+  );
+
   const { pttActive } = usePTT();
+  const [micLevel, setMicLevel] = useState<number>(0);
 
   //useEffect that handles all instances of audio and media streams
   useEffect(() => {
@@ -39,7 +49,7 @@ const SocketHandler = observer((props: Props) => {
       .getUserMedia({
         video: false,
         audio: {
-          autoGainControl: false,
+          autoGainControl: true,
           channelCount: 1,
           echoCancellation: false,
           noiseSuppression: false,
@@ -52,14 +62,23 @@ const SocketHandler = observer((props: Props) => {
 
         const audioContext = new AudioContext();
         const mediaStreamSource = audioContext.createMediaStreamSource(stream);
-        const mediaStreamDestination =
+        const mediaStreamDestinationMic =
+          audioContext.createMediaStreamDestination();
+        const mediaStreamDestinationNoise =
+          audioContext.createMediaStreamDestination();
+        const mediaStreamDestinationAnalyser =
           audioContext.createMediaStreamDestination();
 
         let tuna = new Tuna(audioContext);
 
-        const node = audioContext.createGain();
-        node.gain.value = model.micGain / 50;
+        const masterGainNodeMic = audioContext.createGain();
+        masterGainNodeMic.gain.value = model.micGain / 50;
+        const masterGainNodeNoise = audioContext.createGain();
+        masterGainNodeMic.gain.value = model.micGain / 50;
+
         //gainNode.gain.value = model.micGain/50;
+        const preNoiseMaster = audioContext.createGain();
+        preNoiseMaster.gain.value = model.micGain / 50;
 
         // low pass filter for radio effect
         const lowpassFilter = new tuna.Filter({
@@ -121,51 +140,114 @@ const SocketHandler = observer((props: Props) => {
         noiseGain.gain.value = 0.05;
 
         // push to talk gain
-        const masterGain = audioContext.createGain();
-        masterGain.gain.value = 0;
+        const pttGainMic = audioContext.createGain();
+        pttGainMic.gain.value = 1;
+
+        const pttGainNoise = audioContext.createGain();
+        pttGainNoise.gain.value = 1;
 
         // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);
-        noiseGain.connect(masterGain);
+        noiseGain.connect(masterGainNodeNoise);
 
         // connect chain for radio effect
         mediaStreamSource.connect(lowpassFilter);
         lowpassFilter.connect(highpassFilter);
         highpassFilter.connect(compressor);
         compressor.connect(overdrive);
-        overdrive.connect(node);
-        node.connect(masterGain);
+        overdrive.connect(preNoiseMaster);
+        preNoiseMaster.connect(masterGainNodeMic);
 
-        // master gain for push to talk
-        masterGain.connect(mediaStreamDestination);
+        // Gain for push to talk
+        masterGainNodeMic.connect(pttGainMic);
+        masterGainNodeMic.connect(mediaStreamDestinationAnalyser);
+        setAnalyserStream(mediaStreamDestinationAnalyser.stream);
+        pttGainMic.connect(mediaStreamDestinationMic);
 
-        setStream(mediaStreamDestination.stream);
-        setGainNode(node);
-        setMasterGainNode(masterGain);
+        masterGainNodeNoise.connect(pttGainNoise);
+        pttGainNoise.connect(mediaStreamDestinationNoise);
+
+        stream.addTrack(mediaStreamDestinationNoise.stream.getTracks()[0]);
+        stream.addTrack(mediaStreamDestinationMic.stream.getTracks()[0]);
+
+        stream.removeTrack(stream.getTracks()[0]);
+
+        setStream(stream);
+        setGainNodeMic(masterGainNodeMic);
+        setGainNodeNoise(masterGainNodeNoise);
+        setPttGainNodeMic(pttGainMic);
+        setPttGainNodeNoise(pttGainNoise);
       });
-  }, []);
+  }, [stream]);
 
-  //Push to talk logic
+  // Audio Analyser
   useEffect(() => {
-    if (!masterGainNode) return;
+    const audioLevel = () => {
+      if (!analyserStream || !stream) return;
 
-    try {
-      masterGainNode.gain.value = pttActive ? 1 : 0;
-    } catch (error) {
-      console.log("Push to talk error: " + error);
+      const micStream = new MediaStream();
+      micStream.addTrack(analyserStream.getTracks()[0]);
+      const audioContext = new AudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(micStream);
+
+      const outputDestination = audioContext.createMediaStreamDestination();
+      mediaStreamSource.connect(outputDestination);
+
+      outputDestination.stream.getAudioTracks().forEach((track) => {
+        track.enabled = true; // Enable the track to hear the microphone input
+      });
+
+      const analyser = audioContext.createAnalyser();
+      mediaStreamSource.connect(analyser);
+
+      analyser.fftSize = 1024;
+
+      const bufferLength = analyser.fftSize;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const updateAudioLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+        if (!model.analyserActive) return;
+        model.analyserVolume = average * 1.5;
+      };
+
+      const interval = setInterval(updateAudioLevel, 50);
+
+      return () => clearInterval(interval);
+    };
+    if (model.analyserActive) {
+      audioLevel();
     }
-  }, [pttActive, masterGainNode]);
+  }, [model.analyserActive]);
+
+  // //Push to talk logic
+  // useEffect(() => {
+  //   if (!pttGainNodeMic || pttGainNodeNoise) return;
+
+  //   try {
+  //     const entries = Array.from(model.freqToMediaStream.entries());
+  //     pttGainNodeMic.gain.value =
+  //       pttActive && model.txState && !model.analyserActive ? 1 : 1;
+  //     pttGainNodeNoise.gain.value =
+  //       pttActive && model.txState && !model.analyserActive ? 1 : 1;
+  //   } catch (error) {
+  //     console.log("Push to talk error: " + error);
+  //   }
+  // }, [pttActive, masterGainNode]);
 
   //Microphone gain logic
   useEffect(() => {
-    if (!gainNode) return;
+    if (!gainNodeMic || !gainNodeNoise) return;
 
     try {
-      gainNode.gain.value = model.micGain / 50;
+      gainNodeMic.gain.value = model.micGain / 50;
+      gainNodeNoise.gain.value = model.micGain / 50;
+      console.log("Mic gain: " + model.micGain);
     } catch (error) {
       console.log("Mic gain error: " + error);
     }
-  }, [model.micGain, gainNode]);
+  }, [model.micGain, gainNodeMic, gainNodeNoise]);
 
   useEffect(() => {
     if (!stream) {
@@ -184,6 +266,19 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
+    // const callSoundUrl =
+    //   "https://www.televisiontunes.com/uploads/audio/Crazy%20Frog%20-%20Axel%20F.mp3";
+    // const audio = new Audio(callSoundUrl);
+    // const playCallSound = () => {
+    //   audio.play();
+    // };
+    // const stopCallSound = () => {
+    //   if (audio) {
+    //     audio.pause();
+    //     audio.currentTime = 0;
+    //   }
+    // };
+
     io.on("IncomingCall", (data: any) => {
       if (data.error) {
         return toast.error("Error: " + data.error);
@@ -197,8 +292,8 @@ const SocketHandler = observer((props: Props) => {
 
         return;
       }
-
       if (model.selectedRoles.includes(data.receiverRole)) {
+        // playCallSound();
         data.receiver = io.id;
         model.pendingCalls = model.pendingCalls.concat([data as Call]);
       }
@@ -242,6 +337,7 @@ const SocketHandler = observer((props: Props) => {
         model.peers = model.peers.set(userId, {
           peer: peer.peer,
           reasons: reasons,
+          stream: peer.stream,
         });
       } else {
         console.error("Peer not found: 321", userId, model.peers);
@@ -255,7 +351,12 @@ const SocketHandler = observer((props: Props) => {
 
       if (peerObj && peerObj.reasons.toSorted() !== reasons.toSorted()) {
         //The reasons for the call have changed, so we need to update the reasons and tell our peer to update theirs.
-        model.peers.set(user, { peer: peerObj.peer, reasons: reasons });
+        const cloneStream = stream.clone();
+        model.peers.set(user, {
+          peer: peerObj.peer,
+          reasons: reasons,
+          stream: cloneStream,
+        });
         peerObj.peer.send(
           JSON.stringify({ type: "updateReasons", userId: io.id })
         );
@@ -270,12 +371,13 @@ const SocketHandler = observer((props: Props) => {
         console.log("already connected");
         return;
       }
+      const cloneStream = stream.clone();
 
       //Create a new Peer object
       const peer = new Peer({
         initiator: true,
         trickle: false,
-        stream: stream ?? undefined,
+        stream: cloneStream ?? undefined,
         sdpTransform(sdp) {
           return sdp.replace(
             "a=fmtp:111 minptime=10;useinbandfec=1",
@@ -304,13 +406,18 @@ const SocketHandler = observer((props: Props) => {
           signalData: offerSignal,
           from: io.id,
         });
-        model.peers.set(user, { peer: peer, reasons: reasons });
+        model.peers.set(user, {
+          peer: peer,
+          reasons: reasons,
+          stream: cloneStream,
+        });
       });
     });
 
     //Listens for call acceptence signals and signals the peer connection accordinaly
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
+      // stopCallSound();
 
       const peerObj = model.peers.get(signal.from);
 
@@ -377,11 +484,12 @@ const SocketHandler = observer((props: Props) => {
     //Listens for incoming call signals and initializes a Peer object to handle the connection
     io.on("hey", (data: any) => {
       console.log("Stream in hey", stream);
+      const cloneStream = stream.clone();
 
       const peer = new Peer({
         initiator: false,
         trickle: false,
-        stream: stream ?? undefined,
+        stream: cloneStream ?? undefined,
         sdpTransform(sdp) {
           return sdp.replace(
             "a=fmtp:111 minptime=10;useinbandfec=1",
@@ -413,7 +521,11 @@ const SocketHandler = observer((props: Props) => {
       });
 
       peer.signal(data.signal);
-      model.peers.set(data.from, { peer: peer, reasons: data.reasons });
+      model.peers.set(data.from, {
+        peer: peer,
+        reasons: data.reasons,
+        stream: cloneStream,
+      });
     });
 
     io.on("addRole", (data: any) => {

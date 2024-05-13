@@ -5,3 +5,4 @@ frontend/.next
 /backend/DS_Store
 certbot/conf/*
 testbackup
+*/.env*

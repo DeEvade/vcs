@@ -12,6 +12,8 @@ import { Frequency } from "./database/entities/Frequency";
 import { Role } from "./database/entities/Role";
 import { AppDataSource } from "./database/data-source";
 import socketHandler from "./socket/socketHandler";
+import dotenv from "dotenv";
+dotenv.config();
 
 AppDataSource.initialize()
   .then(async () => {
@@ -58,4 +60,3 @@ AppDataSource.initialize()
   .catch((err: any) => {
     console.error("Error during Data Source initialization", err);
   });
-

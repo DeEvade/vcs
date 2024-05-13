@@ -11,10 +11,34 @@ services:
       vcs-db:
         condition: service_healthy
     environment:
-      NODE_ENV: prod
+      NODE_ENV: dev
+      DB_HOST: vcs-db
+      DB_NAME: vcs
+      DB_USERNAME: postgres
+      DB_PORT: 5432
+      DB_PASSWORD: password
       SERVER_PORT: 8080
     ports:
       - "8080:8080"
+
+  vcs-db:
+    image: postgres
+    container_name: vcs-db
+    restart: always
+    environment:
+      PGPORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_DB: vcs
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: pg_isready -U postgres -d vcs
+      interval: 1s
+      timeout: 10s
+      retries: 5
+    #volumes:
+    # - ./data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
 
   vcs-frontend:
     build:
@@ -54,3 +78,9 @@ services:
 
     #normal run
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+    #initial cert
+    #command: certonly --webroot --webroot-path=/var/www/certbot --email william.redgard@gmail.com --agree-tos --no-eff-email --domains lfv.popify.se
+
+    #expand
+    #command: certonly --expand --webroot --webroot-path=/var/www/certbot --email william.redgard@gmail.com --agree-tos --no-eff-email --domains lfv.popify.se
