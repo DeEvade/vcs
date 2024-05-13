@@ -224,24 +224,49 @@ const SocketHandler = observer((props: Props) => {
     io.on("tryDisconnectPeer", (user: string) => {
       console.log("try disconnect peer", user);
 
-      const peer = model.peers.get(user);
-      if (!peer) {
+      const peerObj = model.peers.get(user);
+      if (!peerObj) {
         return;
       }
-      peer.destroy();
+      peerObj.peer.destroy();
       model.peers.delete(user);
     });
 
     //Event handler that attempts to connect to a peer, creates a new Peer object and emits a signal to initiate the connection.
-    io.on("tryConnectPeer", (user: string) => {
-      const peerExists = model.peers.get(user);
+    io.on("getMyReasons", (data: any) => {
+      const userId = data.userId;
+      const reasons = data.reasons;
+      console.log("Got reasons", reasons);
+      const peer = model.peers.get(userId);
+      if (peer) {
+        model.peers = model.peers.set(userId, {
+          peer: peer.peer,
+          reasons: reasons,
+        });
+      } else {
+        console.error("Peer not found: 321", userId, model.peers);
+      }
+    });
 
-      if (peerExists && !peerExists.destroyed) {
+    io.on("tryConnectPeer", (data: any) => {
+      const user = data.socketId;
+      const reasons = data.reasons;
+      const peerObj = model.peers.get(user);
+
+      if (peerObj && peerObj.reasons.toSorted() !== reasons.toSorted()) {
+        //The reasons for the call have changed, so we need to update the reasons and tell our peer to update theirs.
+        model.peers.set(user, { peer: peerObj.peer, reasons: reasons });
+        peerObj.peer.send(
+          JSON.stringify({ type: "updateReasons", userId: io.id })
+        );
+      }
+
+      if (peerObj && !peerObj.peer.destroyed) {
         console.log("peer exists already");
         return;
       }
 
-      if (peerExists?.connected) {
+      if (peerObj?.peer.connected) {
         console.log("already connected");
         return;
       }
@@ -279,7 +304,7 @@ const SocketHandler = observer((props: Props) => {
           signalData: offerSignal,
           from: io.id,
         });
-        model.peers.set(user, peer);
+        model.peers.set(user, { peer: peer, reasons: reasons });
       });
     });
 
@@ -287,12 +312,19 @@ const SocketHandler = observer((props: Props) => {
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
 
-      const peer = model.peers.get(signal.from);
-      if (!peer) {
+      const peerObj = model.peers.get(signal.from);
+
+      if (!peerObj) {
         return;
       }
+      model.getMyReasons(signal.from);
 
-      peer.signal(signal.signal);
+      peerObj.peer.signal(signal.signal);
+      peerObj.peer.on("connect", () => {
+        peerObj.peer.send(
+          JSON.stringify({ type: "updateReasons", userId: io.id })
+        );
+      });
     });
 
     //Updates the cross couplings in the database with the received data
@@ -381,11 +413,9 @@ const SocketHandler = observer((props: Props) => {
       });
 
       peer.signal(data.signal);
-
-      model.peers.set(data.from, peer);
+      model.peers.set(data.from, { peer: peer, reasons: data.reasons });
     });
 
-    
     io.on("addRole", (data: any) => {
       if (data.error) {
         return toast.error("error getting new role: " + data.error);

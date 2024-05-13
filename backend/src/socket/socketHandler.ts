@@ -23,7 +23,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
   //Map to store all cross couplings and the users involved
   const xcConnection = new Map<number, number[]>();
 
-  //Map to store ongoing calls 
+  //Map to store ongoing calls
   const calls = new Map<string, Call>();
 
   //Map to store the frequencies of each user
@@ -99,10 +99,31 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       socket.broadcast.emit("IncomingCall", data);
     });
 
-    //Event listener to accept an incoming call and emit to connect the two peers
+    socket.on("getMyReasons", (data: any) => {
+      const initiator = socket.id;
+      const receiver = data.userId;
+
+      //const initiator = data.userId;
+      //const receiver = socket.id;
+      const reasons = getReasons(
+        initiator,
+        userToFrequencies.get(initiator) || [],
+        receiver,
+        userToFrequencies.get(receiver) || []
+      );
+      console.log("myReasons: ", socket.id, reasons);
+
+      socket.emit("getMyReasons", {
+        userId: data.userId,
+        reasons: Array.from(new Set(reasons)),
+      });
+    });
+
     socket.on("acceptICCall", (data) => {
       const call = data.call;
-      console.log("accepting role", data.initiator, data.receiver);
+      console.log("accepting role data", data);
+
+      console.log("accepting role", call.initiator, call.receiver);
 
       if (!data.isAccepted) {
         return console.log("call not accepted");
@@ -113,23 +134,79 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
       io.to(call.initiator).emit("ICCallAccepted", call);
       io.to(call.receiver).emit("ICCallAccepted", call);
+      //TODO add reasons
+      applyReasons(call.receiver, call.initiator);
+      /*io.to(call.initiator).emit("tryConnectPeer", {
+        socketId: call.receiver,
+        reasons: [],
+      });*/
 
-      io.to(call.initiator).emit("tryConnectPeer", call.receiver);
+      /*const userId = call.initiator;
+      const reasons = getReasons(
+        userId,
+        userToFrequencies.get(userId) || [],
+        call.receiver,
+        userToFrequencies.get(call.receiver) || []
+      );
+
+      if (reasons.length === 0) {
+        //User has no frequencies in common with the updated user
+        console.log("no frequencies or calls in common", userId, socket.id);
+        users[userId].emit("tryDisconnectPeer", call.receiver);
+        socket.emit("tryDisconnectPeer", userId);
+        return;
+      }
+      users[userId].emit("tryConnectPeer", {
+        socketId: socket.id,
+        reasons: Array.from(new Set(reasons)),
+      });
+
+      if (reasons.length === 0) {
+        //User has no frequencies in common with the updated user
+        console.log("no frequencies in common", userId, call.receiver);
+        users[userId].emit("tryDisconnectPeer", call.receiver);
+        socket.emit("tryDisconnectPeer", userId);
+        return;
+      }
+      users[userId].emit("tryConnectPeer", {
+        socketId: call.receiver,
+        reasons: Array.from(new Set(reasons)),
+      });*/
     });
 
-    //Event listener to end a call and emit to disconnect the two peers 
+    //Event listener to end a call and emit to disconnect the two peers
     socket.on("endICCall", (data) => {
       const call = data;
       console.log("endICCall", data.initiator, data.receiver);
       calls.delete(call.id);
       io.to(data.initiator).emit("endICCall", call);
       io.to(data.receiver).emit("endICCall", call);
-
-      io.to(data.initiator).emit("tryDisconnectPeer", data.receiver);
-      io.to(data.receiver).emit("tryDisconnectPeer", data.initiator);
+      applyReasons(data.initiator, data.receiver);
     });
 
-    //Event listener to create and store in database the new cross coupling 
+    const applyReasons = (initiatorId: string, receiverId: string) => {
+      const initiator = initiatorId;
+      const receiver = receiverId;
+      const reasons = getReasons(
+        initiator,
+        userToFrequencies.get(initiator) || [],
+        receiver,
+        userToFrequencies.get(receiver) || []
+      );
+
+      if (reasons.length === 0) {
+        io.to(initiator).emit("tryDisconnectPeer", receiver);
+        io.to(receiver).emit("tryDisconnectPeer", initiator);
+        return;
+      }
+
+      io.to(initiator).emit("tryConnectPeer", {
+        socketId: receiver,
+        reasons: Array.from(new Set(reasons)),
+      });
+    };
+    //Event listener to create and store in database the new cross coupling
+
     socket.on("createXC", async (data: any) => {
       console.log("creating XC", data);
       try {
@@ -144,6 +221,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
         xcConnection.set(savedXC.id, savedXC.frequencyIds);
         socket.emit("createXC", savedXC);
         socket.broadcast.emit("createXC", savedXC);
+        //TODO update the users that are connected
       } catch (error) {
         console.log("error creating XC", error.message);
         socket.emit("createXC", { error: error.message });
@@ -169,6 +247,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
     //Event listener to update database with current information of cross couplings
     socket.on("updateXC", async (data: any) => {
       console.log("updating XC", data);
+      //TODO update the connected users in frequencies
 
       try {
         const noDuplicates = Array.from(new Set(data.frequencyIds)) as number[];
@@ -195,7 +274,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       }
     });
 
-    //Event listener that manages all changes regarding frequencies 
+    //Event listener that manages all changes regarding frequencies
     socket.on("updatedFrequencies", (newFrequencies: number[]) => {
       console.log("updatedFrequencies", userToFrequencies);
       const previousfrequencies = userToFrequencies.get(socket.id) || [];
@@ -237,62 +316,78 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
       const userObject = Object.fromEntries(countUsersOnFreq.entries());
       io.emit("countUsersOnFreq", userObject);
-      const usersToConnect: string[] = [];
-
 
       Object.keys(users).forEach((key) => {
+        // Iterate through hashmap
         if (key === socket.id) return;
-        userToFrequencies.forEach((frequencies, userId) => {
-          if (userId === socket.id) return;
-          for (const frequency of frequencies) {
-            if (newFrequencies.includes(frequency)) {
-              usersToConnect.push(userId);
-              return;
-            }
-            xcConnection.forEach((values, key) => {
-              if (
-                values.includes(frequency) &&
-                values.some((value) => newFrequencies.includes(value))
-              ) {
-                usersToConnect.push(userId);
-                return;
-              }
-            });
-          }
-
-          for (const call of calls.values()) {
-            //Check if they have a call
-            if (
-              (call.initiator === userId && call.receiver === socket.id) ||
-              (call.receiver === userId && call.initiator === socket.id)
-            ) {
-              usersToConnect.push(userId);
-              return;
-            }
-          }
-
-          //User has no frequencies in common with the updated user
-          console.log("no frequencies in common", userId, socket.id);
-          users[userId].emit("tryDisconnectPeer", socket.id);
-          socket.emit("tryDisconnectPeer", userId);
-        });
-
-        //users[key].emit('sending to', usersArray);
-      });
-      //remove dupliactes
-      const uniqueUsersToConnect = Array.from(new Set(usersToConnect));
-      uniqueUsersToConnect.forEach((userId) => {
-        users[userId].emit("tryConnectPeer", socket.id);
+        applyReasons(socket.id, key);
       });
     });
 
+    const getReasons = (
+      initiatorId: string,
+      initiatorFrequencies: number[],
+      userId: string,
+      frequencies: number[]
+    ): number[] => {
+      console.log(
+        "getReasons",
+        initiatorId,
+        initiatorFrequencies,
+        userId,
+        frequencies
+      );
+
+      const reasons: number[] = [];
+      for (const frequency of frequencies) {
+        const foundFreq = initiatorFrequencies.find((f) => f === frequency);
+        if (foundFreq) {
+          reasons.push(frequency);
+          // usersToConnect.push(userId);
+        }
+
+        xcConnection.forEach((values, key) => {
+          values.forEach((value) => {
+            if (
+              initiatorFrequencies.includes(value) &&
+              !reasons.includes(value)
+            ) {
+              reasons.push(value);
+            }
+          });
+        });
+      }
+      for (const call of calls.values()) {
+        //Check if they have a call
+        if (
+          (call.initiator === userId && call.receiver === initiatorId) ||
+          (call.receiver === userId && call.initiator === initiatorId)
+        ) {
+          reasons.push(-1);
+        }
+      }
+      console.log("reasons", reasons);
+
+      return reasons;
+    };
+
     //Listens for intialising a call and sends the necessary signaling data to the specified user
+
     socket.on("callUser", (data) => {
       console.log("calling user", data.userToCall, data.from);
+      if (!users[data.userToCall || !users[data.from]]) return;
+
+      const reasons = getReasons(
+        data.from,
+        userToFrequencies.get(data.from) || [],
+        data.userToCall,
+        userToFrequencies.get(data.userToCall) || []
+      );
 
       io.to(data.userToCall).emit("hey", {
         signal: data.signalData,
         from: data.from,
+        reasons: Array.from(new Set(reasons)),
       });
     });
 
@@ -306,7 +401,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
       });
     });
 
-    //Listens for the event when a client sets an active configuration 
+    //Listens for the event when a client sets an active configuration
     socket.on("setActiveConfig", async (data) => {
       try {
         const config = await AppDataSource.getRepository(

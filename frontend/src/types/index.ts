@@ -1,4 +1,5 @@
 // src/types/index.ts
+import Peer from "simple-peer";
 
 export interface Frequency {
   id: number;
@@ -37,4 +38,9 @@ export interface Call {
   receiver: string;
   receiverRole: string;
   isEmergency: boolean;
+}
+
+export interface peerObject {
+  reasons: number[];
+  peer: Peer.Instance;
 }

@@ -18,20 +18,20 @@ export const model = {
     io: null as Socket | null,
   },
 
-  //Keeps track in which frequency a user has a peer.
-  //<[id, frequency], peer>
-  peersToFreq: new Map() as Map<[string, string], Peer.Instance>,
+  // Keeps track in which frequency a user has a peer.
+  // <[id, frequency], peer>
+  //peersToFreq: new Map() as Map<[string, string], Peer.Instance>,
 
   // Regular map
-  peers: new Map() as Map<string, Peer.Instance>,
+  peers: new Map() as Map<string, { reasons: number[]; peer: Peer.Instance }>,
 
   //Array to keep track of pressed frequencies
-  RXFrequencies: [] as number[],   //Array of which RX are pressed
+  RXFrequencies: [] as number[], //Array of which RX are pressed
   NORXFrequencies: [] as number[], //(before updating RX) RX frequencies that are not active anymore
-  TXFrequencies: [] as number[],   //Array of which TX are pressed
-  XCFrequencies: [] as XC[],       //Array of which XC are pressed
+  TXFrequencies: [] as number[], //Array of which TX are pressed
+  XCFrequencies: [] as XC[], //Array of which XC are pressed
 
-  pendingCalls: [] as Call[],  //Number of active calls
+  pendingCalls: [] as Call[], //Number of active calls
   acceptedCalls: [] as Call[], //Calls that have been accepted
 
   //Function that keeps track if a user has choosen pilot as its role
@@ -162,7 +162,13 @@ export const model = {
     this.socket.io.emit("getCurrentXC");
   },
 
-  //Emits a request to create a new cross coupling with frequencyIds to the server 
+  getMyReasons: function (userId: string) {
+    if (!this.socket.io || !this.socket.connected) {
+      return;
+    }
+    this.socket.io.emit("getMyReasons", { userId: userId });
+  },
+  //Emits a request to create a new cross coupling with frequencyIds to the server
   createXC(frequencyId: number, checkedFrequencies: number[]) {
     if (!this.socket.io || !this.socket.connected) {
       return;
