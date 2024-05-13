@@ -4,6 +4,7 @@ WORKDIR /var/task
 COPY package*.json /var/task/
 COPY src /var/task/src
 COPY tsconfig.json /var/task/
+COPY .env /var/task/
 RUN npm install
 EXPOSE 8080
 
