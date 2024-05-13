@@ -143,23 +143,25 @@ const FrequencyCard: React.FC<Props> = observer(function ({
         </GridItem>
 
         <GridItem colSpan={1} width="50%">
-          <XCButton
-            key={frequency.id}
-            frequencyId={frequency.id}
-            onToggle={onToggle}
-            model={model}
-            buttonElement={
-              <Button
-                colorScheme={getButtonColorScheme("XC")}
-                _focus={{ outline: "none", boxShadow: "none" }}
-                _active={{ outline: "none" }}
-                width="100%"
-                height="100%"
-              >
-                XC
-              </Button>
-            }
-          />
+          {!model.isPilot() && (
+            <XCButton
+              key={frequency.id}
+              frequencyId={frequency.id}
+              onToggle={onToggle}
+              model={model}
+              buttonElement={
+                <Button
+                  colorScheme={getButtonColorScheme("XC")}
+                  _focus={{ outline: "none", boxShadow: "none" }}
+                  _active={{ outline: "none" }}
+                  width="100%"
+                  height="100%"
+                >
+                  XC
+                </Button>
+              }
+            />
+          )}
         </GridItem>
 
         <GridItem colSpan={1}>
