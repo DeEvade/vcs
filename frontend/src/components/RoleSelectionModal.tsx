@@ -54,7 +54,9 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = observer(
     return (
       <Modal
         isOpen={isOpen}
-        onClose={() => {}}
+        onClose={() => {
+          model.setOpenRoleModal(false);
+        }}
         isCentered
         motionPreset="slideInBottom"
       >
