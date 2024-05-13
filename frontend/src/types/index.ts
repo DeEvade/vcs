@@ -40,8 +40,8 @@ export interface Call {
   isEmergency: boolean;
 }
 
-export interface peerObject {
-  reasons: number[];
+export interface PeerObject {
+  reasons: Array<number>;
   peer: Peer.Instance;
   stream: MediaStream;
 }

@@ -1,4 +1,4 @@
-import { Call, Configuration, Role, XC } from "@/types";
+import { Call, Configuration, Role, XC, PeerObject } from "@/types";
 import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
@@ -27,10 +27,7 @@ export const model = {
   //peersToFreq: new Map() as Map<[string, string], Peer.Instance>,
 
   // Regular map
-  peers: new Map() as Map<
-    string,
-    { reasons: number[]; peer: Peer.Instance; stream: MediaStream }
-  >,
+  peers: new Map() as Map<string, PeerObject>,
 
   //Array to keep track of pressed frequencies
   RXFrequencies: [] as number[], //Array of which RX are pressed

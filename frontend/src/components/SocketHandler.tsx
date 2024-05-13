@@ -344,12 +344,16 @@ const SocketHandler = observer((props: Props) => {
       }
     });
 
+    const toSorted = (arr: number[]) => {
+      return arr.sort((a, b) => a - b);
+    };
+
     io.on("tryConnectPeer", (data: any) => {
       const user = data.socketId;
       const reasons = data.reasons;
       const peerObj = model.peers.get(user);
 
-      if (peerObj && peerObj.reasons.toSorted() !== reasons.toSorted()) {
+      if (peerObj && toSorted(peerObj.reasons) !== toSorted(reasons)) {
         //The reasons for the call have changed, so we need to update the reasons and tell our peer to update theirs.
         const cloneStream = stream.clone();
         model.peers.set(user, {

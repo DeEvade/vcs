@@ -4,7 +4,7 @@ import Peer from "simple-peer";
 import { model as baseModel } from "@/models/Model";
 import { default as dashModel } from "@/models/DashboardModel";
 import { Box, Center, Flex } from "@chakra-ui/react";
-import { peerObject } from "@/types";
+import { PeerObject } from "@/types";
 import { PTTProvider, usePTT } from "../contexts/PTTContext";
 
 interface Props {
@@ -45,7 +45,7 @@ const PeerChannel = observer(
     peerId,
     model,
   }: {
-    peerObj: peerObject;
+    peerObj: PeerObject;
     peerId: string;
     model: typeof baseModel;
   }) => {
