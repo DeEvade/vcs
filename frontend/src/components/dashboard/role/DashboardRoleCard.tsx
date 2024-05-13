@@ -32,6 +32,8 @@ import {
   NumberInput,
   NumberInputField,
   useColorModeValue,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
 import { MdAddCircleOutline, MdClear } from "react-icons/md";
 import { observer } from "mobx-react-lite";
@@ -174,14 +176,17 @@ const DashboardFrequenceCard = observer(
                   />
                   {delayState == true && (
                     <NumberInput>
-                      <NumberInputField
-                        placeholder="Seconds"
-                        value={model.delayTime}
-                        onChange={(e) => {
-                          onDelayValueChanged(parseInt(e.target.value));
-                          // model.delayTime = parseInt(e.target.value);
-                        }}
-                      />
+                      <InputGroup>
+                        <NumberInputField
+                          placeholder="Milliseconds"
+                          value={model.delayTime}
+                          onChange={(e) => {
+                            onDelayValueChanged(parseInt(e.target.value));
+                            // model.delayTime = parseInt(e.target.value);
+                          }}
+                        />
+                        <InputRightElement width="4.5rem">ms</InputRightElement>
+                      </InputGroup>
                     </NumberInput>
                   )}
                 </FormControl>

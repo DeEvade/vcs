@@ -89,6 +89,15 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
     model.setEasyMode(!model.easyMode);
   };
 
+  const handleMenuClose = () => {
+    if (model.analyserActive == true) {
+      handleMicCheck();
+    }
+    if (listeningForKey == true) {
+      setListeningForKey(false);
+    }
+  };
+
   const handleMicCheck = () => {
     if (model.analyserActive) {
       model.analyserActive = false;
@@ -113,7 +122,7 @@ const ConfigMenu: React.FC<Props> = observer(function (props) {
   }
 
   return (
-    <Menu>
+    <Menu onClose={handleMenuClose}>
       <MenuButton
         as={IconButton}
         aria-label="Options"
