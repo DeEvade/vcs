@@ -185,7 +185,7 @@ const DashboardFrequenceCard = observer(
                             // model.delayTime = parseInt(e.target.value);
                           }}
                         />
-                        <InputRightElement width="4.5rem">ms</InputRightElement>
+                        <InputRightElement width="3.5rem">ms</InputRightElement>
                       </InputGroup>
                     </NumberInput>
                   )}
