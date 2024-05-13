@@ -7,9 +7,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    depends_on:
-      vcs-db:
-        condition: service_healthy
     environment:
       NODE_ENV: prod
       SERVER_PORT: 8080
