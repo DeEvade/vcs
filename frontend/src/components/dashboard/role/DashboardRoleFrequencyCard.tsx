@@ -16,18 +16,13 @@ const DashboardRoleFrequencyCard = observer((props: Props) => {
   return (
     <Box p={2} borderRadius="lg" border="1px" borderColor="gray.500">
       <Flex direction={"row"}>
-        <Button colorScheme="white">XC</Button>
-        <Center>{parseFloat(name).toFixed(3)} MHz</Center>
-        <Flex>
-          <Center marginRight={"5px"}>
-            <Icon
-              as={MdClear}
-              boxSize={6}
-              cursor="pointer"
-              onClick={onDelete}
-            />
-          </Center>
-        </Flex>
+        <Button colorScheme="white" variant="outline">
+          XC
+        </Button>
+        <Center flex={1}>{parseFloat(name).toFixed(3)} MHz</Center>
+        <Center marginRight={"5px"}>
+          <Icon as={MdClear} boxSize={6} cursor="pointer" onClick={onDelete} />
+        </Center>
       </Flex>
     </Box>
   );

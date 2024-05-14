@@ -266,19 +266,6 @@ const SocketHandler = observer((props: Props) => {
       console.log("connected to socket server");
     });
 
-    // const callSoundUrl =
-    //   "https://www.televisiontunes.com/uploads/audio/Crazy%20Frog%20-%20Axel%20F.mp3";
-    // const audio = new Audio(callSoundUrl);
-    // const playCallSound = () => {
-    //   audio.play();
-    // };
-    // const stopCallSound = () => {
-    //   if (audio) {
-    //     audio.pause();
-    //     audio.currentTime = 0;
-    //   }
-    // };
-
     io.on("IncomingCall", (data: any) => {
       if (data.error) {
         return toast.error("Error: " + data.error);
@@ -293,7 +280,6 @@ const SocketHandler = observer((props: Props) => {
         return;
       }
       if (model.selectedRoles.includes(data.receiverRole)) {
-        // playCallSound();
         data.receiver = io.id;
         model.pendingCalls = model.pendingCalls.concat([data as Call]);
       }
@@ -421,7 +407,6 @@ const SocketHandler = observer((props: Props) => {
     //Listens for call acceptence signals and signals the peer connection accordinaly
     io.on("callAccepted", (signal: any) => {
       console.log("call accepted", signal);
-      // stopCallSound();
 
       const peerObj = model.peers.get(signal.from);
 
@@ -676,6 +661,7 @@ const SocketHandler = observer((props: Props) => {
 
     io.on("disconnect", () => {
       console.log("disconnected from socket server");
+      model.socket.connected = false;
     });
 
     return () => {

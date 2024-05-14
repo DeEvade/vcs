@@ -101,6 +101,7 @@ export default {
     roleId: number;
     name: string;
     type: "ATC" | "pilot";
+    delay: number;
   }) {
     if (!this.socket.connected) {
       return;
@@ -109,6 +110,7 @@ export default {
       roleId: role.roleId,
       name: role.name,
       type: role.type,
+      delay: role.delay,
     });
   },
 
@@ -172,6 +174,7 @@ export interface DashboardRoleFrequency {
 export interface DashboardRole {
   id: number;
   name: string;
+  delay: number;
   type: "ATC" | "pilot";
   configurationId: number;
 }

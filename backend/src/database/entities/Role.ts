@@ -23,6 +23,9 @@ export class Role extends BaseEntity {
   @Column()
   name: String;
 
+  @Column({ default: 0 })
+  delay: number;
+
   @Column()
   type: String;
 

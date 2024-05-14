@@ -577,6 +577,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
         role.name = data.name;
         role.type = data.type;
+        role.delay = data.delay;
 
         const savedRole = await roleRepo.save(role);
 

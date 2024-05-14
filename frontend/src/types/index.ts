@@ -5,11 +5,13 @@ export interface Frequency {
   id: number;
   frequency: string;
   order: number;
+  isPrimary: boolean;
 }
 
 export interface Role {
   id: number;
   name: string;
+  delay: number;
   type: "ATC" | "pilot";
   frequencies: Frequency[];
 }

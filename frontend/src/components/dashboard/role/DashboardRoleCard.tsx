@@ -1,4 +1,7 @@
-import DashboardModel, { DashboardRole } from "@/models/DashboardModel";
+import DashboardModel, {
+  DashboardFrequency,
+  DashboardRole,
+} from "@/models/DashboardModel";
 
 import {
   Accordion,
@@ -41,6 +44,7 @@ import { useState, useEffect } from "react";
 import DashboardDeleteCard from "../DashboardDeleteCard";
 import DashboardRoleFrequencyCard from "./DashboardRoleFrequencyCard";
 import XCButton from "@/components/XCButton";
+import toast from "react-hot-toast";
 
 const DashboardFrequenceCard = observer(
   (props: { model: typeof DashboardModel; role: DashboardRole }) => {
@@ -63,6 +67,7 @@ const DashboardFrequenceCard = observer(
       name: role.name,
       id: role.id,
       type: role.type,
+      delay: role.delay,
 
       frequencies: getFrequenciesForRole(role, model),
     };
@@ -74,34 +79,34 @@ const DashboardFrequenceCard = observer(
       console.log("role changed");
     }, [model.roleFrequencies]);
 
+    const [roleState, setRoleState] = useState(initialState);
+
+    const [saveState, setSaveState] = useState(false);
+
+    const [delayState, setDelayState] = useState(initialState.delay > 0);
+
     useEffect(() => {
       {
         roleState.name != initialState.name ||
         roleState.type != initialState.type ||
+        roleState.delay != initialState.delay ||
         JSON.stringify(roleState.frequencies) !==
           JSON.stringify(preSaveState.frequencies)
           ? setSaveState(true)
           : setSaveState(false);
       }
-    });
-
-    useEffect(() => {
-      console.log(model.delayTime);
-    }, [model.delayTime]);
-
-    const [roleState, setRoleState] = useState(initialState);
-
-    const [saveState, setSaveState] = useState(false);
-
-    const [delayState, setDelayState] = useState(false);
-
+    }, [roleState]);
     const changeState = (key: any, value: any) => {
       setRoleState({ ...roleState, [key]: value });
     };
 
     const handleDelaySwitch = () => {
-      {
-        delayState == true ? setDelayState(false) : setDelayState(true);
+      if (delayState == true) {
+        setDelayState(false);
+        changeState("delay", 0);
+      } else {
+        changeState("delay", initialState.delay);
+        setDelayState(true);
       }
     };
 
@@ -110,6 +115,7 @@ const DashboardFrequenceCard = observer(
         roleId: roleState.id,
         name: roleState.name,
         type: roleState.type,
+        delay: roleState.delay,
       });
     };
 
@@ -134,9 +140,16 @@ const DashboardFrequenceCard = observer(
       model.onAddSecondaryFrequency(roleId, frequencyId);
     };
 
-    const onDelayValueChanged = (val: any) => {
-      model.delayTime = val;
-      console.log("onDelayValueChanged is " + val);
+    const isAlreadyAssignedAsPrimary = (f: DashboardFrequency) => {
+      for (const role of model.roles) {
+        for (const freq of getFrequenciesForRole(role, model)) {
+          if (freq.isPrimary && freq.id === f.id) {
+            //toast.success("Frequency already assigned as primary");
+            return true;
+          }
+        }
+      }
+      return false;
     };
 
     return (
@@ -166,7 +179,9 @@ const DashboardFrequenceCard = observer(
                   <Radio value="pilot">PILOT</Radio>
                 </Stack>
               </RadioGroup>
-              {roleState.type == "pilot" && (
+
+              {/* CODE TO ADD DELAY OPTION TO THE EACH ROLE */}
+              {/* {roleState.type == "pilot" && (
                 <FormControl display="flex" alignItems="center">
                   <FormLabel mb="0">Satellite Delay?</FormLabel>
                   <Switch
@@ -175,14 +190,13 @@ const DashboardFrequenceCard = observer(
                     isChecked={delayState}
                   />
                   {delayState == true && (
-                    <NumberInput>
+                    <NumberInput value={roleState.delay}>
                       <InputGroup>
                         <NumberInputField
                           placeholder="Milliseconds"
-                          value={model.delayTime}
+                          value={roleState.delay}
                           onChange={(e) => {
-                            onDelayValueChanged(parseInt(e.target.value));
-                            // model.delayTime = parseInt(e.target.value);
+                            changeState("delay", e.target.value);
                           }}
                         />
                         <InputRightElement width="3.5rem">ms</InputRightElement>
@@ -190,7 +204,7 @@ const DashboardFrequenceCard = observer(
                     </NumberInput>
                   )}
                 </FormControl>
-              )}
+              )} */}
               <FormControl
                 pb="10px"
                 isRequired
@@ -224,7 +238,7 @@ const DashboardFrequenceCard = observer(
                         .filter((f) => f.isPrimary)
                         .map((frequency) => (
                           <DashboardRoleFrequencyCard
-                            key={`${frequency.frequency}:${roleState.name}`}
+                            key={`${frequency.frequency}`}
                             model={model}
                             name={frequency.frequency}
                             onDelete={() => {
@@ -247,7 +261,10 @@ const DashboardFrequenceCard = observer(
                       {frequencies
                         .filter(
                           (f) =>
-                            !roleState.frequencies.find((f2) => f2.id === f.id)
+                            !roleState.frequencies.find(
+                              (f2) => f2.id === f.id
+                            ) && !isAlreadyAssignedAsPrimary(f)
+                          //FIX here
                         )
                         .map((frequency) => (
                           <MenuItemOption

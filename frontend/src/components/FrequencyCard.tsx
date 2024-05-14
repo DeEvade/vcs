@@ -49,8 +49,8 @@ const FrequencyCard: React.FC<Props> = observer(function ({
     let name = "empty";
     model.configuration?.roles.forEach((role) => {
       role.frequencies.forEach((frequency) => {
-        if (frequency.id === id && frequency.order === 1) {
-          console.log("role name: ", role.name);
+        if (frequency.id === id && frequency.isPrimary === true) {
+          console.log("role name: ", role.name, role);
           return (name = role.name);
         }
       });
@@ -116,10 +116,7 @@ const FrequencyCard: React.FC<Props> = observer(function ({
         gap={1}
       >
         <GridItem colSpan={1}>
-          <Text fontSize="xl">
-            {frequency.frequency +
-              (easyMode && frequency.order === 1 ? "(u)" : "")}
-          </Text>
+          <Text fontSize="xl">{frequency.frequency}</Text>
           <Text
             fontSize="sm"
             minHeight="20px"
