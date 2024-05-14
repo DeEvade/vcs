@@ -51,7 +51,7 @@ const PeerChannel = observer(
   }) => {
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [shouldMute, setShouldMute] = useState<boolean>(true);
-    const [shouldMuteAudio, setShouldMuteAudio] = useState<boolean>(false);
+    const [shouldMuteAudio, setShouldMuteAudio] = useState<boolean>(true);
     const { pttActive } = usePTT();
 
     const peer = peerObj.peer;
