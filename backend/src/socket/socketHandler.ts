@@ -69,6 +69,22 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
 
     //Event listener for disconnect that deletes the userId and updates users array
     socket.on("disconnect", () => {
+      //Update dashboard with the amount of users on each frequency
+      const previousfrequencies = userToFrequencies.get(socket.id) || [];
+      previousfrequencies.forEach((frequency) => {
+        if (countUsersOnFreq.has(frequency)) {
+          countUsersOnFreq.set(frequency, countUsersOnFreq.get(frequency) - 1);
+          const amount = countUsersOnFreq.get(frequency);
+          console.log(
+            "amount of users in freq after disconnect:" + " " + amount
+          );
+        } else {
+          countUsersOnFreq.set(frequency, 0);
+        }
+      });
+      const userObject = Object.fromEntries(countUsersOnFreq.entries());
+      io.emit("countUsersOnFreq", userObject);
+
       delete users[socket.id];
       userToFrequencies.delete(socket.id);
       for (const call of calls.values()) {
@@ -78,6 +94,7 @@ const socketHandler = async (io: Server, AppDataSource: DataSource) => {
           io.to(call.receiver).emit("endICCall", call);
         }
       }
+
       socket.broadcast.emit("tryDisconnectPeer", socket.id);
     });
 

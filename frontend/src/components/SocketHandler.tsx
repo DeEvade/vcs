@@ -144,7 +144,7 @@ const SocketHandler = observer((props: Props) => {
         pttGainMic.gain.value = 1;
 
         const pttGainNoise = audioContext.createGain();
-        pttGainNoise.gain.value = 1;
+        pttGainNoise.gain.value = 0.4;
 
         // connect chain for whitenoise
         whiteNoiseSource.connect(noiseGain);

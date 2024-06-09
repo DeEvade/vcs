@@ -6,7 +6,6 @@ import { RoleFrequency } from "./entities/RoleFrequency";
 import { XC } from "./entities/XC";
 import dotenv from "dotenv";
 dotenv.config();
-console.log("db env", process.env);
 
 export const AppDataSource = new DataSource({
   type: "postgres",
