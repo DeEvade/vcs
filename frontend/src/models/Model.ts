@@ -3,7 +3,7 @@ import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export const model = {
-  devMode: false as boolean,
+  devMode: true as boolean,
   configuration: null as Configuration | null,
   selectedRoles: [] as string[],
   openRoleModal: true as boolean,

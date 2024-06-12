@@ -7,6 +7,8 @@ import { XC } from "./entities/XC";
 import dotenv from "dotenv";
 dotenv.config();
 
+const isDev = process.env.NODE_ENV === "dev";
+
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.POSTGRES_HOST || process.env.DB_HOST || "localhost",
@@ -20,10 +22,13 @@ export const AppDataSource = new DataSource({
   entities: [Configuration, Frequency, Role, RoleFrequency, XC],
   subscribers: [],
   migrations: [],
-  ssl: true,
-  extra: {
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  },
+
+  ssl: !isDev,
+  extra: isDev
+    ? null
+    : {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
 });
