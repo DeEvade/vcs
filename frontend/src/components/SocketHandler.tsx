@@ -32,7 +32,6 @@ const SocketHandler = observer((props: Props) => {
     null
   );
 
-  const { pttActive } = usePTT();
   const [micLevel, setMicLevel] = useState<number>(0);
 
   //useEffect that handles all instances of audio and media streams
